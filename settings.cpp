@@ -41,7 +41,12 @@ void Settings::load() {
         myOverlays.append(l);
     }
     settings->endArray();
-
+    size = settings->beginReadArray("mapicons");
+    for (int i = 0; i < size; i++) {
+        settings->setArrayIndex(i);
+        myMapIcons.append(MapIcon(settings->value("name").toString(), settings->value("icofile").toString(),
+                                  settings->value("mapicofile").toString()));
+    }
 }
 
 void Settings::save() {
@@ -58,6 +63,13 @@ void Settings::save() {
         settings.setArrayIndex(i);
         settings.setValue("name", myOverlays[i].name());
         settings.setValue(("url"), myOverlays[i].url());
+    }
+    settings.endArray();
+    settings.beginWriteArray("mapicons");
+    for (int i = 0; i < myMapIcons.size(); i++) {
+        settings.setValue("name", myMapIcons[i].name());
+        settings.setValue("icofile", myMapIcons[i].icoFile());
+        settings.setValue("mapicofile", myMapIcons[i].mapIcoFile());
     }
     settings.endArray();
     settings.setValue("center", myCenter);

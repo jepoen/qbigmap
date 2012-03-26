@@ -83,3 +83,18 @@ void MoveRoutePointFunction::motion(const QPointF &pos) {
     }
 }
 
+EditRoutePointFunction::EditRoutePointFunction(MapView *view) :
+    ViewFunction(view)
+{}
+
+void EditRoutePointFunction::b1(const QPointF &pos) {
+    myView->editRoutePoint(pos);
+}
+
+InsertRoutePointFunction::InsertRoutePointFunction(MapView *view) :
+    ViewFunction(view)
+{}
+
+void InsertRoutePointFunction::b1(const QPointF &pos) {
+    myView->insertRoutePoint(pos);
+}

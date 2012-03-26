@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QList>
 #include <QPoint>
+#include "mapicon.h"
 
 class Layer {
 private:
@@ -46,6 +47,7 @@ private:
     int myOutTrackWidth;
     QColor myOutRouteColor;
     int myOutRouteWidth;
+    QList<MapIcon> myMapIcons;
 public:
     Settings();
     int zoom() const { return myZoom; }
@@ -74,6 +76,7 @@ public:
     void setOutRouteColor(const QColor& co) { myOutRouteColor = co; }
     int outRouteWidth() const { return myOutRouteWidth; }
     void setOutRouteWidth(int val) { myOutRouteWidth = val; }
+    const QList<MapIcon> mapIcons() const { return myMapIcons; }
     void load();
     void save();
 };

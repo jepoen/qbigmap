@@ -22,5 +22,6 @@
         <file>icons/dprev.png</file>
         <file>icons/dnext.png</file>
         <file>icons/disk.png</file>
+        <file>icons/flag.png</file>
     </qresource>
 </RCC>

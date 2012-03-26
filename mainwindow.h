@@ -68,6 +68,8 @@ private:
     QAction *newRoutePointAction;
     QAction *delRoutePointAction;
     QAction *moveRoutePointAction;
+    QAction *editRoutePointAction;
+    QAction *insertRoutePointAction;
     QAction *saveRouteAction;
     QAction *delRouteAction;
     QAction *showPhotoAction;

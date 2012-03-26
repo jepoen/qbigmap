@@ -29,7 +29,10 @@ SOURCES += main.cpp \
     saveroutedlg.cpp \
     graph.cpp \
     photo.cpp \
-    photodlg.cpp
+    photodlg.cpp \
+    mapicon.cpp \
+    routepointdlg.cpp \
+    geom.cpp
 HEADERS += mainwindow.h \
     tile.h \
     httpget.h \
@@ -53,7 +56,10 @@ HEADERS += mainwindow.h \
     saveroutedlg.h \
     graph.h \
     photo.h \
-    photodlg.h
+    photodlg.h \
+    mapicon.h \
+    routepointdlg.h \
+    geom.h
 RESOURCES += qbigmap.qrc
 TRANSLATIONS = qbigmap_de.ts
 LIBS += -lexif

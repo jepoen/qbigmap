@@ -1,28 +1,32 @@
 #ifndef ROUTE_H
 #define ROUTE_H
 
-#include <string>
 #include <QObject>
 #include <QPoint>
 #include <QList>
+#include <QString>
 
 class QIODevice;
 
 class RoutePoint {
 private:
     QPointF myCoord;
-    std::string mySym;
-    std::string myName;
-    std::string myDesc;
-    std::string myLink;
+    QString mySym;
+    QString myName;
+    QString myDesc;
+    QString myLink;
 public:
-    RoutePoint(const QPointF& coord, const std::string& sym = "",
-               const std::string& name = "",
-               const std::string& desc = "", const std::string& link = "") :
+    explicit RoutePoint(const QPointF& coord, const QString& sym = "",
+               const QString& name = "",
+               const QString& desc = "", const QString& link = "") :
         myCoord(coord), mySym(sym), myName(name), myDesc(desc), myLink(link)
     {}
     const QPointF& coord() const { return myCoord; }
     void setCoord(const QPointF& coord) { myCoord = coord; }
+    const QString& sym() const { return mySym; }
+    const QString& name() const { return myName; }
+    const QString& desc() const { return myDesc; }
+    const QString& link() const { return myLink; }
 };
 
 typedef QList<RoutePoint> RoutePointList;
@@ -41,7 +45,9 @@ public:
     void setName(const QString& name) { myName = name; }
     void newRoutePoint(const RoutePoint& point);
     void delRoutePoint(int idx);
+    void updateRoutePoint(int idx, const RoutePoint& point);
     void moveRoutePoint(int idx, const QPointF& pos);
+    void insertRoutePoint(int idx, const RoutePoint &point);
     void delRoute();
     bool isDirty() const { return myDirty; }
     void writeXml(QIODevice *dev);

@@ -2,6 +2,7 @@
 #define MAPVIEW_H
 
 #include <QGraphicsView>
+#include "settings.h"
 
 class ViewFunction;
 
@@ -9,13 +10,14 @@ class MapView : public QGraphicsView
 {
     Q_OBJECT
 private:
+    Settings *mySettings;
     ViewFunction *function;
     int mouseX0;
     int mouseY0;
     QGraphicsItem *tempItem;
 
 public:
-    MapView(QGraphicsScene *scene);
+    MapView(QGraphicsScene *scene, Settings *settings);
     void zoomIn(const QPointF& pos);
     void zoomOut(const QPointF& pos);
     void showPos(const QPointF& pos);
@@ -23,6 +25,8 @@ public:
     int idxOfRoutePoint(const QPointF& pos);
     void delRoutePoint(const QPointF& pos);
     void moveRoutePoint(int idx, const QPointF& pos);
+    void editRoutePoint(const QPointF& pos);
+    void insertRoutePoint(const QPointF& pos);
     void output(QPrinter *device, double tilesize);
     void createTempPoint(const QPointF& pos);
     void deleteTempPoint();
@@ -40,6 +44,8 @@ public slots:
     void setNewRoutePointFunction();
     void setDelRoutePointFunction();
     void setMoveRoutePointFunction();
+    void setEditRoutePointFunction();
+    void setInsertRoutePointFunction();
     void moveTempPoint(const QPointF& pos);
 };
 

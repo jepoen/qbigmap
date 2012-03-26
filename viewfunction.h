@@ -58,4 +58,16 @@ public:
     void motion(const QPointF &pos);
 };
 
+class EditRoutePointFunction : public ViewFunction {
+public:
+    explicit EditRoutePointFunction(MapView *view);
+    void b1(const QPointF &pos);
+};
+
+class InsertRoutePointFunction: public ViewFunction {
+public:
+    explicit InsertRoutePointFunction(MapView *view);
+    void b1(const QPointF &pos);
+};
+
 #endif // VIEWFUNCTION_H

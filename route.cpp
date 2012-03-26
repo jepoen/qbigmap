@@ -22,10 +22,22 @@ void Route::delRoutePoint(int pos) {
     emit routeChanged();
 }
 
+void Route::updateRoutePoint(int idx, const RoutePoint &point) {
+    myPoints[idx] = point;
+    myDirty = true;
+    emit routePointMoved(idx);
+}
+
 void Route::moveRoutePoint(int idx, const QPointF &pos) {
     myPoints[idx].setCoord(pos);
     myDirty = true;
     emit routePointMoved(idx);
+}
+
+void Route::insertRoutePoint(int idx, const RoutePoint &point) {
+    myPoints.insert(idx, point);
+    myDirty = true;
+    emit routeChanged();
 }
 
 void Route::delRoute() {
@@ -54,6 +66,18 @@ void Route::writeXml(QIODevice *dev) {
         rtept.setAttribute("lon", locale.toString(p.coord().x(), 'g', 10));
         rtept.setAttribute("lat", locale.toString(p.coord().y(), 'g', 10));
         rte.appendChild(rtept);
+        if (p.sym() != "") {
+            QDomElement el = doc.createElement("sym");
+            QDomText txt = doc.createTextNode(p.sym());
+            el.appendChild(txt);
+            rtept.appendChild(el);
+        }
+        if (p.name() != "") {
+            QDomElement el = doc.createElement("name");
+            QDomText txt = doc.createTextNode(p.name());
+            el.appendChild(txt);
+            rtept.appendChild(el);
+        }
     }
     QTextStream stream(dev);
     doc.save(stream, 4);
@@ -95,7 +119,16 @@ bool Route::readXml(QIODevice *dev) {
          pt = pt.nextSiblingElement("rtept")) {
         double lon = pt.attribute("lon").toDouble();
         double lat = pt.attribute("lat").toDouble();
-        RoutePoint rpt(QPointF(lon, lat));
+        QString sym("");
+        QString name("");
+        for (QDomElement c = pt.firstChildElement(); !c.isNull(); c = c.nextSiblingElement()) {
+            if (c.nodeName() == "sym") {
+                sym = c.text();
+            } else if (c.nodeName() == "name") {
+                name = c.text();
+            }
+        }
+        RoutePoint rpt(QPointF(lon, lat), sym, name);
         myPoints.append(rpt);
     }
     emit routeChanged();

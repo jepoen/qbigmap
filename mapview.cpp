@@ -1,15 +1,17 @@
 #include <QtGui>
 #include <QtDebug>
+#include "geom.h"
 #include "model.h"
 #include "mapscene.h"
 #include "mapview.h"
 #include "route.h"
+#include "routepointdlg.h"
 #include "track.h"
 #include "viewfunction.h"
 
-MapView::MapView(QGraphicsScene *scene) :
-        QGraphicsView(scene),
-        tempItem(NULL)
+MapView::MapView(QGraphicsScene *scene, Settings *settings) :
+    QGraphicsView(scene), mySettings(settings),
+    tempItem(NULL)
 {
     function = new ShowFunction(this);
     setMouseTracking(true);
@@ -130,6 +132,41 @@ void MapView::moveRoutePoint(int idx, const QPointF& pos) {
     mapScene->model()->route()->moveRoutePoint(idx, lonLat);
 }
 
+void MapView::editRoutePoint(const QPointF& pos) {
+    int idx = idxOfRoutePoint(pos);
+    if (idx < 0) return;
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    Model *model = mapScene->model();
+    RoutePointDlg dlg(model->route()->points()->at(idx), mySettings->mapIcons());
+    if (dlg.exec()) {
+        model->route()->updateRoutePoint(idx, dlg.point());
+    }
+}
+
+void MapView::insertRoutePoint(const QPointF &pos) {
+    QPointF vpos = mapFromScene(pos);
+    QRect bb(vpos.x()-3, vpos.y()-3, 7, 7);
+    RouteItem *rIt = 0;
+    foreach(QGraphicsItem *it, items(bb)) {
+        qDebug()<<"Found "<<it<<" "<<it->type()<<" "<<RouteItem::Type;
+        if (it->type() == RouteItem::Type) {
+            rIt = qgraphicsitem_cast<RouteItem *>(it);
+            qDebug()<<rIt;
+            break;
+        }
+    }
+    if (!rIt) return;
+    qDebug()<<"route found "<<pos;
+    qDebug()<<rIt->points();
+    IdxPointF ipt = insertPoint(rIt->points(), pos);
+    if (ipt.idx() > 0) {
+        MapScene *mapScene = static_cast<MapScene*>(scene());
+        Model *model = mapScene->model();
+        QPointF lonLat = model->lonLat(ipt.point());
+        model->route()->insertRoutePoint(ipt.idx(), RoutePoint(lonLat));
+    }
+}
+
 void MapView::setShowFunction() {
     delete function;
     function = new ShowFunction(this);
@@ -158,6 +195,16 @@ void MapView::setDelRoutePointFunction() {
 void MapView::setMoveRoutePointFunction() {
     delete function;
     function = new MoveRoutePointFunction(this);
+}
+
+void MapView::setEditRoutePointFunction() {
+    delete function;
+    function = new EditRoutePointFunction(this);
+}
+
+void MapView::setInsertRoutePointFunction() {
+    delete function;
+    function = new InsertRoutePointFunction(this);
 }
 
 void MapView::createTempPoint(const QPointF& pos) {

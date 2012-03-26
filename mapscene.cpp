@@ -152,9 +152,9 @@ void RouteItem::setPoints(const QPolygonF &points) {
     update();
 }
 
-RoutePointItem::RoutePointItem(const QPointF &point, QGraphicsItem *parent) :
+RoutePointItem::RoutePointItem(const QPointF &point, const QString& sym, QGraphicsItem *parent) :
         QGraphicsItem(parent),
-        myPoint(point)
+    myPoint(point), mySym(sym != "")
 {}
 
 QRectF RoutePointItem::boundingRect() const {
@@ -172,13 +172,22 @@ void RoutePointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     Q_UNUSED(option);
     Q_UNUSED(widget);
     QPainterPath path = shape();
-    painter->fillPath(path, QBrush(qRgba(255, 0, 255, 20)));
+    QRgb col = qRgba(255, 0, 255, 20);
+    if (mySym) {
+        col = qRgba(0, 255, 255, 20);
+    }
+    painter->fillPath(path, QBrush(col));
     painter->strokePath(path, QPen(Qt::black));
 }
 
 void RoutePointItem::setPoint(const QPointF &point) {
     prepareGeometryChange();
     myPoint = point;
+    update();
+}
+
+void RoutePointItem::setSym(const QString& sym) {
+    mySym = (sym != "");
     update();
 }
 
@@ -488,10 +497,10 @@ void MapScene::redrawRoute() {
     QPolygonF points;
     qDeleteAll(myRoutePointItems);
     myRoutePointItems.clear();
-    foreach (RoutePoint point, *myModel->route()->points()) {
+    foreach (const RoutePoint& point, *myModel->route()->points()) {
         QPointF pt = myModel->lonLat2Scene(point.coord());
         points.append(pt);
-        RoutePointItem *it = new RoutePointItem(pt);
+        RoutePointItem *it = new RoutePointItem(pt, point.sym());
         addItem(it);
         myRoutePointItems.append(it);
     }
@@ -516,6 +525,7 @@ void MapScene::changeRoutePos(int idx) {
     RoutePoint routePoint = (*myModel->route()->points())[idx];
     QPointF p = myModel->lonLat2Scene(routePoint.coord());
     myRoutePointItems[idx]->setPoint(p);
+    myRoutePointItems[idx]->setSym(routePoint.sym());
     QPolygonF points;
     foreach (const RoutePoint& point, *myModel->route()->points()) {
         QPointF pt = myModel->lonLat2Scene(point.coord());

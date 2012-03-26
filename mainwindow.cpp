@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     readSettings();
     scene = new MapScene(model);
     scene->setSceneRect(0, 0, 256*model->width(), 256*model->height());
-    view = new MapView(scene);
+    view = new MapView(scene, &settings);
     profileScene = new ProfileScene(model);
     profileView = new ProfileView(profileScene);
     profileView->setVisible(false);
@@ -195,6 +195,12 @@ void MainWindow::createActions() {
     moveRoutePointAction->setCheckable(true);
     functionActionGroup->addAction(moveRoutePointAction);
     connect(moveRoutePointAction, SIGNAL(triggered()), view, SLOT(setMoveRoutePointFunction()));
+    editRoutePointAction = new QAction(tr("Edit route point"), functionActionGroup);
+    editRoutePointAction->setCheckable(true);
+    connect(editRoutePointAction, SIGNAL(triggered()), view, SLOT(setEditRoutePointFunction()));
+    insertRoutePointAction = new QAction(tr("Insert route point"), functionActionGroup);
+    insertRoutePointAction->setCheckable(true);
+    connect(insertRoutePointAction, SIGNAL(triggered()), view, SLOT(setInsertRoutePointFunction()));
     saveRouteAction = new QAction(tr("Save as"), this);
     connect(saveRouteAction, SIGNAL(triggered()), this, SLOT(saveRoute()));
     delRouteAction = new QAction(tr("Delete complete route"), this);
@@ -365,6 +371,8 @@ void MainWindow::createMenuBar() {
     mRoute->addAction(newRoutePointAction);
     mRoute->addAction(delRoutePointAction);
     mRoute->addAction(moveRoutePointAction);
+    mRoute->addAction(editRoutePointAction);
+    mRoute->addAction(insertRoutePointAction);
     mRoute->addAction(saveRouteAction);
     mRoute->addAction(delRouteAction);
     QMenu *mView = menuBar()->addMenu(tr("&View"));
