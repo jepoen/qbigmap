@@ -12,7 +12,9 @@ private:
     QCheckBox *eOverlays;
     QCheckBox *eGrid;
     QCheckBox *eTrack;
+    QCheckBox *eTrackSym;
     QCheckBox *eRoute;
+    QCheckBox *eRouteSym;
     QCheckBox *eRestrict;
 
 public:
@@ -22,10 +24,14 @@ public:
     void setGrid(bool bShowGrid);
     bool getTrack() const;
     void setTrack(bool bShowTrack);
+    bool getTrackSym() const;
+    void setTrackSym(bool bTrackSym);
     bool getRoute() const;
     void setRoute(bool bShowRoute);
-    void setRestrict(bool bRestrict);
+    bool getRouteSym() const;
+    void setRouteSym(bool bRouteSym);
     bool getRestrict() const;
+    void setRestrict(bool bRestrict);
 
 signals:
 

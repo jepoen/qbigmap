@@ -28,11 +28,13 @@ SOURCES += main.cpp \
     tracksimplifydlg.cpp \
     saveroutedlg.cpp \
     graph.cpp \
-    photo.cpp \
-    photodlg.cpp \
+    #photo.cpp \
+    #photodlg.cpp \
     mapicon.cpp \
-    routepointdlg.cpp \
-    geom.cpp
+    geom.cpp \
+    gpx.cpp \
+    srtm.cpp \
+    gpxpointdlg.cpp
 HEADERS += mainwindow.h \
     tile.h \
     httpget.h \
@@ -55,11 +57,45 @@ HEADERS += mainwindow.h \
     outputseldlg.h \
     saveroutedlg.h \
     graph.h \
-    photo.h \
-    photodlg.h \
+    #photo.h \
+    #photodlg.h \
     mapicon.h \
-    routepointdlg.h \
-    geom.h
+    geom.h \
+    gpx.h \
+    srtm.h \
+    gpxpointdlg.h
 RESOURCES += qbigmap.qrc
 TRANSLATIONS = qbigmap_de.ts
-LIBS += -lexif
+#LIBS += -lexif
+
+OTHER_FILES += \
+    resources/QBigMap.conf \
+    icons/zoom_out.png \
+    icons/zoom_in.png \
+    icons/shell-s.png \
+    icons/shell.png \
+    icons/resultset_previous.png \
+    icons/resultset_next.png \
+    icons/resultset_last.png \
+    icons/resultset_first.png \
+    icons/printer.png \
+    icons/information.png \
+    icons/grid.xpm \
+    icons/grid.png \
+    icons/flag.png \
+    icons/dprev.png \
+    icons/dnext.png \
+    icons/disk.png \
+    icons/delete.png \
+    icons/church-s.png \
+    icons/church.png \
+    icons/arrow_up.png \
+    icons/arrow_right.png \
+    icons/arrow_refresh.png \
+    icons/arrow_left.png \
+    icons/arrow_down.png \
+    icons/add.png
+
+
+
+

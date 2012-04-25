@@ -6,7 +6,7 @@ TrackSelModel::TrackSelModel(QObject *parent) :
 {
 }
 
-TrackSelModel::TrackSelModel(const QList<SegInfo> &segments, QObject *parent) :
+TrackSelModel::TrackSelModel(const QList<TrackSegInfo> &segments, QObject *parent) :
         QAbstractTableModel(parent), mySegments(segments)
 {}
 
@@ -23,7 +23,7 @@ int TrackSelModel::columnCount(const QModelIndex &parent) const {
 QVariant TrackSelModel::data(const QModelIndex &index, int role) const {
     int idx = index.row();
     if (role == Qt::DisplayRole) {
-        SegInfo seg = mySegments[idx];
+        TrackSegInfo seg = mySegments[idx];
         QDateTime lStart = seg.startTime().toLocalTime();
         QDateTime lStop = seg.endTime().toLocalTime();
         switch (index.column()) {
@@ -85,7 +85,7 @@ QSize TrackSelModel::size() const {
     return QSize(450, h);
 }
 
-TrackSelDialog::TrackSelDialog(QList<SegInfo> segments, QWidget *parent) :
+TrackSelDialog::TrackSelDialog(QList<TrackSegInfo> segments, QWidget *parent) :
         QDialog(parent), model(segments)
 {
     QVBoxLayout *mainLayout = new QVBoxLayout();

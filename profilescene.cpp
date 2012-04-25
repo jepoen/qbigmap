@@ -35,9 +35,8 @@ void ProfileScene::redrawTrack() {
     myTrackPosItem = 0;
     Track *track = myModel->track();
     if (track == 0) return;
-    QList<ExtTrackPoint> points = track->extTrackPoints();
-    ExtTrackPoint tp = points[points.size()-1];
-    int trackLen = tp.sumDist();
+    QList<GpxPoint> points = track->trackPoints();
+    int trackLen = int(ceil(Model::geodist1(points, 0, points.size()-1)));
     myWidth = (trackLen+1)*10;
     BoundingBox bb = track->boundingBox();
     int ele0 = bb.ele().x();
@@ -68,9 +67,18 @@ void ProfileScene::redrawTrack() {
         addItem(it);
     }
     QPolygonF polygon;
-    foreach (ExtTrackPoint p, points) {
-        QPointF pt(p.sumDist()*10+myX0, myY0+myEle0-p.ele());
+    bool start = true;
+    double sumDist = 0.0;
+    GpxPoint pold(GpxPoint::TRK, QPointF(0,0));
+    foreach (const GpxPoint& p, points) {
+        if (start) {
+            start = false;
+        } else {
+            sumDist += Model::geodist1(pold.coord(), p.coord());
+        }
+        QPointF pt(int(sumDist*10)+myX0, myY0+myEle0-p.ele());
         polygon.append(pt);
+        pold = p;
     }
     it = new ProfileTrackItem(polygon);
     addItem(it);
@@ -85,8 +93,9 @@ void ProfileScene::changeTrackPos(int pos) {
         myTrackPosItem->setPen(QPen(Qt::magenta));
         addItem(myTrackPosItem);
     }
-    ExtTrackPoint p = myModel->track()->extTrackPoint(pos);
-    double x = p.sumDist()*10+myX0;
+    GpxPoint p = myModel->track()->trackPoint(pos);
+    double dist = myModel->track()->dist(pos);
+    int x = int(dist*10)+myX0;
     myTrackPosItem->setLine(x, myY0, x, myY0+myEle0-p.ele());
 }
 

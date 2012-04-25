@@ -23,7 +23,7 @@ TrackSimplifyDlg::TrackSimplifyDlg(MapScene *scene, QWidget *parent) :
     ctrl->addWidget(eFailure, 0, 1);
     QLabel *lTrackPoints = new QLabel(tr("Track points"));
     ctrl->addWidget(lTrackPoints, 1, 0);
-    eTrackPoints = new QLabel(QString("%1").arg(track->extTrackPoints().size()));
+    eTrackPoints = new QLabel(QString("%1").arg(track->trackPoints().size()));
     ctrl->addWidget(eTrackPoints, 1, 1);
     QLabel *lFileName = new QLabel(tr("&Simple Track file name:"));
     ctrl->addWidget(lFileName, 2, 0);
@@ -93,15 +93,15 @@ void TrackSimplifyDlg::selFileName() {
 void TrackSimplifyDlg::simplify(int val) {
     qDebug()<<"simplify "<<val;
     mySimpleTrack.reset(myScene->model()->track()->simplify(val));
-    eTrackPoints->setText(QString("%1").arg(mySimpleTrack->extTrackPoints().size()));
+    eTrackPoints->setText(QString("%1").arg(mySimpleTrack->trackPoints().size()));
     redrawTrack();
 }
 
 void TrackSimplifyDlg::redrawTrack() {
     QPolygonF points;
     Model *myModel = myScene->model();
-    foreach (ExtTrackPoint p, mySimpleTrack->extTrackPoints()) {
-        QPointF pt = myModel->lonLat2Scene(p.lonLat());
+    foreach (const GpxPoint& p, mySimpleTrack->trackPoints()) {
+        QPointF pt = myModel->lonLat2Scene(p.coord());
         points.append(pt);
     }
     if (!myTrackItem.get()) {

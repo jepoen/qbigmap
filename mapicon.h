@@ -13,11 +13,12 @@ private:
     QPixmap myIco;
     QPixmap myMapIco;
 public:
-    MapIcon(const QString& name, const QString& icoFile, const QString& mapFile);
+    MapIcon(const QString& name="", const QString& icoFile="", const QString& mapFile="");
     const QString& name() const { return myName; }
     const QPixmap& ico() const { return myIco; }
     const QString& icoFile() const { return myIcoFile; }
     const QString& mapIcoFile() const { return myMapIcoFile; }
+    bool isNull() const { return myName == ""; }
 };
 
 #endif // MAPICON_H

@@ -5,54 +5,34 @@
 #include <QPoint>
 #include <QList>
 #include <QString>
+#include "gpx.h"
 
 class QIODevice;
-
-class RoutePoint {
-private:
-    QPointF myCoord;
-    QString mySym;
-    QString myName;
-    QString myDesc;
-    QString myLink;
-public:
-    explicit RoutePoint(const QPointF& coord, const QString& sym = "",
-               const QString& name = "",
-               const QString& desc = "", const QString& link = "") :
-        myCoord(coord), mySym(sym), myName(name), myDesc(desc), myLink(link)
-    {}
-    const QPointF& coord() const { return myCoord; }
-    void setCoord(const QPointF& coord) { myCoord = coord; }
-    const QString& sym() const { return mySym; }
-    const QString& name() const { return myName; }
-    const QString& desc() const { return myDesc; }
-    const QString& link() const { return myLink; }
-};
-
-typedef QList<RoutePoint> RoutePointList;
 
 class Route : public QObject
 {
     Q_OBJECT
 private:
+    QString myFileName;
     QString myName;
-    RoutePointList myPoints;
+    GpxPointList myPoints;
     bool myDirty;
 public:
-    Route(const QString& filename = QString());
-    RoutePointList *points() { return &myPoints; }
+    Route(const QString& fileName="", const QString& name="", const GpxPointList& points = GpxPointList());
+    GpxPointList *points() { return &myPoints; }
+    const QString fileName() const { return myFileName; }
+    void setFileName(const QString& fileName) { myFileName = fileName; }
     const QString name() const { return myName; }
     void setName(const QString& name) { myName = name; }
-    void newRoutePoint(const RoutePoint& point);
+    void setRoutePoints(const GpxPointList& points) { myPoints = points; }
+    void newRoutePoint(const GpxPoint& point);
     void delRoutePoint(int idx);
-    void updateRoutePoint(int idx, const RoutePoint& point);
+    void updateRoutePoint(int idx, const GpxPoint& point);
     void moveRoutePoint(int idx, const QPointF& pos);
-    void insertRoutePoint(int idx, const RoutePoint &point);
+    void insertRoutePoint(int idx, const GpxPoint &point);
     void delRoute();
     bool isDirty() const { return myDirty; }
     void writeXml(QIODevice *dev);
-    bool readXml(const QString& fileName);
-    bool readXml(QIODevice *dev);
 signals:
     void routeChanged();
     void routePointMoved(int idx);

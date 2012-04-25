@@ -6,7 +6,7 @@
 #include "track.h"
 
 TrackItem::TrackItem(const QPolygonF &points, QGraphicsItem *parent) :
-        QGraphicsItem(parent), myPoints(points), myColor(qRgba(255, 0, 255, 20))
+        QGraphicsItem(parent), myPoints(points), myColor(qRgba(0, 255, 255, 20))
 {
     setFlags(ItemSendsGeometryChanges|ItemSendsScenePositionChanges);
 }
@@ -21,6 +21,7 @@ QPainterPath TrackItem::shape() const {
     path.moveTo(myPoints[0]);
     for (int i = 1; i < myPoints.size(); i++)
         path.lineTo(myPoints[i]);
+    path.addPath(path.toReversed());
     return path;
 }
 
@@ -39,6 +40,47 @@ void TrackItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 void TrackItem::setPoints(const QPolygonF &points) {
     prepareGeometryChange();
     myPoints = points;
+    update();
+}
+
+TrackPointItem::TrackPointItem(const QPointF &point, const QString& sym, QGraphicsItem *parent) :
+        QGraphicsItem(parent),
+    myPoint(point), mySym(sym != "")
+{
+    setZValue(10);
+}
+
+QRectF TrackPointItem::boundingRect() const {
+    //qDebug()<<"routePointItem bb: "<<QRectF(myPoint.x()-3, myPoint.y()-3, 7, 7);
+    return QRectF(myPoint.x()-5, myPoint.y()-5, 11, 11);
+}
+
+QPainterPath TrackPointItem::shape() const {
+    QPainterPath path;
+    path.addEllipse(myPoint, 3, 3);
+    return path;
+}
+
+void TrackPointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
+    QPainterPath path = shape();
+    QRgb col = qRgba(0, 0, 255, 20);
+    if (mySym) {
+        col = qRgba(255, 255, 0, 20);
+    }
+    painter->fillPath(path, QBrush(col));
+    painter->strokePath(path, QPen(Qt::black));
+}
+
+void TrackPointItem::setPoint(const QPointF &point) {
+    prepareGeometryChange();
+    myPoint = point;
+    update();
+}
+
+void TrackPointItem::setSym(const QString& sym) {
+    mySym = (sym != "");
     update();
 }
 
@@ -83,8 +125,8 @@ void WaypointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     painter->drawText(QPointF(5, 5), myText);
 }
 
-TrackPosItem::TrackPosItem(QGraphicsItem *parent) :
-        QGraphicsItem(parent)
+TrackPosItem::TrackPosItem(const QPointF& pos, QGraphicsItem *parent) :
+    QGraphicsItem(parent), myPos(pos)
 {
     //setFlags(ItemSendsGeometryChanges|ItemSendsScenePositionChanges);
 }
@@ -117,9 +159,9 @@ void TrackPosItem::setPos(const QPointF &pos) {
 }
 
 RouteItem::RouteItem(const QPolygonF &points, QGraphicsItem *parent) :
-        QGraphicsItem(parent),
-        myPoints(points)
+        QGraphicsItem(parent), myPoints(points)
 {
+    setZValue(5);
 }
 
 QRectF RouteItem::boundingRect() const {
@@ -131,6 +173,7 @@ QPainterPath RouteItem::shape() const {
     path.moveTo(myPoints[0]);
     for (int i = 1; i < myPoints.size(); i++)
         path.lineTo(myPoints[i]);
+    path.addPath(path.toReversed());
     return path;
 }
 
@@ -155,7 +198,9 @@ void RouteItem::setPoints(const QPolygonF &points) {
 RoutePointItem::RoutePointItem(const QPointF &point, const QString& sym, QGraphicsItem *parent) :
         QGraphicsItem(parent),
     myPoint(point), mySym(sym != "")
-{}
+{
+    setZValue(10);
+}
 
 QRectF RoutePointItem::boundingRect() const {
     //qDebug()<<"routePointItem bb: "<<QRectF(myPoint.x()-3, myPoint.y()-3, 7, 7);
@@ -206,6 +251,7 @@ MapScene::MapScene(Model *model, QObject *parent) :
     connect(myModel, SIGNAL(trackPosChanged(int)), this, SLOT(changeTrackPos(int)));
     connect(myModel, SIGNAL(routeChanged()), this, SLOT(redrawRoute()));
     connect(myModel, SIGNAL(routePointMoved(int)), this, SLOT(changeRoutePos(int)));
+    connect(myModel, SIGNAL(waypointsChanged()), this, SLOT(redrawWaypoints()));
     connect(&getter, SIGNAL(done(bool)), this, SLOT(tileLoaded(bool)));
 }
 
@@ -237,14 +283,13 @@ void MapScene::redrawLayer(const Layer& layer, int z) {
 
 void MapScene::redraw() {
     qDebug()<<"redraw "<<myModel->layer().name();
-    foreach(QGraphicsItem *it, items()) {
-        removeItem(it);
-        delete it;
-    }
+    qDeleteAll(items());
     gridGroup.clear();
     trackGroup.clear();
     tileBoundGroup.clear();
     myRoutePointItems.clear();
+    myTrackPointItems.clear();
+    myWaypointItems.clear();
     myTrackItem = NULL;
     myTrackPosItem = NULL;
     myRouteItem = NULL;
@@ -297,6 +342,7 @@ void MapScene::getNextTile() {
     redrawGrid();
     redrawTileBounds();
     redrawRoute();
+    redrawWaypoints();
     update();
 }
 
@@ -337,8 +383,9 @@ void MapScene::cancelRequests() {
 }
 
 void MapScene::redrawTrack() {
+    qDeleteAll(myTrackPointItems);
+    myTrackPointItems.clear();
     foreach(QGraphicsItem *it, trackGroup) {
-        removeItem(it);
         delete it;
     }
     trackGroup.clear();
@@ -349,9 +396,12 @@ void MapScene::redrawTrack() {
         return;
     }
     QPolygonF points;
-    foreach (ExtTrackPoint p, track->extTrackPoints()) {
-        QPointF pt = myModel->lonLat2Scene(p.lonLat());
+    foreach (const GpxPoint& p, track->trackPoints()) {
+        QPointF pt = myModel->lonLat2Scene(p.coord());
         points.append(pt);
+        TrackPointItem *it = new TrackPointItem(pt, p.sym());
+        myTrackPointItems.append(it);
+        addItem(it);
     }
     /* adjust scene rect
     QRectF pbb = points.boundingRect();
@@ -371,6 +421,7 @@ void MapScene::redrawTrack() {
     else {
         myTrackItem->setPoints(points);
     }
+    /*
     foreach(Waypoint wpt, track->waypoints()) {
         QPointF pt = myModel->lonLat2Scene(wpt.lonLat());
         WaypointItem *it = new WaypointItem(wpt.name());
@@ -378,6 +429,7 @@ void MapScene::redrawTrack() {
         trackGroup.append(it);
         it->setPos(pt);
     }
+    */
     if (myShowTrackBb) {
         BoundingBox bb = track->boundingBox();
         qDebug()<<"bb "<<bb.p0()<<" "<<bb.p1();
@@ -420,7 +472,7 @@ void MapScene::redrawGrid() {
     }
     QPointF lonLat0 = myModel->lonLat(QPointF(0, 0));
     QPointF lonLat1 = myModel->lonLat(QPointF(0, myModel->height()*256));
-    double distKm = Model::geodist0(lonLat0, lonLat1);
+    double distKm = Model::geodist1(lonLat0, lonLat1);
     double lineDist = myModel->height()*256/distKm;
     while (lineDist < 20)
         lineDist *= 10;
@@ -467,15 +519,16 @@ void MapScene::redrawTileBounds() {
 void MapScene::changeTrackPos(int pos) {
     if (myModel->track() == NULL)
         return;
+    GpxPoint p = myModel->track()->trackPoint(pos);
+    QPointF pt = myModel->lonLat2Scene(p.coord());
     if (myTrackPosItem == 0) {
-        myTrackPosItem = new TrackPosItem();
+        myTrackPosItem = new TrackPosItem(pt);
         myTrackPosItem->setZValue(10);
         addItem(myTrackPosItem);
         trackGroup.append(myTrackPosItem);
+    } else {
+        myTrackPosItem->setPos(pt);
     }
-    ExtTrackPoint p = myModel->track()->extTrackPoint(pos);
-    QPointF pt = myModel->lonLat2Scene(p.lonLat());
-    myTrackPosItem->setPos(pt);
 }
 
 void MapScene::hideTrack(bool showTrackLine) {
@@ -497,7 +550,7 @@ void MapScene::redrawRoute() {
     QPolygonF points;
     qDeleteAll(myRoutePointItems);
     myRoutePointItems.clear();
-    foreach (const RoutePoint& point, *myModel->route()->points()) {
+    foreach (const GpxPoint& point, *myModel->route()->points()) {
         QPointF pt = myModel->lonLat2Scene(point.coord());
         points.append(pt);
         RoutePointItem *it = new RoutePointItem(pt, point.sym());
@@ -522,16 +575,32 @@ void MapScene::redrawRoute() {
 }
 
 void MapScene::changeRoutePos(int idx) {
-    RoutePoint routePoint = (*myModel->route()->points())[idx];
+    GpxPoint routePoint = (*myModel->route()->points())[idx];
     QPointF p = myModel->lonLat2Scene(routePoint.coord());
     myRoutePointItems[idx]->setPoint(p);
     myRoutePointItems[idx]->setSym(routePoint.sym());
     QPolygonF points;
-    foreach (const RoutePoint& point, *myModel->route()->points()) {
+    foreach (const GpxPoint& point, *myModel->route()->points()) {
         QPointF pt = myModel->lonLat2Scene(point.coord());
         points.append(pt);
     }
     if (points.size() >= 2) {
         myRouteItem->setPoints(points);
+    }
+}
+
+void MapScene::redrawWaypoints() {
+    qDebug()<<"redrawWaypoints";
+    foreach(QGraphicsItem *it, myWaypointItems) {
+        delete it;
+    }
+    myWaypointItems.clear();
+    foreach (const GpxPoint& p, myModel->waypoints()) {
+        qDebug()<<"waypoint "<<p.name()<<" "<<p.coord();
+        WaypointItem *it = new WaypointItem(p.name());
+        QPointF coord = myModel->lonLat2Scene(p.coord());
+        it->setPos(coord);
+        addItem(it);
+        myWaypointItems.append(it);
     }
 }

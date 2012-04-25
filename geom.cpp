@@ -5,6 +5,7 @@ IdxPointF insertPoint(const QPolygonF &poly, const QPointF &pos) {
     int iMin = -1;
     double minDist2 = 0;
     QPointF res(0, 0);
+    double minT = 1.0;
     for (int i = 1; i < poly.size(); i++) {
         QPointF vl = poly.at(i) - poly.at(i-1);
         QPointF vx = pos - poly.at(i-1);
@@ -18,8 +19,9 @@ IdxPointF insertPoint(const QPolygonF &poly, const QPointF &pos) {
                 iMin = i;
                 minDist2 = dist2;
                 res = QPointF((1.0-t)*poly.at(i-1) + t*poly.at(i));
+                minT = t;
             }
         }
     }
-    return IdxPointF(iMin, res);
+    return IdxPointF(iMin, res, minT);
 }

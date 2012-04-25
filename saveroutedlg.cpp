@@ -1,7 +1,7 @@
 #include <QtGui>
 #include "saveroutedlg.h"
 
-SaveRouteDlg::SaveRouteDlg(const QString &name, QWidget *parent) :
+SaveRouteDlg::SaveRouteDlg(const QString& fileName, const QString &name, QWidget *parent) :
     QDialog(parent)
 {
     setWindowTitle(tr("Save route"));
@@ -14,7 +14,9 @@ SaveRouteDlg::SaveRouteDlg(const QString &name, QWidget *parent) :
     controlLayout->addWidget(eName, 0, 1);
     QLabel *lFileName = new QLabel(tr("&File name:"));
     controlLayout->addWidget(lFileName, 1, 0);
-    eFileName = new QLabel(QDir::currentPath().append("/route.gpx"));
+    QString fn = fileName;
+    if (fileName.isEmpty()) fn = QDir::currentPath().append("/route.gpx");
+    eFileName = new QLabel(fn);
     eFileName->setMinimumWidth(300);
     eFileName->setAutoFillBackground(true);
     eFileName->setPalette(Qt::yellow);
@@ -25,8 +27,10 @@ SaveRouteDlg::SaveRouteDlg(const QString &name, QWidget *parent) :
     QAction *selFileAction = new QAction(QIcon(":/icons/disk.png"), tr("Select File"), this);
     bFileName->setDefaultAction(selFileAction);
     controlLayout->addWidget(bFileName, 1, 2);
+    eWaypoints = new QCheckBox(tr("Add &Waypoints to route"));
+    controlLayout->addWidget(eWaypoints, 2, 0, 1, 2);
     eUpload = new QCheckBox(tr("&Upload to GPS device"));
-    controlLayout->addWidget(eUpload, 2, 0, 1, 2);
+    controlLayout->addWidget(eUpload, 3, 0, 1, 2);
 
     mainLayout->addLayout(controlLayout);
     QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
@@ -39,11 +43,7 @@ SaveRouteDlg::SaveRouteDlg(const QString &name, QWidget *parent) :
 }
 
 void SaveRouteDlg::selectFile() {
-    QString fn = fileName();
-    int pos = fn.lastIndexOf('/');
-    QDir dir(fn.left(pos));
-    qDebug()<<dir;
-    fn = QFileDialog::getSaveFileName(this, tr("Select Route File"), dir.absolutePath(),
+    QString fn = QFileDialog::getSaveFileName(this, tr("Select Route File"), QDir(fileName()).absolutePath(),
                                                     tr("GPX file (*.gpx)"));
     if (!fn.isEmpty()) {
         eFileName->setText(fn);
@@ -73,6 +73,14 @@ const QString SaveRouteDlg::fileName() const {
         fn += ".gpx";
     }
     return fn;
+}
+
+void SaveRouteDlg::setWaypoints(bool val) {
+    eWaypoints->setChecked(val);
+}
+
+bool SaveRouteDlg::isWaywaypoints() const {
+    return eWaypoints->isChecked();
 }
 
 bool SaveRouteDlg::isUpload() const {

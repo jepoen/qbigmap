@@ -3,17 +3,17 @@
 
 #include <QDialog>
 #include <QTableView>
-#include "track.h"
+#include "gpx.h"
 class QListWidget;
 
 class TrackSelModel : public QAbstractTableModel
 {
     Q_OBJECT
 private:
-    QList<SegInfo> mySegments;
+    QList<TrackSegInfo> mySegments;
 public:
     TrackSelModel(QObject *parent = 0);
-    TrackSelModel(const QList<SegInfo>& segments, QObject *parent = 0);
+    TrackSelModel(const QList<TrackSegInfo>& segments, QObject *parent = 0);
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
@@ -27,7 +27,7 @@ private:
     TrackSelModel model;
     QTableView *eSegments;
 public:
-    TrackSelDialog(QList<SegInfo> segments, QWidget *parent = 0);
+    TrackSelDialog(QList<TrackSegInfo> segments, QWidget *parent = 0);
     QList<int> selectedRows();
 };
 

@@ -23,5 +23,9 @@
         <file>icons/dnext.png</file>
         <file>icons/disk.png</file>
         <file>icons/flag.png</file>
+        <file>icons/church.png</file>
+        <file>icons/church-s.png</file>
+        <file>icons/shell.png</file>
+        <file>icons/shell-s.png</file>
     </qresource>
 </RCC>

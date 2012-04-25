@@ -2,7 +2,7 @@
 #include <QtDebug>
 #include "trackposdlg.h"
 
-TrackPosDlg::TrackPosDlg(const ExtTrackPoint& p, QWidget *parent) :
+TrackPosDlg::TrackPosDlg(const GpxPoint& p, QWidget *parent) :
     QDialog(parent), myP(p)
 {
     qDebug()<<"ele "<<myP.ele();
@@ -14,7 +14,7 @@ TrackPosDlg::TrackPosDlg(const ExtTrackPoint& p, QWidget *parent) :
     eLon->setRange(-180, 180);
     eLon->setDecimals(6);
     eLon->setSingleStep(0.0001);
-    eLon->setValue(myP.lonLat().x());
+    eLon->setValue(myP.coord().x());
     lLon->setBuddy(eLon);
     control->addWidget(eLon, 0, 1);
     QLabel *lLat = new QLabel(tr("L&atitude:"));
@@ -23,7 +23,7 @@ TrackPosDlg::TrackPosDlg(const ExtTrackPoint& p, QWidget *parent) :
     eLat->setRange(-90, 90);
     eLat->setDecimals(6);
     eLat->setSingleStep(0.0001);
-    eLat->setValue(myP.lonLat().y());
+    eLat->setValue(myP.coord().y());
     lLat->setBuddy(eLat);
     control->addWidget(eLat, 1, 1);
     QLabel *lEle = new QLabel(tr("&Elevation:"));
@@ -58,11 +58,11 @@ void TrackPosDlg::changePos(double val) {
     emit posChanged(pos);
 }
 
-const ExtTrackPoint& TrackPosDlg::extTrackPoint() const {
+const GpxPoint &TrackPosDlg::trackPoint() const {
     return myP;
 }
 
 void TrackPosDlg::accept() {
-    myP.setLonLat(QPointF(eLon->value(), eLat->value()));
+    myP.setCoord(QPointF(eLon->value(), eLat->value()));
     QDialog::accept();
 }

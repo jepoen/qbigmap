@@ -19,12 +19,30 @@ private:
     QColor myColor;
 public:
     enum {Type = UserType + 1};
+    int type() const { return Type; }
     TrackItem(const QPolygonF& points, QGraphicsItem *parent = 0);
     QRectF boundingRect() const;
     QPainterPath shape() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    const QPolygonF& points() const { return myPoints; }
     void setPoints(const QPolygonF& points);
     void setColor(const QColor col) { myColor = col; }
+};
+
+class TrackPointItem: public QGraphicsItem
+{
+private:
+    QPointF myPoint;
+    bool mySym;
+public:
+    enum { Type = UserType + 2 };
+    TrackPointItem(const QPointF& point, const QString& sym = "", QGraphicsItem *parent = 0);
+    int type() const { return Type; }
+    QRectF boundingRect() const;
+    QPainterPath shape() const;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    void setPoint(const QPointF& point);
+    void setSym(const QString& sym);
 };
 
 class WaypointItem : public QGraphicsItem
@@ -32,7 +50,8 @@ class WaypointItem : public QGraphicsItem
 private:
     QString myText;
 public:
-    enum { Type = UserType + 2 };
+    enum { Type = UserType + 3 };
+    int type() const { return Type; }
     WaypointItem(const QString& text, QGraphicsItem *parent = 0);
     QRectF boundingRect() const;
     QPainterPath shape() const;
@@ -45,8 +64,8 @@ class TrackPosItem : public QGraphicsItem
 private:
     QPointF myPos;
 public:
-    enum { Type = UserType + 3 };
-    TrackPosItem(QGraphicsItem *parent = 0);
+    enum { Type = UserType + 4 };
+    TrackPosItem(const QPointF& pos, QGraphicsItem *parent = 0);
     QRectF boundingRect() const;
     QPainterPath shape() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -58,7 +77,7 @@ class RouteItem: public QGraphicsItem
 private:
     QPolygonF myPoints;
 public:
-    enum { Type = UserType + 4 };
+    enum { Type = UserType + 5 };
     RouteItem(const QPolygonF &points, QGraphicsItem *parent = 0);
     int type() const { return Type; }
     QRectF boundingRect() const;
@@ -74,7 +93,7 @@ private:
     QPointF myPoint;
     bool mySym;
 public:
-    enum { Type = UserType + 5 };
+    enum { Type = UserType + 6 };
     RoutePointItem(const QPointF& point, const QString& sym = "", QGraphicsItem *parent = 0);
     int type() const { return Type; }
     QRectF boundingRect() const;
@@ -90,9 +109,11 @@ class MapScene : public QGraphicsScene
 private:
     Model *myModel;
     TrackItem *myTrackItem;
+    QList<TrackPointItem*> myTrackPointItems;
     TrackPosItem *myTrackPosItem;
     RouteItem *myRouteItem;
     QList<RoutePointItem*> myRoutePointItems;
+    QList<WaypointItem*> myWaypointItems;
     bool myShowGrid;
     bool myShowTileBounds;
     bool myShowTrackBb;
@@ -110,7 +131,8 @@ public:
     MapScene(Model *model, QObject *parent = 0);
     Model *model() { return myModel; }
     TrackItem *trackItem() const { return myTrackItem; }
-    QList<RoutePointItem *> RoutePointItems() const { return myRoutePointItems; }
+    QList<TrackPointItem *> trackPointItems() const { return myTrackPointItems; }
+    QList<RoutePointItem *> routePointItems() const { return myRoutePointItems; }
     void setShowGrid(bool show);
     bool isShowGrid() const { return myShowGrid; }
     void setShowTileBounds(bool show);
@@ -132,6 +154,7 @@ public slots:
     void redrawTileBounds();
     void redrawRoute();
     void changeRoutePos(int);
+    void redrawWaypoints();
 };
 
 #endif // MAPSCENE_H

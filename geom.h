@@ -16,12 +16,14 @@ class IdxPointF {
 private:
     int myIdx;
     QPointF myPoint;
+    double myT;
 public:
-    explicit IdxPointF(int idx = -1, const QPointF& point = QPointF()) :
-        myIdx(idx), myPoint(point)
+    explicit IdxPointF(int idx = -1, const QPointF& point = QPointF(), double t = 1.0) :
+        myIdx(idx), myPoint(point), myT(t)
     {}
     int idx() const { return myIdx; }
     const QPointF& point() const { return myPoint; }
+    double t() const { return myT; }
 };
 
 /**

@@ -12,15 +12,15 @@ class TrackPosDlg : public QDialog
 {
     Q_OBJECT
 private:
-    ExtTrackPoint myP;
+    GpxPoint myP;
     QDoubleSpinBox *eLon;
     QDoubleSpinBox *eLat;
     QDoubleSpinBox *eElevation;
     QDateTimeEdit *eTimestamp;
 
 public:
-    explicit TrackPosDlg(const ExtTrackPoint& p, QWidget *parent = 0);
-    const ExtTrackPoint& extTrackPoint() const;
+    explicit TrackPosDlg(const GpxPoint& p, QWidget *parent = 0);
+    const GpxPoint& trackPoint() const;
 signals:
     void posChanged(const QPointF& pos);
 

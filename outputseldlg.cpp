@@ -14,10 +14,14 @@ OutputSelDlg::OutputSelDlg(QWidget *parent) :
     control->addWidget(eGrid, 1, 0);
     eTrack = new QCheckBox(tr("Include Track"));
     control->addWidget(eTrack, 2, 0);
+    eTrackSym = new QCheckBox(tr("Include Track Symbols"));
+    control->addWidget(eTrackSym, 3, 0);
     eRoute = new QCheckBox(tr("Include Route"));
-    control->addWidget(eRoute, 3, 0);
+    control->addWidget(eRoute, 4, 0);
+    eRouteSym = new QCheckBox(tr("Include Route Symbols"));
+    control->addWidget(eRouteSym, 5, 0);
     eRestrict = new QCheckBox(tr("Restrict Size to track"));
-    control->addWidget(eRestrict, 4, 0);
+    control->addWidget(eRestrict, 6, 0);
 
     mainLayout->addLayout(control);
     QDialogButtonBox *box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
@@ -43,16 +47,32 @@ void OutputSelDlg::setTrack(bool bShowTrack) {
     eTrack->setChecked(bShowTrack);
 }
 
+void OutputSelDlg::setTrackSym(bool bTrackSym) {
+    eTrackSym->setChecked(bTrackSym);
+}
+
 void OutputSelDlg::setRoute(bool bShowRoute) {
     eRoute->setChecked(bShowRoute);
+}
+
+void OutputSelDlg::setRouteSym(bool bRouteSym) {
+    eRouteSym->setChecked(bRouteSym);
 }
 
 bool OutputSelDlg::getTrack() const {
     return eTrack->isChecked();
 }
 
+bool OutputSelDlg::getTrackSym() const {
+    return eTrackSym->isChecked();
+}
+
 bool OutputSelDlg::getRoute() const {
     return eRoute->isChecked();
+}
+
+bool OutputSelDlg::getRouteSym() const {
+    return eRouteSym->isChecked();
 }
 
 void OutputSelDlg::setRestrict(bool bRestrict) {

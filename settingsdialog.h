@@ -1,11 +1,13 @@
 #ifndef SETTINGSDIALOG_H
 #define SETTINGSDIALOG_H
 
+#include <QAbstractTableModel>
 #include <QDialog>
 #include "settings.h"
 
 class QLineEdit;
 class QSpinBox;
+class QTableView;
 class QToolButton;
 class QTabWidget;
 
@@ -27,18 +29,22 @@ private slots:
     void selectGpsBabel();
 };
 
-class TrackTab : public QWidget
+class DirTab : public QWidget
 {
     Q_OBJECT
 private:
     Settings *mySettings;
     QLineEdit *eTrackDir;
     QPushButton *bTrackDir;
+    QLineEdit *eSrtmDir;
+    QPushButton *bSrtmDir;
 public:
-    TrackTab(Settings *settings, QWidget *parent = 0);
+    DirTab(Settings *settings, QWidget *parent = 0);
     const QString trackDir() const;
+    const QString srtmDir() const;
 private slots:
     void selectTrackDir();
+    void selectSrtmDir();
 };
 
 class PrintTab: public QWidget
@@ -67,6 +73,27 @@ private slots:
 
 };
 
+class IconTableModel: public QAbstractTableModel {
+    Q_OBJECT
+private:
+    QList<MapIcon> myIcons;
+public:
+    IconTableModel(const QList<MapIcon> &icons, QObject *parent = 0);
+    int rowCount(const QModelIndex &parent) const;
+    int columnCount(const QModelIndex &parent) const;
+    QVariant data(const QModelIndex &index, int role) const;
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+};
+
+class IconTab: public QWidget {
+    Q_OBJECT
+private:
+    Settings *mySettings;
+    QTableView *tab;
+public:
+    IconTab(Settings *settings, QWidget *parent = 0);
+};
 
 class SettingsDialog : public QDialog
 {
@@ -75,8 +102,9 @@ private:
     Settings mySettings;
     QTabWidget *tabWidget;
     GpsTab *gpsTab;
-    TrackTab *trackTab;
+    DirTab *trackTab;
     PrintTab *printTab;
+    IconTab *iconTab;
 public:
     SettingsDialog(const Settings& settings, QWidget *parent = 0);
     const Settings& settings() const { return mySettings; }

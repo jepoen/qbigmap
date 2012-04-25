@@ -50,9 +50,13 @@ private:
     QAction *printAction;
     QAction *savePixmapAction;
     QAction *quitAction;
+    QAction *loadGpxAction;
+    QAction *saveGpxAction;
     QAction *trackFromGpsAction;
     QAction *loadTrackAction;
     QAction *saveTrackAction;
+    QAction *moveTrackPointAction;
+    QAction *moveTrackPosAction;
     QAction *deleteTrackAction;
     QAction *incTrackPosAction;
     QAction *dIncTrackPosAction;
@@ -64,7 +68,8 @@ private:
     QAction *trackBoundingBoxAction;
     QAction *editTrackPosAction;
     QAction *deleteTrackPosAction;
-    QAction *openRouteAction;
+    QAction *newWaypointAction;
+    QAction *moveWaypointAction;
     QAction *newRoutePointAction;
     QAction *delRoutePointAction;
     QAction *moveRoutePointAction;
@@ -72,8 +77,8 @@ private:
     QAction *insertRoutePointAction;
     QAction *saveRouteAction;
     QAction *delRouteAction;
-    QAction *showPhotoAction;
-    QAction *hidePhotoAction;
+    //QAction *showPhotoAction;
+    //QAction *hidePhotoAction;
     QAction *posAction;
     QAction *zoomInAction;
     QAction *zoomOutAction;
@@ -103,8 +108,7 @@ private:
     void readSettings();
     void createPhotoWidget();
     void createActions();
-    void disableTrackActions();
-    void enableTrackActions();
+    void enableTrackActions(bool enable);
     void createBaselayerActions();
     void createOverlayActions();
     void createMenuBar();
@@ -112,8 +116,8 @@ private:
     void createStatusBar();
     void output(QPrinter *device);
     void paintTiles(QPainter *painter, bool showOverlays);
-    void paintTrack(QPainter *painter);
-    void paintRoute(QPainter *painter);
+    void paintTrack(QPainter *painter, bool showSym);
+    void paintRoute(QPainter *painter, bool showSym);
     void paintGrid(QPainter *painter);
     QPixmap* createPixmap();
     void connectPhotos();
@@ -125,11 +129,12 @@ public:
 private slots:
     void print();
     void savePixmap();
+    void loadGpx();
     void readTrackFromGps();
     void loadTrack();
     void saveTrack();
     void deleteTrack();
-    void selectTrackSegments(Track *track);
+    GpxPointList selectTrackSegments(const Gpx& gpx);
     void incTrackPos();
     void dIncTrackPos();
     void decTrackPos();
@@ -140,13 +145,12 @@ private slots:
     void simplifyTrack();
     void editTrackPos();
     void deleteTrackPos();
-    void openRoute();
     void saveRoute();
     void delRoute();
-    void showPhotos();
-    void hidePhotos();
-    void showPhoto(QListWidgetItem * item);
-    void showPhotoData(QListWidgetItem *item);
+    //void showPhotos();
+    //void hidePhotos();
+    //void showPhoto(QListWidgetItem * item);
+    //void showPhotoData(QListWidgetItem *item);
     void toggleGrid();
     void toggleTileBounds();
     void addNorth();

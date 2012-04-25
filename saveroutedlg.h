@@ -14,11 +14,14 @@ private:
     QLineEdit *eName;
     QLabel *eFileName;
     QToolButton *bFileName;
+    QCheckBox *eWaypoints;
     QCheckBox *eUpload;
 public:
-    explicit SaveRouteDlg(const QString& name, QWidget *parent = 0);
+    explicit SaveRouteDlg(const QString& fileName, const QString& name, QWidget *parent = 0);
     const QString name() const;
     const QString fileName() const;
+    bool isWaywaypoints() const;
+    void setWaypoints(bool val);
     bool isUpload() const;
 signals:
 

@@ -42,29 +42,49 @@ const QString GpsTab::gpsInterface() const {
     return eGpsInterface->text();
 }
 
-TrackTab::TrackTab(Settings *settings, QWidget *parent) :
+DirTab::DirTab(Settings *settings, QWidget *parent) :
         QWidget(parent), mySettings(settings)
 {
     QGridLayout *control = new QGridLayout();
-    QLabel *lTrackDir = new QLabel(tr("Track directory:"));
-    control->addWidget(lTrackDir, 0, 0);
+    QLabel *lTrackDir = new QLabel(tr("&Track directory:"));
     eTrackDir = new QLineEdit(mySettings->trackDir());
-    control->addWidget(eTrackDir, 0, 1);
+    lTrackDir->setBuddy(eTrackDir);
     bTrackDir = new QPushButton(tr("Select"));
+    control->addWidget(lTrackDir, 0, 0);
+    control->addWidget(eTrackDir, 0, 1);
     control->addWidget(bTrackDir, 0, 2);
+    QLabel *lSrtmDir = new QLabel(tr("SRTM data directory:"));
+    eSrtmDir = new QLineEdit(mySettings->srtmDir());
+    lSrtmDir->setBuddy(eSrtmDir);
+    bSrtmDir = new QPushButton(tr("Select"));
+    control->addWidget(lSrtmDir, 1, 0);
+    control->addWidget(eSrtmDir, 1, 1);
+    control->addWidget(bSrtmDir, 1, 2);
     setLayout(control);
     connect(bTrackDir, SIGNAL(clicked()), this, SLOT(selectTrackDir()));
+    connect(bSrtmDir, SIGNAL(clicked()), this, SLOT(selectSrtmDir()));
 }
 
-void TrackTab::selectTrackDir() {
+void DirTab::selectTrackDir() {
     QString dirName = QFileDialog::getExistingDirectory(this, tr("Select track dir"), mySettings->trackDir());
     if (!dirName.isEmpty()) {
         eTrackDir->setText(dirName);
     }
 }
 
-const QString TrackTab::trackDir() const {
+void DirTab::selectSrtmDir() {
+    QString dirName = QFileDialog::getExistingDirectory(this, tr("Select SRTM dir"), mySettings->srtmDir());
+    if (!dirName.isEmpty()) {
+        eSrtmDir->setText(dirName);
+    }
+}
+
+const QString DirTab::trackDir() const {
     return eTrackDir->text();
+}
+
+const QString DirTab::srtmDir() const {
+    return eSrtmDir->text();
 }
 
 PrintTab::PrintTab(Settings *settings, QWidget *parent) :
@@ -143,6 +163,72 @@ void PrintTab::selRouteColor() {
     }
 }
 
+IconTableModel::IconTableModel(const QList<MapIcon> &icons, QObject *parent) :
+    QAbstractTableModel(parent), myIcons(icons)
+{
+
+}
+
+int IconTableModel::rowCount(const QModelIndex &parent) const {
+    return myIcons.size();
+}
+
+int IconTableModel::columnCount(const QModelIndex &parent) const {
+    return 3;
+}
+
+QVariant IconTableModel::data(const QModelIndex &index, int role) const {
+    if (!index.isValid()) return QVariant();
+    int idx = index.row();
+    if (role == Qt::DisplayRole) {
+        switch(index.column()) {
+        case 0:
+            return myIcons[idx].name();
+        case 1:
+            return myIcons[idx].icoFile();
+        case 2:
+            return myIcons[idx].mapIcoFile();
+        }
+    } else if (role == Qt::DecorationRole) {
+        switch(index.column()) {
+        case 1:
+            return myIcons[idx].ico();
+        }
+    }
+    return QVariant();
+}
+
+QVariant IconTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (role != Qt::DisplayRole) return QVariant();
+    if (orientation == Qt::Horizontal) {
+        switch (section) {
+        case 0:
+            return tr("Key");
+        case 1:
+            return tr("Icon");
+        case 2:
+            return tr("Map Symbol");
+        }
+    }
+    return QVariant();
+}
+
+Qt::ItemFlags IconTableModel::flags(const QModelIndex &index) const {
+    if (!index.isValid()) return Qt::ItemIsEnabled;
+    return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+}
+
+IconTab::IconTab(Settings *settings, QWidget *parent) :
+    QWidget(parent), mySettings(settings)
+{
+    IconTableModel *model = new IconTableModel(mySettings->mapIcons());
+    QGridLayout *control = new QGridLayout();
+    tab = new QTableView();
+    tab->setModel(model);
+    control->addWidget(tab, 0, 0);
+    setLayout(control);
+}
+
 SettingsDialog::SettingsDialog(const Settings& settings, QWidget *parent) :
         QDialog(parent), mySettings(settings)
 {
@@ -150,10 +236,12 @@ SettingsDialog::SettingsDialog(const Settings& settings, QWidget *parent) :
     tabWidget = new QTabWidget();
     gpsTab = new GpsTab(&mySettings);
     tabWidget->addTab(gpsTab, tr("&GPS Device"));
-    trackTab = new TrackTab(&mySettings);
-    tabWidget->addTab(trackTab, tr("Track"));
+    trackTab = new DirTab(&mySettings);
+    tabWidget->addTab(trackTab, tr("&Directories"));
     printTab = new PrintTab(&mySettings);
     tabWidget->addTab(printTab, tr("&Print"));
+    iconTab = new IconTab(&mySettings);
+    tabWidget->addTab(iconTab, tr("&Symbols"));
     mainLayout->addWidget(tabWidget);
     QGridLayout *control = new QGridLayout();
     mainLayout->addLayout(control);
@@ -172,6 +260,7 @@ void SettingsDialog::accept() {
     mySettings.setGpsDevice(gpsTab->gpsDevice());
     mySettings.setGpsInterface(gpsTab->gpsInterface());
     mySettings.setTrackDir(trackTab->trackDir());
+    mySettings.setSrtmDir(trackTab->srtmDir());
     mySettings.setTileSize(printTab->tileSize());
     mySettings.setOutTrackWidth(printTab->trackWidth());
     mySettings.setOutTrackColor(printTab->trackColor());

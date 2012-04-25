@@ -8,70 +8,10 @@
 #include <QPair>
 #include <QPoint>
 #include <QRect>
+#include <QString>
+#include "gpx.h"
 
 class QIODevice;
-
-class TrackPoint {
-private:
-    QPointF myLonLat;
-    double myEle;
-    QDateTime myTimeStamp;
-public:
-    TrackPoint(const QPointF& lonLat, double ele, const QDateTime& timestamp);
-    ~TrackPoint() {}
-    virtual const QPointF& lonLat() const { return myLonLat; }
-    virtual void setLonLat(const QPointF& lonLat) { myLonLat = lonLat; }
-    virtual double ele() const { return myEle; }
-    virtual const QDateTime& timestamp() const { return myTimeStamp; }
-};
-
-class ExtTrackPoint : public TrackPoint {
-private:
-    double mySumDist;
-    int mySumDuration;
-public:
-    ExtTrackPoint(const QPointF& lonLat = QPointF(), double ele = -16384, const QDateTime& timestamp = QDateTime(), double sumDist = 0,
-                  double sumDuration = 0);
-    virtual double sumDist() const { return mySumDist; }
-    virtual void setSumDist(const double& dist) { mySumDist = dist; }
-};
-
-class TrackSeg {
-private:
-    bool selected;
-    QList<TrackPoint> myPoints;
-public:
-    TrackSeg() : selected(false) {}
-    TrackSeg(const QList<TrackPoint>& points);
-    void setSelected(bool val) { selected = val; }
-    bool isSelected() { return selected; }
-    void append(const TrackPoint& point) { myPoints.append(point); }
-    const QList<TrackPoint>& points() const { return myPoints; }
-};
-
-class SegInfo {
-private:
-    QDateTime myStartTime;
-    QDateTime myEndTime;
-    int myCount;
-    bool selected;
-public:
-    SegInfo(const QDateTime& startTime, const QDateTime& endTime, int count, bool sel);
-    const QDateTime& startTime() const { return myStartTime; }
-    const QDateTime& endTime() const { return myEndTime; }
-    int count() const { return myCount; }
-    bool isSelected() { return selected; }
-};
-
-class Waypoint {
-private:
-    QString myName;
-    QPointF myLonLat;
-public:
-    Waypoint(const QString& name, const QPointF& lonLat);
-    const QString& name() const { return myName; }
-    const QPointF& lonLat() const { return myLonLat; }
-};
 
 class BoundingBox {
 private:
@@ -94,35 +34,35 @@ class Track
 {
 private:
     QString myFileName;
-    bool myChanged;
-    QList<TrackSeg> mySegments;
-    QList<Waypoint> myWaypoints;
-    QList<ExtTrackPoint> myTrackPoints;
+    QList<GpxPoint> myTrackPoints;
     int myPos;
-    void computeExtTrackPoints();
-    void updateExtPoints();
+    double mySumDist;
+    double mySumDur;
+    double mySumEleIncl;
+    double mySumEleDecl;
+    bool myChanged;
+
 public:
-    Track(const QString& filename);
-    Track(const QList<TrackPoint> trackpoints);
+    Track(const QList<GpxPoint>& trackpoints);
     const QString& fileName() {return myFileName;}
     void setFileName(const QString& filename) { myFileName = filename; }
+    void setPoints(const GpxPointList& points);
     const bool& changed() const { return myChanged; }
-    void readXml();
     void writeOrigXml(QIODevice *dev);
     void writeModifiedXml(QIODevice *dev, bool isSimple=false);
-    QList<SegInfo> segmentInfo();
-    void selectSegments(QList<int> indices);
     BoundingBox boundingBox() const;
-    QList<TrackPoint> trackPoints() const;
-    QList<Waypoint> waypoints() const { return myWaypoints;}
-    QList<ExtTrackPoint> extTrackPoints() const { return myTrackPoints;}
+    QList<GpxPoint> trackPoints() const { return myTrackPoints;}
     int pos() const { return myPos; }
     void setPos(int pos);
+    double sumDist() const { return mySumDist; }
+    double dist(int pos) const;
     int nearest(const QPointF& pos) const;
     int nearest(const QDateTime& timestamp) const;
-    const ExtTrackPoint& extTrackPoint(int pos) const { return myTrackPoints.at(pos); }
-    void setExtTrackPoint(int pos, const ExtTrackPoint& point);
-    void delExtTrackPoint(int pos);
+    const GpxPoint& trackPoint(int pos) const { return myTrackPoints.at(pos); }
+    void insertTrackPoint(int pos, const GpxPoint &point);
+    void setTrackPoint(int pos, const GpxPoint &point);
+    void setTrackPointPos(int pos, const QPointF& lonLat);
+    void delTrackPoint(int pos);
     double linedist(const QPointF& p0, const QPointF& p1, const QPointF& v); ///< Euklidian distance from a line
     /**
       * Simplify track at given tolerance.

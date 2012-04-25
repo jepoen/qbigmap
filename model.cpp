@@ -12,21 +12,27 @@ Overlay::Overlay(const QString &key, int z):
         myKey(key), myZ(z)
 {}
 */
-Model::Model(const Layer& layer, const QPointF &center) :
-        myLayer(layer) , myCenter(center)
+Model::Model(const Settings &settings) :
+    myLayer(settings.baseLayers()[0]) , myCenter(settings.center()),
+    mySrtmDir(settings.srtmDir()), myZoom(settings.zoom())
 {
     myTrack = NULL;
-    myZoom = 6;
     myWidth = 5;
     myHeight = 3;
-    qDebug()<<"lonlat: "<<center;
-    QPoint iCenter = Model::lonLat2Tile(center, myZoom);
+    qDebug()<<"lonlat: "<<myCenter;
+    QPoint iCenter = Model::lonLat2Tile(myCenter, myZoom);
     qDebug()<<"model center"<<iCenter;
     myX = iCenter.x()-myWidth/2;
     myY = iCenter.y()-myHeight/2;
     myRoute = new Route();
     connect(myRoute, SIGNAL(routeChanged()), this, SLOT(updateRoute()));
     connect(myRoute, SIGNAL(routePointMoved(int)), this, SLOT(moveRoutePoint(int)));
+}
+
+void Model::updateSettings(const Settings &settings) {
+    mySrtmDir = settings.srtmDir();
+    qDeleteAll(mySrtmData);
+    mySrtmData.clear();
 }
 
 void Model::setZoom(int zoom) {
@@ -39,7 +45,7 @@ void Model::setZoom(int zoom) {
 }
 
 void Model::zoomIn(const QPointF& center) {
-    if (myZoom >= 17) {
+    if (myZoom >= 18) {
         return;
     }
     myZoom++;
@@ -171,6 +177,16 @@ QPointF Model::tile2LonLat(const QPoint& tile, int zoom) {
     return QPointF(x, y);
 }
 
+double Model::mercUnitsM(const QPointF& pm) {
+    QPointF p0(pm.x()-1.0, pm.y()-1.0);
+    QPointF p1(pm.x()+1.0, pm.y()+1.0);
+    double m = geodist1(p0, p1)*1000.0;
+    p0 = lonLat2SpherMerc(p0);
+    p1 = lonLat2SpherMerc(p1);
+    double dist = hypot(p1.x()-p0.x(), p1.y()-p0.y());
+    return m/dist;
+}
+
 double Model::geodist0(const QPointF& p0, const QPointF& p1) {
   double lon0, lat0, lon1, lat1;
   double zeta;
@@ -193,6 +209,7 @@ double Model::geodist1(const QPointF& p0, const QPointF& p1) {
   double w, d, r, h1, h2;
   double dist;
 
+  if (p0 == p1) return 0.0;
   ff = 0.5*(p0.y()+p1.y())*M_PI/180.0;
   gg = 0.5*(p1.y()-p0.y())*M_PI/180.0;
   l = 0.5*(p1.x()-p0.x())*M_PI/180.0;
@@ -213,6 +230,36 @@ double Model::geodist1(const QPointF& p0, const QPointF& p1) {
   return dist;
 }
 
+double Model::geodist0(const GpxPointList &points, int i0, int i1) {
+    double sum = 0.0;
+    for (int i = i0+1; i <= i1; i++) {
+        sum += geodist0(points[i-1].coord(), points[i].coord());
+    }
+    return sum;
+}
+
+double Model::geodist1(const GpxPointList &points, int i0, int i1) {
+    double sum = 0.0;
+    for (int i = i0+1; i <= i1; i++) {
+        sum += geodist1(points[i-1].coord(), points[i].coord());
+    }
+    return sum;
+}
+
+void Model::trackSetNew(const QString &fileName, const GpxPointList &ptl) {
+    if (myTrack == 0) {
+        myTrack = new Track(ptl);
+    } else {
+        myTrack->setPoints(ptl);
+    }
+    myTrack->setFileName(fileName);
+    BoundingBox bb = myTrack->boundingBox();
+    QPointF center(0.5*(bb.p0().x()+bb.p1().x()), 0.5*(bb.p0().y()+bb.p1().y()));
+    qDebug()<<"new center "<<center;
+    setCenter(center);
+    emit trackChanged();
+}
+
 void Model::setTrackPos(int pos) {
     if (myTrack == NULL)
         return;
@@ -226,18 +273,84 @@ void Model::changeTrackPos(int delta) {
     setTrackPos(myTrack->pos()+delta);
 }
 
-void Model::setTrackPoint(int pos, const ExtTrackPoint point) {
+void Model::setTrackPoint(int pos, const GpxPoint& point) {
     if (myTrack == NULL)
         return;
-    myTrack->setExtTrackPoint(pos, point);
+    myTrack->setTrackPoint(pos, point);
+    emit trackChanged();
+}
+
+void Model::insertTrackPoint(int pos, const GpxPoint& point) {
+    myTrack->insertTrackPoint(pos, point);
     emit trackChanged();
 }
 
 void Model::delTrackPoint(int pos) {
     if (myTrack == NULL)
         return;
-    myTrack->delExtTrackPoint(pos);
+    myTrack->delTrackPoint(pos);
     emit trackChanged();
     myTrack->setPos(pos);
     emit trackPosChanged(myTrack->pos());
+}
+
+void Model::changeTrackPoint(int pos, const QPointF& lonLat) {
+    if (myTrack == 0) return;
+    myTrack->setTrackPointPos(pos, lonLat);
+    emit trackChanged();
+}
+
+void Model::changeRoutePoint(int pos, const QPointF &lonLat) {
+    if (myRoute == 0) return;
+    myRoute->moveRoutePoint(pos, lonLat);
+    emit routeChanged();
+}
+
+void Model::routeSetNew(const QString &fileName) {
+    Gpx gpx(fileName);
+    if (gpx.routePoints().size() == 0) return;
+    routeSetNew(fileName, gpx.routeName(), gpx.routePoints());
+}
+
+void Model::routeSetNew(const QString &fileName, const QString &name, const GpxPointList &points) {
+    if (myRoute == 0) {
+        myRoute = new Route(fileName, name, points);
+    } else {
+        myRoute->setFileName(fileName);
+        myRoute->setName(name);
+        myRoute->setRoutePoints(points);
+    }
+    emit routeChanged();
+}
+
+void Model::waypointsSetNew(const GpxPointList &points) {
+    myWaypoints = points;
+    emit waypointsChanged();
+}
+
+void Model::addWaypoint(const GpxPoint &p) {
+    qDebug()<<"model added waypoint "<<p.name();
+    myWaypoints.append(p);
+    emit waypointsChanged();
+}
+
+const SrtmEntry *Model::srtmEntry(int lon0, int lat0) {
+    for (int i = 0; i < mySrtmData.size(); i++) {
+        if (mySrtmData[i]->lon0() == lon0 && mySrtmData[i]->lat0() == lat0) return mySrtmData[i];
+    }
+    if (mySrtmData.size() > 10) {
+        SrtmEntry *entry = mySrtmData.last();
+        mySrtmData.removeLast();
+        delete entry;
+    }
+    SrtmEntry *entry = new SrtmEntry(lon0, lat0, mySrtmDir);
+    mySrtmData.insert(0, entry);
+    return mySrtmData[0];
+}
+
+int Model::srtmEle(const QPointF& coord) {
+    int lon0 = int(floor(coord.x()));
+    int lat0 = int(floor(coord.y()));
+    const SrtmEntry* srtm = srtmEntry(lon0, lat0);
+    return srtm->ele(coord.x(), coord.y());
 }

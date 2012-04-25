@@ -41,6 +41,7 @@ private:
     QPointF myCenter;
     int myTileSize;
     QString myTrackDir;
+    QString mySrtmDir;
     QList<Layer> myBaseLayers;
     QList<Layer> myOverlays;
     QColor myOutTrackColor;
@@ -68,6 +69,8 @@ public:
     void setGpsInterface(const QString& interface) { myGpsInterface = interface; }
     const QString& trackDir() const { return myTrackDir; }
     void setTrackDir(const QString& dir) { myTrackDir = dir; }
+    const QString& srtmDir() const { return mySrtmDir; }
+    void setSrtmDir(const QString& dir) { mySrtmDir = dir; }
     const QColor& outTrackColor() const { return myOutTrackColor; }
     void setOutTrackColor(const QColor& co) { myOutTrackColor = co; }
     int outTrackWidth() const { return myOutTrackWidth; }
@@ -77,6 +80,7 @@ public:
     int outRouteWidth() const { return myOutRouteWidth; }
     void setOutRouteWidth(int val) { myOutRouteWidth = val; }
     const QList<MapIcon> mapIcons() const { return myMapIcons; }
+    int mapIconIdx(const QString& sym) const;
     void load();
     void save();
 };

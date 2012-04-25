@@ -2,15 +2,11 @@
 #include <QtXml>
 #include "route.h"
 
-Route::Route(const QString& fileName) :
-    myName(tr("Route")), myDirty(false)
-{
-    if (!fileName.isEmpty()) {
-        readXml(fileName);
-    }
-}
+Route::Route(const QString &fileName, const QString &name, const GpxPointList &points) :
+    myFileName(fileName), myName(name), myPoints(points), myDirty(false)
+{}
 
-void Route::newRoutePoint(const RoutePoint &point) {
+void Route::newRoutePoint(const GpxPoint &point) {
     myPoints.append(point);
     myDirty = true;
     emit routeChanged();
@@ -22,7 +18,7 @@ void Route::delRoutePoint(int pos) {
     emit routeChanged();
 }
 
-void Route::updateRoutePoint(int idx, const RoutePoint &point) {
+void Route::updateRoutePoint(int idx, const GpxPoint &point) {
     myPoints[idx] = point;
     myDirty = true;
     emit routePointMoved(idx);
@@ -34,7 +30,7 @@ void Route::moveRoutePoint(int idx, const QPointF &pos) {
     emit routePointMoved(idx);
 }
 
-void Route::insertRoutePoint(int idx, const RoutePoint &point) {
+void Route::insertRoutePoint(int idx, const GpxPoint &point) {
     myPoints.insert(idx, point);
     myDirty = true;
     emit routeChanged();
@@ -61,7 +57,7 @@ void Route::writeXml(QIODevice *dev) {
     QDomText txt = doc.createTextNode(myName);
     name.appendChild(txt);
     rte.appendChild(name);
-    foreach (const RoutePoint& p, myPoints) {
+    foreach (const GpxPoint& p, myPoints) {
         QDomElement rtept = doc.createElement("rtept");
         rtept.setAttribute("lon", locale.toString(p.coord().x(), 'g', 10));
         rtept.setAttribute("lat", locale.toString(p.coord().y(), 'g', 10));
@@ -78,59 +74,26 @@ void Route::writeXml(QIODevice *dev) {
             el.appendChild(txt);
             rtept.appendChild(el);
         }
+        if (p.ele() > -32768) {
+            QDomElement el = doc.createElement("ele");
+            QDomText txt = doc.createTextNode(QString("%1").arg(p.ele()));
+            el.appendChild(txt);
+            rtept.appendChild(el);
+        }
+        if (p.desc() != "") {
+            QDomElement el = doc.createElement("desc");
+            QDomText txt = doc.createTextNode(p.desc());
+            el.appendChild(txt);
+            rtept.appendChild(el);
+        }
+        if (p.link() != "") {
+            QDomElement el = doc.createElement("link");
+            QDomText txt = doc.createTextNode(p.link());
+            el.appendChild(txt);
+            rtept.appendChild(el);
+        }
     }
     QTextStream stream(dev);
     doc.save(stream, 4);
     myDirty = false;
-}
-
-bool Route::readXml(const QString& fileName) {
-    QFile file(fileName);
-    if (file.open(QIODevice::ReadOnly)) {
-        bool ok = readXml(&file);
-        file.close();
-        return ok;
-    } else {
-        return false;
-    }
-}
-
-bool Route::readXml(QIODevice *dev) {
-    QDomDocument doc;
-    QString errorStr;
-    int errorLine;
-    int errorCol;
-    if (!doc.setContent(dev, true, &errorStr, &errorLine, &errorCol)) {
-        qDebug()<<errorStr<<errorLine<<errorCol;
-        return false;
-    }
-    QDomElement gpx = doc.firstChildElement("gpx");
-    if (gpx.isNull()) return false;
-    myPoints.clear();
-    QDomElement rte = gpx.firstChildElement("rte");
-    QDomElement name = rte.firstChildElement("name");
-    if (!name.isNull()) {
-        myName = name.text();
-    } else {
-        myName = tr("(unknown)");
-    }
-    for (QDomElement pt = rte.firstChildElement("rtept");
-         !pt.isNull();
-         pt = pt.nextSiblingElement("rtept")) {
-        double lon = pt.attribute("lon").toDouble();
-        double lat = pt.attribute("lat").toDouble();
-        QString sym("");
-        QString name("");
-        for (QDomElement c = pt.firstChildElement(); !c.isNull(); c = c.nextSiblingElement()) {
-            if (c.nodeName() == "sym") {
-                sym = c.text();
-            } else if (c.nodeName() == "name") {
-                name = c.text();
-            }
-        }
-        RoutePoint rpt(QPointF(lon, lat), sym, name);
-        myPoints.append(rpt);
-    }
-    emit routeChanged();
-    return true;
 }
