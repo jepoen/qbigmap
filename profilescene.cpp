@@ -33,12 +33,12 @@ void ProfileScene::redrawTrack() {
         delete it;
     }
     myTrackPosItem = 0;
-    Track *track = myModel->track();
-    if (track == 0) return;
-    QList<GpxPoint> points = track->trackPoints();
+    const Track& track = myModel->track();
+    if (track.isEmpty()) return;
+    const QList<GpxPoint>& points = track.trackPoints();
     int trackLen = int(ceil(Model::geodist1(points, 0, points.size()-1)));
     myWidth = (trackLen+1)*10;
-    BoundingBox bb = track->boundingBox();
+    BoundingBox bb = track.boundingBox();
     int ele0 = bb.ele().x();
     int ele1 = bb.ele().y();
     myEle0 = (ele0/100)*100;
@@ -85,16 +85,15 @@ void ProfileScene::redrawTrack() {
 }
 
 void ProfileScene::changeTrackPos(int pos) {
-    if (myModel->track() == NULL)
-        return;
+    if (myModel->track().isEmpty()) return;
     if (myTrackPosItem == 0) {
         myTrackPosItem = new QGraphicsLineItem(myX0, myY0, myX0, myY0);
         myTrackPosItem->setZValue(10);
         myTrackPosItem->setPen(QPen(Qt::magenta));
         addItem(myTrackPosItem);
     }
-    GpxPoint p = myModel->track()->trackPoint(pos);
-    double dist = myModel->track()->dist(pos);
+    GpxPoint p = myModel->track().trackPoint(pos);
+    double dist = myModel->track().dist(pos);
     int x = int(dist*10)+myX0;
     myTrackPosItem->setLine(x, myY0, x, myY0+myEle0-p.ele());
 }

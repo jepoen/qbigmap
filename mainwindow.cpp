@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug()<<"1";
     readSettings();
     qDebug()<<"2";
+    myTrackPoiModel = new GpxListModel(&model->track().trackPoints(), &settings.mapIconList());
     scene = new MapScene(model);
     scene->setSceneRect(0, 0, 256*model->width(), 256*model->height());
     view = new MapView(scene, &settings);
@@ -98,8 +99,12 @@ MainWindow::MainWindow(QWidget *parent)
     center->setLayout(mainLayout);
     verticalSplitter->addWidget(center);
     verticalSplitter->addWidget(profileView);
+    trackPoiWidget = new QDockWidget(tr("Track POIs"));
+    createTrackPoiTable();
+    addDockWidget(Qt::RightDockWidgetArea, trackPoiWidget, Qt::Vertical);
     createPhotoWidget();
-    horizontalSplitter->addWidget(photoWidget);
+    //horizontalSplitter->addWidget(photoWidget);
+    addDockWidget(Qt::RightDockWidgetArea, photoWidget, Qt::Vertical);
     setCentralWidget(horizontalSplitter);
     createBaselayerActions();
     createOverlayActions();
@@ -112,6 +117,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(view, SIGNAL(mouseGeoPos(QPointF)), this, SLOT(showGeoPos(QPointF)));
     connect(photoList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(showPhotoData(QListWidgetItem*)));
     connect(photoList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(showPhoto(QListWidgetItem*)));
+    connect(trackPoiListView, SIGNAL(activated(QModelIndex)), this, SLOT(selectTrackPoi(QModelIndex)));
     updateModelStatus();
 }
 
@@ -126,7 +132,7 @@ void MainWindow::readSettings() {
 }
 
 void MainWindow::createPhotoWidget() {
-    photoWidget = new QWidget();
+    photoWidget = new QDockWidget(tr("Photos"));
     QGridLayout *photoLayout = new QGridLayout();
     photoList = new QListWidget();
     photoList->setViewMode(QListView::IconMode);
@@ -220,6 +226,8 @@ void MainWindow::createActions() {
     //connect(showPhotoAction, SIGNAL(triggered()), this, SLOT(showPhotos()));
     //hidePhotoAction = new QAction(tr("Hide photos"), this);
     //connect(hidePhotoAction, SIGNAL(triggered()), this, SLOT(hidePhotos()));
+    showTrackPoiAction = new QAction(tr("Track POIs"), this);
+    connect(showTrackPoiAction, SIGNAL(triggered()), this, SLOT(showTrackPois()));
     typeActionGroup = new QActionGroup(this);
     typeActionGroup->setExclusive(true);
     ovlActionGroup = new QActionGroup(this);
@@ -301,6 +309,7 @@ void MainWindow::enableTrackActions(bool enable) {
     trackSimplifyAction->setEnabled(enable);
     editTrackPosAction->setEnabled(enable);
     deleteTrackPosAction->setEnabled(enable);
+    showTrackPoiAction->setEnabled(enable);
     lTrackPos->setVisible(true);
 }
 
@@ -384,7 +393,7 @@ void MainWindow::createMenuBar() {
     foreach (QAction *a, typeActionGroup->actions()) {
         mType->addAction(a);
     }
-
+    mView->addAction(showTrackPoiAction);
     mOverlays = mView->addMenu(tr("&Overlays"));
     foreach (QAction *a, ovlActionGroup->actions()) {
         mOverlays->addAction(a);
@@ -431,6 +440,15 @@ void MainWindow::createStatusBar() {
     lTrackPos->setMinimumWidth(250);
     lTrackPos->setFrameStyle(QFrame::Panel|QFrame::Sunken);
     statusBar()->addWidget(lTrackPos);
+}
+
+void MainWindow::createTrackPoiTable() {
+    QVBoxLayout *control = new QVBoxLayout();
+    trackPoiWidget->setLayout(control);
+    trackPoiListView = new QListView();
+    trackPoiListView->setModel(myTrackPoiModel);
+    trackPoiWidget->setWidget(trackPoiListView);
+    trackPoiWidget->hide();
 }
 
 void MainWindow::showImage(HttpGet *getter) {
@@ -495,7 +513,7 @@ void MainWindow::paintTrack(QPainter *painter, bool showSym) {
     painter->setPen(pen);
     QPainterPath path;
     bool start = true;
-    foreach(const GpxPoint& point, model->track()->trackPoints()) {
+    foreach(const GpxPoint& point, model->track().trackPoints()) {
         QPoint p = model->lonLat2Scene(point.coord());
         if (start) {
             path.moveTo(p);
@@ -506,12 +524,10 @@ void MainWindow::paintTrack(QPainter *painter, bool showSym) {
     }
     painter->drawPath(path);
     if (!showSym) return;
-    foreach(const GpxPoint& point, model->track()->trackPoints()) {
+    foreach(const GpxPoint& point, model->track().trackPoints()) {
         if (point.sym() == "") continue;
         QPoint p = model->lonLat2Scene(point.coord());
-        int idx = settings.mapIconIdx(point.sym());
-        if (idx < 0) continue;
-        MapIcon ico = settings.mapIcons().at(idx);
+        MapIcon ico = settings.mapIconList().icon(point.sym());
         QPixmap px(ico.mapIcoFile());
         int offx = px.width()/2;
         int offy = px.height()/2;
@@ -525,7 +541,7 @@ void MainWindow::paintRoute(QPainter *painter, bool showSym) {
     painter->setPen(pen);
     QPainterPath path;
     bool start = true;
-    foreach(const GpxPoint& point, *model->route()->points()) {
+    foreach(const GpxPoint& point, *model->route().points()) {
         QPoint p = model->lonLat2Scene(point.coord());
         if (start) {
             path.moveTo(p);
@@ -536,12 +552,10 @@ void MainWindow::paintRoute(QPainter *painter, bool showSym) {
     }
     painter->drawPath(path);
     if (!showSym) return;
-    foreach(const GpxPoint& point, *model->route()->points()) {
+    foreach(const GpxPoint& point, *model->route().points()) {
         if (point.sym() == "") continue;
         QPoint p = model->lonLat2Scene(point.coord());
-        int idx = settings.mapIconIdx(point.sym());
-        if (idx < 0) continue;
-        MapIcon ico = settings.mapIcons().at(idx);
+        MapIcon ico = settings.mapIconList().icon(point.sym());
         QPixmap px(ico.mapIcoFile());
         int offx = px.width()/2;
         int offy = px.height()/2;
@@ -572,7 +586,7 @@ QPixmap* MainWindow::createPixmap() {
     dlg.setGrid(scene->isShowGrid());
     dlg.setTrack(scene->isShowTrack());
     dlg.setTrackSym(scene->isShowTrack());
-    dlg.setRoute(model->route()->points()->size() > 0);
+    dlg.setRoute(model->route().points()->size() > 0);
     dlg.setRouteSym(dlg.getRoute());
     if (dlg.exec() != QDialog::Accepted) {
         return 0;
@@ -588,8 +602,8 @@ QPixmap* MainWindow::createPixmap() {
     int h = model->height()*256;
     int x0 = 0;
     int y0 = 0;
-    if (model->track() != 0 && restrict) {
-        BoundingBox bb = model->track()->boundingBox();
+    if (!model->track().isEmpty() && restrict) {
+        BoundingBox bb = model->track().boundingBox();
         QPoint p0 = model->lonLat2Scene(bb.p0())+QPoint(-10, 10);
         QPoint p1 = model->lonLat2Scene(bb.p1())+QPoint(10, -10);
         if (p0.x() < 0) p0.setX(0);
@@ -609,10 +623,10 @@ QPixmap* MainWindow::createPixmap() {
     if (showGrid) {
         paintGrid(&painter);
     }
-    if (showTrack && model->track() != 0) {
+    if (showTrack && !model->track().isEmpty()) {
         paintTrack(&painter, showTrackSym);
     }
-    if (showRoute && model->route() != 0) {
+    if (showRoute && !model->route().isEmpty()) {
         paintRoute(&painter, showRouteSym);
     }
     return pixmap;
@@ -762,6 +776,8 @@ void MainWindow::setCenter() {
     if (dlg.exec()) {
         settings.setCenter(dlg.lonLat());
         settings.setZoom(model->zoom());
+        settings.setXExt(model->width());
+        settings.setYExt(model->height());
         settings.save();
         QMessageBox::information(this, tr("Save settings"),
                                  tr("Saved new center and zoom"),
@@ -863,6 +879,10 @@ void MainWindow::loadGpx() {
         GpxPointList ptl = selectTrackSegments(gpx);
         if (ptl.size() > 0) {
             model->trackSetNew(fileName, ptl);
+            // TODO: SIGNAL->SLOT
+            qDebug()<<"updatePointList track";
+            myTrackPoiModel->updatePointList();
+            if (myTrackPoiModel->rowCount(QModelIndex()) > 0) showTrackPois();
             enableTrackActions(true);
             profileView->setVisible(true);
             trackToolBar->setVisible(true);
@@ -878,9 +898,9 @@ void MainWindow::loadGpx() {
 
 void MainWindow::loadTrack() {
     QString dir = settings.trackDir();
-    Track *track = model->track();
-    if (track != NULL) {
-        QFileInfo fi(track->fileName());
+    const Track& track = model->track();
+    if (!track.isEmpty()) {
+        QFileInfo fi(track.fileName());
         qDebug()<<"Dir: "<<fi.absoluteDir();
         dir = fi.absoluteDir().absolutePath();
     }
@@ -896,10 +916,14 @@ void MainWindow::loadTrack() {
         profileView->setVisible(true);
         trackToolBar->setVisible(true);
     }
+    myTrackPoiModel->updatePointList();
+    if (myTrackPoiModel->rowCount(QModelIndex()) > 0) {
+        showTrackPois();
+    }
 }
 
 void MainWindow::saveTrack() {
-    QString fileName = model->track()->fileName();
+    QString fileName = model->track().fileName();
     fileName = QFileDialog::getSaveFileName(this, tr("Save track"), fileName,
                                             tr("GPX track (*.gpx)"));
     if (fileName.isEmpty()) return;
@@ -907,9 +931,9 @@ void MainWindow::saveTrack() {
     if (idx < 0) fileName +".gpx";
     QFile file(fileName);
     file.open(QFile::WriteOnly|QFile::Text);
-    model->track()->writeModifiedXml(&file, false);
+    model->trackPtr()->writeModifiedXml(&file, false);
     file.close();
-    model->track()->setFileName(fileName);
+    model->trackPtr()->setFileName(fileName);
 }
 
 GpxPointList MainWindow::selectTrackSegments(const Gpx& gpx) {
@@ -944,12 +968,12 @@ GpxPointList MainWindow::selectTrackSegments(const Gpx& gpx) {
 }
 
 void MainWindow::deleteTrack() {
-    if (model->track() == NULL)
+    if (model->track().isEmpty())
         return;
     if (QMessageBox::question(this, tr("Delete track"), tr("Delete current track?"),
                              QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes)
             == QMessageBox::Yes) {
-        model->setTrack(NULL);
+        model->trackPtr()->clear();
         trackToolBar->setVisible(false);
         profileView->setVisible(false);
         //connectPhotos();
@@ -978,13 +1002,13 @@ void MainWindow::firstTrackPos() {
 }
 
 void MainWindow::lastTrackPos() {
-    model->setTrackPos(model->track()->trackPoints().size()-1);
+    model->setTrackPos(model->track().trackPoints().size()-1);
 }
 
 void MainWindow::changeTrackPos(int pos) {
-    if (model->track() == NULL)
+    if (model->track().isEmpty())
         return;
-    GpxPoint p = model->track()->trackPoint(pos);
+    GpxPoint p = model->track().trackPoint(pos);
     qDebug()<<"changed pos "<<p.coord();
     lTrackPos->setText(QString("%1 %2 (%3, %4) %5 mNN, %6 km")
                        .arg(pos)
@@ -992,7 +1016,7 @@ void MainWindow::changeTrackPos(int pos) {
                        .arg(p.coord().x(), 0, 'f', 5)
                        .arg(p.coord().y(), 0, 'f', 5)
                        .arg(p.ele(), 0, 'f', 0)
-                       .arg(model->track()->sumDist(), 0, 'f', 1));
+                       .arg(model->track().sumDist(), 0, 'f', 1));
 }
 
 void MainWindow::toggleTrackBoundingBox() {
@@ -1007,10 +1031,10 @@ void MainWindow::simplifyTrack() {
 }
 
 void MainWindow::editTrackPos() {
-    if (model->track() == NULL)
+    if (model->track().isEmpty())
         return;
-    int pos = model->track()->pos();
-    GpxPoint p = model->track()->trackPoint(pos);
+    int pos = model->track().pos();
+    GpxPoint p = model->track().trackPoint(pos);
     TrackPosDlg dlg(p);
     view->createTempPoint(p.coord());
     connect(&dlg, SIGNAL(posChanged(const QPointF&)), view, SLOT(moveTempPoint(QPointF)));
@@ -1023,8 +1047,8 @@ void MainWindow::editTrackPos() {
 }
 
 void MainWindow::deleteTrackPos() {
-    int pos = model->track()->pos();
-    GpxPoint p = model->track()->trackPoint(pos);
+    int pos = model->track().pos();
+    GpxPoint p = model->track().trackPoint(pos);
     if (QMessageBox::question(this, tr("Delete track point"),
                               tr("Delete the track point (%1,%2) %3")
                                 .arg(p.coord().x()).arg(p.coord().y()).arg(p.timestamp().toString()),
@@ -1035,11 +1059,11 @@ void MainWindow::deleteTrackPos() {
 }
 
 void MainWindow::delRoute() {
-    model->route()->delRoute();
+    model->routePtr()->delRoute();
 }
 
 void MainWindow::saveRoute() {
-    SaveRouteDlg dlg(model->route()->fileName(), model->route()->name());
+    SaveRouteDlg dlg(model->route().fileName(), model->route().name());
     if (dlg.exec() != QDialog::Accepted) {
         return;
     }
@@ -1052,8 +1076,8 @@ void MainWindow::saveRoute() {
                              tr("Cannot save file %1: %2").arg(filename).arg(file.errorString()));
         return;
     }
-    model->route()->setName(name);
-    model->route()->writeXml(&file);
+    model->routePtr()->setName(name);
+    model->routePtr()->writeXml(&file);
     file.close();
     if (isUpload) {
         QStringList params;
@@ -1165,3 +1189,12 @@ void MainWindow::saveRoute() {
 //    }
 //    connectPhotos();
 //}
+
+void MainWindow::showTrackPois() {
+    trackPoiWidget->show();
+}
+
+void MainWindow::selectTrackPoi(const QModelIndex &index) {
+    int trackPos = myTrackPoiModel->data(index, GpxListModel::GpxIndexRole).toInt();
+    model->setTrackPos(trackPos);
+}

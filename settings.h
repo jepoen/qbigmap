@@ -39,6 +39,8 @@ private:
     QString myGpsInterface;
     int myZoom;
     QPointF myCenter;
+    int myXext;
+    int myYext;
     int myTileSize;
     QString myTrackDir;
     QString mySrtmDir;
@@ -48,13 +50,17 @@ private:
     int myOutTrackWidth;
     QColor myOutRouteColor;
     int myOutRouteWidth;
-    QList<MapIcon> myMapIcons;
+    MapIconList myMapIcons;
 public:
     Settings();
     int zoom() const { return myZoom; }
     void setZoom(int zoom) { myZoom = zoom; }
     const QPointF& center() const { return myCenter; }
     void setCenter(const QPointF& center) { myCenter = center; }
+    int xExt() const { return myXext; }
+    void setXExt(int xExt) { myXext = xExt; }
+    int yExt() const { return myYext; }
+    void setYExt(int yExt) { myYext = yExt; }
     int tileSize() const { return myTileSize; }
     void setTileSize(int size) { myTileSize = size; }
     const QList<Layer>& baseLayers() const { return myBaseLayers; }
@@ -79,8 +85,9 @@ public:
     void setOutRouteColor(const QColor& co) { myOutRouteColor = co; }
     int outRouteWidth() const { return myOutRouteWidth; }
     void setOutRouteWidth(int val) { myOutRouteWidth = val; }
-    const QList<MapIcon> mapIcons() const { return myMapIcons; }
-    int mapIconIdx(const QString& sym) const;
+    const MapIconList& mapIconList() const { return myMapIcons; }
+    void setMapIcons(const QList<MapIcon>& mapIcons) { myMapIcons = mapIcons; }
+    void setMapIcon(int idx, const QString& fileName) { myMapIcons.setMapIco(idx, fileName); }
     void load();
     void save();
 };

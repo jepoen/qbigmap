@@ -19,11 +19,13 @@ BoundingBox::BoundingBox(const QPointF &p0, const QPointF &p1, const QPoint &ele
 Track::Track(const QList<GpxPoint>& trackpoints) :
     myTrackPoints(trackpoints), myChanged(true)
 {
+    removeDoubles();
     setPos(0);
 }
 
-void Track::setPoints(const GpxPointList &trackpoints) {
+void Track::setPoints(const GpxPointList &trackpoints) {    
     myTrackPoints = trackpoints;
+    removeDoubles();
     setPos(0);
 }
 
@@ -222,4 +224,11 @@ Track * Track::simplify(int tolerance) {
         newPoints.push_back(ep);
     }
     return new Track(newPoints);
+}
+
+void Track::clear() {
+    myTrackPoints.clear();
+    myFileName.clear();
+    myPos = -1;
+    mySumDist = mySumDur = 0;
 }

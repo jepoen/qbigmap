@@ -3,6 +3,28 @@
 #include <QtXml>
 #include "gpx.h"
 
+static const int ISCALE = 10000000;
+
+QPoint GpxPoint::iscale(const QPointF &p) {
+    return QPoint(int(round(p.x()*ISCALE)), int(round(p.y()*ISCALE)));
+}
+
+QPointF GpxPoint::dscale(const QPoint &p) {
+    return QPointF(double(p.x())/double(ISCALE), double(p.y())/double(ISCALE));
+}
+
+QString GpxPoint::typeName() const {
+    switch (myType) {
+    case TRK:
+        return QObject::tr("trackpoint");
+    case RTE:
+        return QObject::tr("routepoint");
+    case WPT:
+        return QObject::tr("waypoint");
+    }
+    return QObject::tr("unknown GPX point");
+}
+
 Gpx::Gpx(const QString &fileName) :
     myRouteName("--")
 {
@@ -109,4 +131,21 @@ TrackSegInfo Gpx::trackSegInfo(int idx) const {
     QDateTime t0 = ptl[0].timestamp();
     QDateTime t1 = ptl[ptl.size()-1].timestamp();
     return TrackSegInfo(t0, t1, ptl.size(), true);
+}
+
+void Gpx::removeDoubles(GpxPointList &list) {
+    qDebug()<<"removeDoubles";
+    for (int i = 0; i < list.size()-1; i++) {
+        if (list[i].icoord() == list[i+1].icoord()) {
+            if (list[i].sym().isEmpty()) {
+                list.removeAt(i);
+                qDebug()<<"  remove "<<i;
+            } else if (list[i+1].sym().isEmpty()) {
+                list.removeAt(i+1);
+                qDebug()<<"  remove "<<(i+1);
+            } else {
+                std::cerr<<"points "<<i<<" and "<<(i+1)<<" are duplicates with symbols"<<std::endl;
+            }
+        }
+    }
 }

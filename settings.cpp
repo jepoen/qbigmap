@@ -17,15 +17,7 @@ Layer::Layer(const QString &name, const QString &url) :
 {}
 
 Settings::Settings()
-{
-}
-
-int Settings::mapIconIdx(const QString &key) const {
-    for (int i = 0; i < myMapIcons.size(); i++) {
-        if (myMapIcons[i].name() == key) return i;
-    }
-    return -1;
-}
+{}
 
 void Settings::load() {
     QSettings *settings = new QSettings("osm", "QBigMap");
@@ -36,6 +28,8 @@ void Settings::load() {
         //qDebug()<<"settings size"<<settings->allKeys().size();
     }
     myCenter = settings->value("center", QPointF(12.9, 50.8)).toPointF();
+    myXext = settings->value("xext", "5").toInt();
+    myYext = settings->value("yext", "4").toInt();
     myZoom = settings->value("zoom", 6).toInt();
     myTileSize = settings->value("tilesize", 45).toInt();
     myGpsbabel = settings->value("gpsbabel", "gpsbabel").toString();
@@ -64,18 +58,20 @@ void Settings::load() {
         myOverlays.append(l);
     }
     settings->endArray();
+    QList<MapIcon> icons;
     size = settings->beginReadArray("mapicons");
     for (int i = 0; i < size; i++) {
         settings->setArrayIndex(i);
-        myMapIcons.append(MapIcon(settings->value("name").toString(), settings->value("icofile").toString(),
+        icons.append(MapIcon(settings->value("name").toString(), settings->value("icofile").toString(),
                                   settings->value("mapicofile").toString()));
     }
     settings->endArray();
     if (size == 0) {
         for (int i = 0; defaultIcons[i][0] != 0; i++) {
-            myMapIcons.append(MapIcon(defaultIcons[i][0], defaultIcons[i][1], defaultIcons[i][2]));
+            icons.append(MapIcon(defaultIcons[i][0], defaultIcons[i][1], defaultIcons[i][2]));
         }
     }
+    myMapIcons.setIcons(icons);
 }
 
 void Settings::save() {
@@ -95,15 +91,18 @@ void Settings::save() {
     }
     settings.endArray();
     settings.beginWriteArray("mapicons");
-    for (int i = 0; i < myMapIcons.size(); i++) {
+    const QList<MapIcon>& icons = myMapIcons.icons();
+    for (int i = 0; i < icons.size(); i++) {
         settings.setArrayIndex(i);
-        settings.setValue("name", myMapIcons[i].name());
-        settings.setValue("icofile", myMapIcons[i].icoFile());
-        settings.setValue("mapicofile", myMapIcons[i].mapIcoFile());
+        settings.setValue("name", icons[i].name());
+        settings.setValue("icofile", icons[i].icoFile());
+        settings.setValue("mapicofile", icons[i].mapIcoFile());
     }
     settings.endArray();
     settings.setValue("center", myCenter);
     settings.setValue("zoom", myZoom);
+    settings.setValue("xext", myXext);
+    settings.setValue("yext", myYext);
     settings.setValue("tilesize", myTileSize);
     settings.setValue("gpsbabel", myGpsbabel);
     settings.setValue("gpsDevice", myGpsDevice);

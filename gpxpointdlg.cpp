@@ -1,18 +1,18 @@
 #include <QtGui>
 #include "gpxpointdlg.h"
 
-GpxPointDlg::GpxPointDlg(const GpxPoint &point, const QList<MapIcon> &icons, QWidget *parent) :
+GpxPointDlg::GpxPointDlg(const GpxPoint &point, const MapIconList &icons, QWidget *parent) :
     QDialog(parent),
     myPoint(point)
 {
-    setWindowTitle(tr("Edit Route Point"));
+    setWindowTitle(tr("Edit %1").arg(myPoint.typeName()));
     QVBoxLayout *mainLayout = new QVBoxLayout();
     QGridLayout *control = new QGridLayout();
     //control->setColumnMinimumWidth(1, 300);
     QLabel *lEle = new QLabel(tr("&Elevation (m):"));
     eEle = new QLineEdit();
     eEle->setValidator(new QIntValidator());
-    eEle->setText(QString("%1").arg(point.ele()));
+    eEle->setText(QString("%1").arg(int(round(point.ele()))));
     lEle->setBuddy(eEle);
     QLabel *lSrtmEle = new QLabel(tr("SRTM elevation:"));
     eSrtmEle = new QLabel();
@@ -65,10 +65,10 @@ GpxPointDlg::GpxPointDlg(const GpxPoint &point, const QList<MapIcon> &icons, QWi
     connect(box, SIGNAL(rejected()), this, SLOT(reject()));
 }
 
-void GpxPointDlg::createSymList(QComboBox *box, const QList<MapIcon>& icons) {
+void GpxPointDlg::createSymList(QComboBox *box, const MapIconList& iconList) {
     int idx = 0;
     box->addItem("");
-    foreach(const MapIcon& ico, icons) {
+    foreach(const MapIcon& ico, iconList.icons()) {
         box->addItem(ico.ico(), ico.name());
         if (ico.name() == myPoint.sym()) {
             idx = box->count()-1;

@@ -163,10 +163,46 @@ void PrintTab::selRouteColor() {
     }
 }
 
-IconTableModel::IconTableModel(const QList<MapIcon> &icons, QObject *parent) :
-    QAbstractTableModel(parent), myIcons(icons)
-{
+SelectFileDelegate::SelectFileDelegate(QObject *parent) :
+    QItemDelegate(parent)
+{}
 
+QWidget *SelectFileDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+    qDebug()<<"createEditor "<<index;
+    if (index.column() == 2) {
+        QFileDialog *dlg = new QFileDialog();
+        dlg->exec();
+        //return dlg;
+    }
+    return QItemDelegate::createEditor(parent, option, index);
+}
+
+void SelectFileDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const {
+    qDebug()<<"setEditorData "<<index;
+    if (index.column() == 2) {
+    } else {
+        QItemDelegate::setEditorData(editor, index);
+    }
+}
+
+void SelectFileDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const {
+    if (index.column() == 2) {
+
+    } else {
+        QItemDelegate::setModelData(editor, model, index);
+    }
+}
+
+void SelectFileDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+    QItemDelegate::updateEditorGeometry(editor, option, index);
+}
+
+IconTableModel::IconTableModel(const MapIconList &icons, QObject *parent) :
+    QAbstractTableModel(parent), myIcons(icons)
+{}
+
+IconTableModel::~IconTableModel() {
+    qDebug()<<"~IconTableModel";
 }
 
 int IconTableModel::rowCount(const QModelIndex &parent) const {
@@ -174,28 +210,57 @@ int IconTableModel::rowCount(const QModelIndex &parent) const {
 }
 
 int IconTableModel::columnCount(const QModelIndex &parent) const {
-    return 3;
+    return 4;
 }
 
 QVariant IconTableModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid()) return QVariant();
     int idx = index.row();
+    const MapIcon& ico = myIcons.icons().at(idx);
     if (role == Qt::DisplayRole) {
         switch(index.column()) {
         case 0:
-            return myIcons[idx].name();
+            return ico.name();
         case 1:
-            return myIcons[idx].icoFile();
-        case 2:
-            return myIcons[idx].mapIcoFile();
+            return ico.mapIcoFile();
         }
     } else if (role == Qt::DecorationRole) {
         switch(index.column()) {
+        case 0:
+            return ico.ico();
         case 1:
-            return myIcons[idx].ico();
+            return ico.mapIco();
+        case 2:
+            return QIcon(":/icons/disk.png");
+        case 3:
+            return QIcon(":/icons/delete.png");
+        }
+    } else if (role == Qt::ToolTipRole) {
+        switch(index.column()) {
+        case 2:
+            return tr("Select Icon file for Map drawing");
+        case 3:
+            return tr("Reset to internal icon file");
+        default:
+            return "";
         }
     }
     return QVariant();
+}
+
+bool IconTableModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+    if (role == Qt::EditRole) {
+        if (value == QVariant()) { // reset
+            qDebug()<<"setData reset "<<myIcons.icons().at(index.row()).icoFile();
+            myIcons.setMapIco(index.row(), myIcons.icons().at(index.row()).icoFile());
+        } else {
+            myIcons.setMapIco(index.row(), value.toString());
+        }
+        QModelIndex newIndex(createIndex(index.row(), 1));
+        emit dataChanged(newIndex, newIndex);
+        return true;
+    }
+    return false;
 }
 
 QVariant IconTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -205,9 +270,11 @@ QVariant IconTableModel::headerData(int section, Qt::Orientation orientation, in
         case 0:
             return tr("Key");
         case 1:
-            return tr("Icon");
-        case 2:
             return tr("Map Symbol");
+        case 2:
+            return tr("Edit");
+        case 3:
+            return tr("Reset");
         }
     }
     return QVariant();
@@ -215,16 +282,29 @@ QVariant IconTableModel::headerData(int section, Qt::Orientation orientation, in
 
 Qt::ItemFlags IconTableModel::flags(const QModelIndex &index) const {
     if (!index.isValid()) return Qt::ItemIsEnabled;
-    return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+    return QAbstractTableModel::flags(index);
+}
+
+void IconTab::edit(const QModelIndex &index) {
+    if (index.column() == 2) {
+        QString file = QFileDialog::getOpenFileName();
+        if (file.isEmpty()) return;
+
+        mySettings->setMapIcon(index.row(), file);
+        myModel.setData(index, file, Qt::EditRole);
+    } else if (index.column() == 3) {
+        myModel.setData(index, QVariant(), Qt::EditRole);
+    }
 }
 
 IconTab::IconTab(Settings *settings, QWidget *parent) :
-    QWidget(parent), mySettings(settings)
+    QWidget(parent), mySettings(settings), myModel(mySettings->mapIconList())
 {
-    IconTableModel *model = new IconTableModel(mySettings->mapIcons());
     QGridLayout *control = new QGridLayout();
     tab = new QTableView();
-    tab->setModel(model);
+    tab->setModel(&myModel);
+    tab->verticalHeader()->hide();
+    connect(tab, SIGNAL(clicked(QModelIndex)), this, SLOT(edit(QModelIndex)));
     control->addWidget(tab, 0, 0);
     setLayout(control);
 }

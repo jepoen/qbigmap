@@ -14,19 +14,16 @@ Overlay::Overlay(const QString &key, int z):
 */
 Model::Model(const Settings &settings) :
     myLayer(settings.baseLayers()[0]) , myCenter(settings.center()),
-    mySrtmDir(settings.srtmDir()), myZoom(settings.zoom())
+    mySrtmDir(settings.srtmDir()), myZoom(settings.zoom()), myWidth(settings.xExt()),
+    myHeight(settings.yExt())
 {
-    myTrack = NULL;
-    myWidth = 5;
-    myHeight = 3;
     qDebug()<<"lonlat: "<<myCenter;
     QPoint iCenter = Model::lonLat2Tile(myCenter, myZoom);
     qDebug()<<"model center"<<iCenter;
     myX = iCenter.x()-myWidth/2;
     myY = iCenter.y()-myHeight/2;
-    myRoute = new Route();
-    connect(myRoute, SIGNAL(routeChanged()), this, SLOT(updateRoute()));
-    connect(myRoute, SIGNAL(routePointMoved(int)), this, SLOT(moveRoutePoint(int)));
+    connect(&myRoute, SIGNAL(routeChanged()), this, SLOT(updateRoute()));
+    connect(&myRoute, SIGNAL(routePointMoved(int)), this, SLOT(moveRoutePoint(int)));
 }
 
 void Model::updateSettings(const Settings &settings) {
@@ -103,17 +100,15 @@ void Model::savePixmap(const QString &key, QPixmap *pixmap) {
     myPixmaps.append(PixmapEntry(key, pixmap));
 }
 
-void Model::setTrack(Track *track) {
-    if (myTrack != NULL)
-        delete myTrack;
+void Model::setTrack(const Track& track) {
     myTrack = track;
-    if (myTrack != NULL) {
-        BoundingBox bb = track->boundingBox();
+    if (!myTrack.isEmpty()) {
+        BoundingBox bb = track.boundingBox();
         myCenter = QPointF(0.5*(bb.p0().x()+bb.p1().x()), 0.5*(bb.p0().y()+bb.p1().y()));
         QPoint iCenter = Model::lonLat2Tile(myCenter, myZoom);
         myX = iCenter.x() - myWidth/2;
         myY = iCenter.y() - myHeight/2;
-        myTrack->setPos(0);
+        myTrack.setPos(0);
     }
     emit mapChanged();
 }
@@ -247,13 +242,9 @@ double Model::geodist1(const GpxPointList &points, int i0, int i1) {
 }
 
 void Model::trackSetNew(const QString &fileName, const GpxPointList &ptl) {
-    if (myTrack == 0) {
-        myTrack = new Track(ptl);
-    } else {
-        myTrack->setPoints(ptl);
-    }
-    myTrack->setFileName(fileName);
-    BoundingBox bb = myTrack->boundingBox();
+    myTrack.setPoints(ptl);
+    myTrack.setFileName(fileName);
+    BoundingBox bb = myTrack.boundingBox();
     QPointF center(0.5*(bb.p0().x()+bb.p1().x()), 0.5*(bb.p0().y()+bb.p1().y()));
     qDebug()<<"new center "<<center;
     setCenter(center);
@@ -261,48 +252,44 @@ void Model::trackSetNew(const QString &fileName, const GpxPointList &ptl) {
 }
 
 void Model::setTrackPos(int pos) {
-    if (myTrack == NULL)
-        return;
-    myTrack->setPos(pos);
-    emit trackPosChanged(myTrack->pos());
+    if (myTrack.isEmpty()) return;
+    myTrack.setPos(pos);
+    emit trackPosChanged(myTrack.pos());
 }
 
 void Model::changeTrackPos(int delta) {
-    if (myTrack == NULL)
-        return;
-    setTrackPos(myTrack->pos()+delta);
+    if (myTrack.isEmpty()) return;
+    setTrackPos(myTrack.pos()+delta);
 }
 
 void Model::setTrackPoint(int pos, const GpxPoint& point) {
-    if (myTrack == NULL)
-        return;
-    myTrack->setTrackPoint(pos, point);
+    if (myTrack.isEmpty()) return;
+    myTrack.setTrackPoint(pos, point);
     emit trackChanged();
 }
 
 void Model::insertTrackPoint(int pos, const GpxPoint& point) {
-    myTrack->insertTrackPoint(pos, point);
+    myTrack.insertTrackPoint(pos, point);
     emit trackChanged();
 }
 
 void Model::delTrackPoint(int pos) {
-    if (myTrack == NULL)
-        return;
-    myTrack->delTrackPoint(pos);
+    if (myTrack.isEmpty()) return;
+    myTrack.delTrackPoint(pos);
     emit trackChanged();
-    myTrack->setPos(pos);
-    emit trackPosChanged(myTrack->pos());
+    myTrack.setPos(pos);
+    emit trackPosChanged(myTrack.pos());
 }
 
 void Model::changeTrackPoint(int pos, const QPointF& lonLat) {
-    if (myTrack == 0) return;
-    myTrack->setTrackPointPos(pos, lonLat);
+    if (myTrack.isEmpty()) return;
+    myTrack.setTrackPointPos(pos, lonLat);
     emit trackChanged();
 }
 
 void Model::changeRoutePoint(int pos, const QPointF &lonLat) {
-    if (myRoute == 0) return;
-    myRoute->moveRoutePoint(pos, lonLat);
+    if (myRoute.isEmpty()) return;
+    myRoute.moveRoutePoint(pos, lonLat);
     emit routeChanged();
 }
 
@@ -313,13 +300,9 @@ void Model::routeSetNew(const QString &fileName) {
 }
 
 void Model::routeSetNew(const QString &fileName, const QString &name, const GpxPointList &points) {
-    if (myRoute == 0) {
-        myRoute = new Route(fileName, name, points);
-    } else {
-        myRoute->setFileName(fileName);
-        myRoute->setName(name);
-        myRoute->setRoutePoints(points);
-    }
+    myRoute.setFileName(fileName);
+    myRoute.setName(name);
+    myRoute.setRoutePoints(points);
     emit routeChanged();
 }
 

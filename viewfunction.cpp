@@ -54,7 +54,7 @@ void MoveTrackPointFunction::b1(const QPointF &pos) {
         myIdx = myView->idxOfTrackPoint(pos);
         if (myIdx >= 0) {
             MapScene *scene = static_cast<MapScene*>(myView->scene());
-            myOldPos = scene->model()->track()->trackPoint(myIdx).coord();
+            myOldPos = scene->model()->track().trackPoint(myIdx).coord();
             myState = 1;
         }
     }
@@ -105,7 +105,7 @@ void MoveRoutePointFunction::b1(const QPointF &pos) {
         myIdx = myView->idxOfRoutePoint(pos);
         if (myIdx >= 0) {
             MapScene *scene = static_cast<MapScene*>(myView->scene());
-            myOldPos = scene->model()->route()->points()->at(myIdx).coord();
+            myOldPos = scene->model()->route().points()->at(myIdx).coord();
             myState = 1;
         }
     }
@@ -118,7 +118,7 @@ void MoveRoutePointFunction::b1(const QPointF &pos) {
 void MoveRoutePointFunction::b2(const QPointF &pos) {
     if (myIdx >= 0 && myState == 1) {
         MapScene *scene = static_cast<MapScene*>(myView->scene());
-        scene->model()->route()->moveRoutePoint(myIdx, myOldPos);
+        scene->model()->routePtr()->moveRoutePoint(myIdx, myOldPos);
         myState = 0;
         myIdx = -1;
     }

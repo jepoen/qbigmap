@@ -8,8 +8,8 @@ TrackSimplifyDlg::TrackSimplifyDlg(MapScene *scene, QWidget *parent) :
         myScene(scene),
         mySimpleTrack(0), myTrackItem(0)
 {
-    Track *track = myScene->model()->track();
-    QString fileName = getSimpleFileName(track->fileName());
+    const Track& track = myScene->model()->track();
+    QString fileName = getSimpleFileName(track.fileName());
     selFileAction = new QAction(QIcon(":/icons/disk.png"), tr("Select"), this);
     QVBoxLayout *mainLayout = new QVBoxLayout();
     QGridLayout *ctrl = new QGridLayout();
@@ -23,7 +23,7 @@ TrackSimplifyDlg::TrackSimplifyDlg(MapScene *scene, QWidget *parent) :
     ctrl->addWidget(eFailure, 0, 1);
     QLabel *lTrackPoints = new QLabel(tr("Track points"));
     ctrl->addWidget(lTrackPoints, 1, 0);
-    eTrackPoints = new QLabel(QString("%1").arg(track->trackPoints().size()));
+    eTrackPoints = new QLabel(QString("%1").arg(track.trackPoints().size()));
     ctrl->addWidget(eTrackPoints, 1, 1);
     QLabel *lFileName = new QLabel(tr("&Simple Track file name:"));
     ctrl->addWidget(lFileName, 2, 0);
@@ -92,7 +92,7 @@ void TrackSimplifyDlg::selFileName() {
 
 void TrackSimplifyDlg::simplify(int val) {
     qDebug()<<"simplify "<<val;
-    mySimpleTrack.reset(myScene->model()->track()->simplify(val));
+    mySimpleTrack.reset(myScene->model()->trackPtr()->simplify(val));
     eTrackPoints->setText(QString("%1").arg(mySimpleTrack->trackPoints().size()));
     redrawTrack();
 }

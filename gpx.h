@@ -11,7 +11,7 @@ class QDomElement;
 class GpxPoint {
 private:
     int myType;
-    QPointF myCoord;
+    QPoint myCoord;
     QDateTime myTimeStamp;
     double myEle;
     QString mySym;
@@ -22,18 +22,22 @@ public:
     enum {TRK, RTE, WPT};
     explicit GpxPoint(int type, const QPointF& pos, const QDateTime& timestamp = QDateTime(), double ele = 0,
                       const QString& sym="", const QString& name="", const QString& desc="", const QString& link=""):
-        myType(type), myCoord(pos), myTimeStamp(timestamp), myEle(ele), mySym(sym), myName(name), myDesc(desc), myLink(link)
+        myType(type), myCoord(GpxPoint::iscale(pos)), myTimeStamp(timestamp), myEle(ele), mySym(sym), myName(name), myDesc(desc), myLink(link)
     {}
     int type() const { return myType; }
+    QString typeName() const;
     virtual ~GpxPoint() {}
-    const QPointF& coord() const { return myCoord; }
-    void setCoord(const QPointF& pos) { myCoord = pos; }
+    QPointF coord() const { return dscale(myCoord); }
+    const QPoint& icoord() const { return myCoord; }
+    void setCoord(const QPointF& pos) { myCoord = GpxPoint::iscale(pos); }
     const QDateTime& timestamp() const { return myTimeStamp; }
     double ele() const { return myEle; }
     const QString& sym() const { return mySym; }
     const QString& name() const { return myName; }
     const QString& desc() const { return myDesc; }
     const QString& link() const { return myLink; }
+    static QPoint iscale(const QPointF& p);
+    static QPointF dscale(const QPoint& p);
 };
 
 typedef QList<GpxPoint> GpxPointList;
@@ -76,6 +80,7 @@ public:
     const QString& routeName() const { return myRouteName; }
     const GpxPointList& routePoints() const { return myRoutePoints; }
     TrackSegInfo trackSegInfo(int idx) const;
+    static void removeDoubles(GpxPointList& list);
 };
 
 #endif // GPX_H

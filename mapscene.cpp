@@ -391,12 +391,10 @@ void MapScene::redrawTrack() {
     trackGroup.clear();
     myTrackItem = NULL;
     myTrackPosItem = NULL;
-    Track *track = myModel->track();
-    if (track == NULL) {
-        return;
-    }
+    const Track& track = myModel->track();
+    if (track.isEmpty()) return;
     QPolygonF points;
-    foreach (const GpxPoint& p, track->trackPoints()) {
+    foreach (const GpxPoint& p, track.trackPoints()) {
         QPointF pt = myModel->lonLat2Scene(p.coord());
         points.append(pt);
         TrackPointItem *it = new TrackPointItem(pt, p.sym());
@@ -431,7 +429,7 @@ void MapScene::redrawTrack() {
     }
     */
     if (myShowTrackBb) {
-        BoundingBox bb = track->boundingBox();
+        BoundingBox bb = track.boundingBox();
         qDebug()<<"bb "<<bb.p0()<<" "<<bb.p1();
         QPointF p0 = myModel->lonLat2Scene(bb.p0());
         QPointF p1 = myModel->lonLat2Scene(bb.p1());
@@ -441,7 +439,7 @@ void MapScene::redrawTrack() {
         addItem(it);
         trackGroup.append(it);
     }
-    changeTrackPos(track->pos());
+    changeTrackPos(track.pos());
 }
 
 void MapScene::setShowGrid(bool show) {
@@ -517,9 +515,8 @@ void MapScene::redrawTileBounds() {
 }
 
 void MapScene::changeTrackPos(int pos) {
-    if (myModel->track() == NULL)
-        return;
-    GpxPoint p = myModel->track()->trackPoint(pos);
+    if (myModel->track().isEmpty()) return;
+    GpxPoint p = myModel->track().trackPoint(pos);
     QPointF pt = myModel->lonLat2Scene(p.coord());
     if (myTrackPosItem == 0) {
         myTrackPosItem = new TrackPosItem(pt);
@@ -550,7 +547,7 @@ void MapScene::redrawRoute() {
     QPolygonF points;
     qDeleteAll(myRoutePointItems);
     myRoutePointItems.clear();
-    foreach (const GpxPoint& point, *myModel->route()->points()) {
+    foreach (const GpxPoint& point, *myModel->route().points()) {
         QPointF pt = myModel->lonLat2Scene(point.coord());
         points.append(pt);
         RoutePointItem *it = new RoutePointItem(pt, point.sym());
@@ -575,12 +572,12 @@ void MapScene::redrawRoute() {
 }
 
 void MapScene::changeRoutePos(int idx) {
-    GpxPoint routePoint = (*myModel->route()->points())[idx];
+    GpxPoint routePoint = (*myModel->route().points())[idx];
     QPointF p = myModel->lonLat2Scene(routePoint.coord());
     myRoutePointItems[idx]->setPoint(p);
     myRoutePointItems[idx]->setSym(routePoint.sym());
     QPolygonF points;
-    foreach (const GpxPoint& point, *myModel->route()->points()) {
+    foreach (const GpxPoint& point, *myModel->route().points()) {
         QPointF pt = myModel->lonLat2Scene(point.coord());
         points.append(pt);
     }

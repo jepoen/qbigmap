@@ -34,7 +34,7 @@ class Track
 {
 private:
     QString myFileName;
-    QList<GpxPoint> myTrackPoints;
+    GpxPointList myTrackPoints;
     int myPos;
     double mySumDist;
     double mySumDur;
@@ -43,15 +43,16 @@ private:
     bool myChanged;
 
 public:
-    Track(const QList<GpxPoint>& trackpoints);
-    const QString& fileName() {return myFileName;}
+    Track(const QList<GpxPoint>& trackpoints = QList<GpxPoint>());
+    const QString& fileName() const {return myFileName;}
     void setFileName(const QString& filename) { myFileName = filename; }
+    bool isEmpty() const { return myTrackPoints.size() == 0; }
     void setPoints(const GpxPointList& points);
     const bool& changed() const { return myChanged; }
     void writeOrigXml(QIODevice *dev);
     void writeModifiedXml(QIODevice *dev, bool isSimple=false);
     BoundingBox boundingBox() const;
-    QList<GpxPoint> trackPoints() const { return myTrackPoints;}
+    const GpxPointList& trackPoints() const { return myTrackPoints;}
     int pos() const { return myPos; }
     void setPos(int pos);
     double sumDist() const { return mySumDist; }
@@ -67,6 +68,8 @@ public:
     /**
       * Simplify track at given tolerance.
       */
+    void clear();
+    void removeDoubles() { Gpx::removeDoubles(myTrackPoints); }
     Track* simplify(int tolerance);
 };
 

@@ -163,7 +163,7 @@ void MapView::showPos(const QPointF& pos) {
     if (mapScene->trackItem() != NULL) {
         QList<QGraphicsItem*> its = mapScene->items(QRect(pos.x()-3, pos.y()-3, 7, 7));
         if (its.contains(mapScene->trackItem())) {
-            int idx = model->track()->nearest(lonLat);
+            int idx = model->track().nearest(lonLat);
             model->setTrackPos(idx);
         }
     }
@@ -199,10 +199,10 @@ void MapView::editTrackPoint(const QPointF& pos) {
     if (idx < 0) return;
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
-    const GpxPointList& points = model->track()->trackPoints();
+    const GpxPointList& points = model->track().trackPoints();
     double dist0 = Model::geodist1(points, 0, idx);
     double dist1 = Model::geodist1(points, idx, points.size()-1);
-    GpxPointDlg dlg(model->track()->trackPoint(idx), mySettings->mapIcons());
+    GpxPointDlg dlg(model->track().trackPoint(idx), mySettings->mapIconList());
     dlg.setSrtmEle(model->srtmEle(points[idx].coord()));
     dlg.setDists(dist0, dist1);
     if (dlg.exec()) {
@@ -229,8 +229,8 @@ void MapView::insertTrackPoint(const QPointF &pos) {
     if (ipt.idx() > 0) {
         MapScene *mapScene = static_cast<MapScene*>(scene());
         Model *model = mapScene->model();
-        GpxPoint p0 = model->track()->trackPoint(ipt.idx()-1);
-        GpxPoint p1 = model->track()->trackPoint(ipt.idx());
+        GpxPoint p0 = model->track().trackPoint(ipt.idx()-1);
+        GpxPoint p1 = model->track().trackPoint(ipt.idx());
         double t = ipt.t();
         double ti0 = p0.timestamp().toTime_t();
         double ti1 = p1.timestamp().toTime_t();
@@ -247,7 +247,7 @@ void MapView::newRoutePoint(const QPointF &pos) {
     Model *model = mapScene->model();
     QPointF lonLat = model->lonLat(pos);
     int ele = model->srtmEle(lonLat);
-    Route *route = model->route();
+    Route *route = model->routePtr();
     route->newRoutePoint(GpxPoint(GpxPoint::RTE, lonLat, QDateTime(), ele));
 }
 
@@ -273,7 +273,7 @@ void MapView::delRoutePoint(const QPointF& pos) {
     if (idx < 0) return;
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
-    model->route()->delRoutePoint(idx);
+    model->routePtr()->delRoutePoint(idx);
 }
 
 void MapView::moveRoutePoint(int idx, const QPointF& pos) {
@@ -288,8 +288,8 @@ void MapView::editRoutePoint(const QPointF& pos) {
     if (idx < 0) return;
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
-    GpxPointList *points = model->route()->points();
-    GpxPointDlg dlg(points->at(idx), mySettings->mapIcons());
+    const GpxPointList *points = model->route().points();
+    GpxPointDlg dlg(points->at(idx), mySettings->mapIconList());
     double dist0 = Model::geodist1(*points, 0, idx);
     double dist1 = Model::geodist1(*points, idx, points->size()-1);
     //Test
@@ -297,7 +297,7 @@ void MapView::editRoutePoint(const QPointF& pos) {
     dlg.setSrtmEle(model->srtmEle(points->at(idx).coord()));
     dlg.setDists(dist0, dist1);
     if (dlg.exec()) {
-        model->route()->updateRoutePoint(idx, dlg.point());
+        model->routePtr()->updateRoutePoint(idx, dlg.point());
     }
 }
 
@@ -322,7 +322,7 @@ void MapView::insertRoutePoint(const QPointF &pos) {
         Model *model = mapScene->model();
         QPointF lonLat = model->lonLat(ipt.point());
         int ele = model->srtmEle(lonLat);
-        model->route()->insertRoutePoint(ipt.idx(), GpxPoint(GpxPoint::RTE, lonLat, QDateTime(), ele));
+        model->routePtr()->insertRoutePoint(ipt.idx(), GpxPoint(GpxPoint::RTE, lonLat, QDateTime(), ele));
     }
 }
 

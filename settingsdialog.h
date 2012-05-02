@@ -3,6 +3,7 @@
 
 #include <QAbstractTableModel>
 #include <QDialog>
+#include <QItemDelegate>
 #include "settings.h"
 
 class QLineEdit;
@@ -27,6 +28,16 @@ public:
     const QString gpsInterface() const;
 private slots:
     void selectGpsBabel();
+};
+
+class SelectFileDelegate : public QItemDelegate {
+    Q_OBJECT
+public:
+    SelectFileDelegate(QObject *parent = 0);
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void setEditorData(QWidget *editor, const QModelIndex &index) const;
+    void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+    void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 };
 
 class DirTab : public QWidget
@@ -76,12 +87,14 @@ private slots:
 class IconTableModel: public QAbstractTableModel {
     Q_OBJECT
 private:
-    QList<MapIcon> myIcons;
+    MapIconList myIcons;
 public:
-    IconTableModel(const QList<MapIcon> &icons, QObject *parent = 0);
+    IconTableModel(const MapIconList &icons, QObject *parent = 0);
+    ~IconTableModel();
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
+    bool setData(const QModelIndex &index, const QVariant &value, int role);
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
 };
@@ -91,8 +104,11 @@ class IconTab: public QWidget {
 private:
     Settings *mySettings;
     QTableView *tab;
+    IconTableModel myModel;
 public:
     IconTab(Settings *settings, QWidget *parent = 0);
+private slots:
+    void edit(const QModelIndex& index);
 };
 
 class SettingsDialog : public QDialog

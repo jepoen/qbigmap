@@ -34,7 +34,8 @@ SOURCES += main.cpp \
     geom.cpp \
     gpx.cpp \
     srtm.cpp \
-    gpxpointdlg.cpp
+    gpxpointdlg.cpp \
+    gpxlistmodel.cpp
 HEADERS += mainwindow.h \
     tile.h \
     httpget.h \
@@ -63,7 +64,8 @@ HEADERS += mainwindow.h \
     geom.h \
     gpx.h \
     srtm.h \
-    gpxpointdlg.h
+    gpxpointdlg.h \
+    gpxlistmodel.h
 RESOURCES += qbigmap.qrc
 TRANSLATIONS = qbigmap_de.ts
 #LIBS += -lexif

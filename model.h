@@ -6,6 +6,7 @@
 #include <QPointF>
 #include <QString>
 #include "gpx.h"
+#include "route.h"
 #include "settings.h"
 #include "srtm.h"
 #include "track.h"
@@ -42,9 +43,9 @@ private:
     QList<Layer> myOverlays;
     QList<PixmapEntry> myPixmaps;
     QList<SrtmEntry*> mySrtmData;
-    Track *myTrack;
+    Track myTrack;
     GpxPointList myWaypoints;
-    Route *myRoute;
+    Route myRoute;
 
 public:
     static const double baseLen;
@@ -76,16 +77,18 @@ public:
     QPoint lonLat2Scene(const QPointF& point);
     static const QPointF lonLat2SpherMerc(const QPointF &point);
     static const QPointF spherMerc2lonLat(const QPointF &point);
-    Track *track() const { return myTrack; }
+    const Track& track() const { return myTrack; }
+    Track* trackPtr() { return &myTrack; }
     void trackSetNew(const QString& fileName, const GpxPointList& ptl);
-    void setTrack(Track *track);
+    void setTrack(const Track &track);
     void setTrackPos(int pos);
     void changeTrackPos(int delta);
     void setTrackPoint(int pos, const GpxPoint &point);
     void insertTrackPoint(int pos, const GpxPoint &point);
     void delTrackPoint(int pos);
     void changeTrackPoint(int pos, const QPointF& lonLat);
-    Route *route() const { return myRoute; }
+    const Route& route() const { return myRoute; }
+    Route *routePtr() { return &myRoute; }
     void routeSetNew(const QString& fileName);
     void routeSetNew(const QString& fileName, const QString& name, const GpxPointList& points);
     void changeRoutePoint(int pos, const QPointF& lonLat);

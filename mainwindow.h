@@ -3,12 +3,15 @@
 
 #include <QtGui/QMainWindow>
 #include <QList>
+#include <QListView>
+#include "gpxlistmodel.h"
 #include "model.h"
 #include "httpget.h"
 #include "settings.h"
 
 class QAction;
 class QActionGroup;
+class QDockWidget;
 class QLabel;
 class QListWidget;
 class QListWidgetItem;
@@ -32,13 +35,16 @@ private:
           PHOTO_TRACKIDX = Qt::UserRole+3};
     Settings settings;
     Model *model;
+    GpxListModel *myTrackPoiModel;
     int myPhotoOffset;
     MapScene *scene;
     MapView *view;
     ProfileScene *profileScene;
     ProfileView *profileView;
-    QWidget *photoWidget;
+    QDockWidget *photoWidget;
+    QDockWidget *trackPoiWidget;
     QListWidget *photoList;
+    QListView *trackPoiListView;
     QLabel *lModelStatus;
     QLabel *lPos;
     QLabel *lTrackPos;
@@ -79,6 +85,7 @@ private:
     QAction *delRouteAction;
     //QAction *showPhotoAction;
     //QAction *hidePhotoAction;
+    QAction *showTrackPoiAction;
     QAction *posAction;
     QAction *zoomInAction;
     QAction *zoomOutAction;
@@ -114,6 +121,7 @@ private:
     void createMenuBar();
     void createToolBar();
     void createStatusBar();
+    void createTrackPoiTable();
     void output(QPrinter *device);
     void paintTiles(QPainter *painter, bool showOverlays);
     void paintTrack(QPainter *painter, bool showSym);
@@ -151,6 +159,8 @@ private slots:
     //void hidePhotos();
     //void showPhoto(QListWidgetItem * item);
     //void showPhotoData(QListWidgetItem *item);
+    void showTrackPois();
+    void selectTrackPoi(const QModelIndex& index);
     void toggleGrid();
     void toggleTileBounds();
     void addNorth();
