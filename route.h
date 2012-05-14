@@ -33,7 +33,7 @@ public:
     void insertRoutePoint(int idx, const GpxPoint &point);
     void delRoute();
     bool isDirty() const { return myDirty; }
-    void writeXml(QIODevice *dev);
+    void writeXml(QIODevice *dev, GpxPointList *wpts);
     void removeDoubles() { Gpx::removeDoubles(myPoints); }
 signals:
     void routeChanged();

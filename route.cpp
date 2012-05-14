@@ -42,7 +42,7 @@ void Route::delRoute() {
     emit routeChanged();
 }
 
-void Route::writeXml(QIODevice *dev) {
+void Route::writeXml(QIODevice *dev, GpxPointList *wpts) {
     QLocale locale("C");
     QDomDocument doc;
     QDomElement root = doc.createElement("gpx");
@@ -51,6 +51,44 @@ void Route::writeXml(QIODevice *dev) {
     root.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
     root.setAttribute("xsi:schemaLocation", "http://www.topografix.com/GPX/1/1 gpx.xsd");
     doc.appendChild(root);
+    if (wpts != 0) {
+        foreach (const GpxPoint&p, *wpts) {
+            QDomElement wpt = doc.createElement("wpt");
+            wpt.setAttribute("lon", locale.toString(p.coord().x(), 'g', 10));
+            wpt.setAttribute("lat", locale.toString(p.coord().y(), 'g', 10));
+            if (p.sym() != "") {
+                QDomElement el = doc.createElement("sym");
+                QDomText txt = doc.createTextNode(p.sym());
+                el.appendChild(txt);
+                wpt.appendChild(el);
+            }
+            if (p.name() != "") {
+                QDomElement el = doc.createElement("name");
+                QDomText txt = doc.createTextNode(p.name());
+                el.appendChild(txt);
+                wpt.appendChild(el);
+            }
+            if (p.ele() > -32768) {
+                QDomElement el = doc.createElement("ele");
+                QDomText txt = doc.createTextNode(QString("%1").arg(p.ele()));
+                el.appendChild(txt);
+                wpt.appendChild(el);
+            }
+            if (p.desc() != "") {
+                QDomElement el = doc.createElement("desc");
+                QDomText txt = doc.createTextNode(p.desc());
+                el.appendChild(txt);
+                wpt.appendChild(el);
+            }
+            if (p.link() != "") {
+                QDomElement el = doc.createElement("link");
+                QDomText txt = doc.createTextNode(p.link());
+                el.appendChild(txt);
+                wpt.appendChild(el);
+            }
+            root.appendChild(wpt);
+        }
+    }
     QDomElement rte = doc.createElement("rte");
     root.appendChild(rte);
     QDomElement name = doc.createElement("name");

@@ -95,6 +95,7 @@ public:
     void changeRoutePoint(int pos, const QPointF& lonLat);
     void waypointsSetNew(const GpxPointList& points);
     const GpxPointList& waypoints() const { return myWaypoints; }
+    GpxPointList *wptPtr() { return &myWaypoints; }
     void addWaypoint(const GpxPoint &p);
     static QPoint lonLat2Tile (const QPointF& point, int z);
     static QPointF lonLat2TileF (const QPointF& point, int z);

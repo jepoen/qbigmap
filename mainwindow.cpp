@@ -1081,8 +1081,11 @@ void MainWindow::saveRoute() {
                              tr("Cannot save file %1: %2").arg(filename).arg(file.errorString()));
         return;
     }
+    GpxPointList *wpts = 0;
+    if (dlg.isWaywaypoints()) wpts = model->wptPtr();
     model->routePtr()->setName(name);
-    model->routePtr()->writeXml(&file);
+    qDebug()<<"waypoints: "<<dlg.isWaywaypoints()<<" ptr: "<<wpts;
+    model->routePtr()->writeXml(&file, wpts);
     file.close();
     if (isUpload) {
         QStringList params;

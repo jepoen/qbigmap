@@ -109,7 +109,7 @@ GpxPoint Gpx::xmlParsePt(const QDomElement& el) {
     int type = -1;
     if (el.nodeName() == "trkpt") type = GpxPoint::TRK;
     else if (el.nodeName() == "rtept") type = GpxPoint::RTE;
-    else if (el.nodeName() == "wptpt") type = GpxPoint::WPT;
+    else if (el.nodeName() == "wpt") type = GpxPoint::WPT;
     assert(type >= 0);
     return GpxPoint(type, QPointF(lon, lat), timestamp, ele, sym, name, desc, link);
 }
