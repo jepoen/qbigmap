@@ -1,5 +1,6 @@
 #include <QtGui>
 #include <QtDebug>
+#include "deltrkpartdlg.h"
 #include "geom.h"
 #include "model.h"
 #include "mapscene.h"
@@ -21,6 +22,7 @@ MapView::MapView(QGraphicsScene *scene, Settings *settings) :
 void MapView::createActions() {
     insertTrackPointAction = new QAction(tr("Insert Track Point"), this);
     editTrackPointAction = new QAction(tr("Edit Track Point"), this);
+    delTrackPointAction = new QAction(tr("Delete Track Point"), this);
     editRoutePointAction = new QAction(tr("Edit Route Point"), this);
     insertRoutePointAction = new QAction(tr("Insert Route Point"), this);
     delRoutePointAction = new QAction(tr("Delete Route Point"), this);
@@ -95,11 +97,7 @@ void MapView::contextMenuEvent(QContextMenuEvent *event) {
             if (action == editRoutePointAction) {
                 editRoutePoint(mapToScene(vpos));
             } else if (action == delRoutePointAction) {
-                if (QMessageBox::question(this, tr("Delete Route Point"), tr("Delete route point?"),
-                                          QMessageBox::Yes|QMessageBox::No, QMessageBox::No)
-                        == QMessageBox::Yes) {
-                    delRoutePoint(mapToScene(vpos));
-                }
+                delRoutePoint(mapToScene(vpos));
             }
             break;
         } else if (it->type() == RouteItem::Type) {
@@ -112,10 +110,12 @@ void MapView::contextMenuEvent(QContextMenuEvent *event) {
             break;
         } else if (it->type() == TrackPointItem::Type) {
             QList<QAction*> actions;
-            actions<<editTrackPointAction;
+            actions<<editTrackPointAction<<delTrackPointAction;
             QAction *action = QMenu::exec(actions, mapToGlobal(vpos), 0, this);
             if (action == editTrackPointAction) {
                 editTrackPoint(mapToScene(vpos));
+            } else if (action == delTrackPointAction) {
+                delTrackPoint(mapToScene(vpos));
             }
             break;
         } else if (it->type() == TrackItem::Type) {
@@ -210,6 +210,21 @@ void MapView::editTrackPoint(const QPointF& pos) {
     }
 }
 
+void MapView::delTrackPoint(const QPointF& pos) {
+    int idx = idxOfTrackPoint(pos);
+    if (idx < 0) return;
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    Model *model = mapScene->model();
+    const GpxPoint& p = model->track().trackPoint(idx);
+    if (QMessageBox::question(this, tr("Delete Trackpoint"),
+                              tr("Delete trackpoint %1 %2 (%3)?").arg(idx).arg(p.name()).arg(p.sym()),
+                              QMessageBox::Yes|QMessageBox::No, QMessageBox::No)
+            != QMessageBox::Yes) {
+        return;
+    }
+    model->delTrackPoint(idx);
+}
+
 void MapView::insertTrackPoint(const QPointF &pos) {
     QPointF vpos = mapFromScene(pos);
     QRect bb(vpos.x()-3, vpos.y()-3, 7, 7);
@@ -273,6 +288,13 @@ void MapView::delRoutePoint(const QPointF& pos) {
     if (idx < 0) return;
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
+    const GpxPoint& p = model->route().points()->at(idx);
+    if (QMessageBox::question(this, tr("Delete Route Point"),
+                              tr("Delete route point %1, %2 (%3)?").arg(idx).arg(p.name()).arg(p.sym()),
+                              QMessageBox::Yes|QMessageBox::No, QMessageBox::No)
+            != QMessageBox::Yes) {
+        return;
+    }
     model->routePtr()->delRoutePoint(idx);
 }
 
@@ -402,3 +424,13 @@ void MapView::deleteTempPoint() {
     tempItem = NULL;
 }
 
+void MapView::delTrackPart() {
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    Model *model = static_cast<MapScene*>(scene())->model();
+    DelTrkPartDlg dlg(mapScene);
+    if (dlg.exec() == QDialog::Accepted) {
+        int i0 = dlg.pos0();
+        int i1 = dlg.pos1();
+        model->delTrackPart(i0, i1);
+    }
+}

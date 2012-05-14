@@ -19,6 +19,7 @@ private:
     QGraphicsItem *tempItem;
     QAction *insertTrackPointAction;
     QAction *editTrackPointAction;
+    QAction *delTrackPointAction;
     QAction *editRoutePointAction;
     QAction *delRoutePointAction;
     QAction *insertRoutePointAction;
@@ -35,6 +36,7 @@ public:
     int idxOfTrackPoint(const QPointF& pos);
     void moveTrackPoint(int idx, const QPointF& pos);
     void editTrackPoint(const QPointF& pos);
+    void delTrackPoint(const QPointF& pos);
     void insertTrackPoint(const QPointF& pos);
     void newRoutePoint(const QPointF& pos);
     int idxOfRoutePoint(const QPointF& pos);
@@ -60,6 +62,7 @@ public slots:
     void setZoomOutFunction();
     void setMoveTrackPosFunction();
     void setMoveTrackPointFunction();
+    void delTrackPart();
     void setNewRoutePointFunction();
     void setDelRoutePointFunction();
     void setMoveRoutePointFunction();

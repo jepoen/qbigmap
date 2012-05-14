@@ -51,7 +51,7 @@ public:
     static const double baseLen;
     Model(const Settings& settings);
     const QPointF& center() const { return myCenter; }
-    void setCenter(const QPointF& center) { myCenter = center; }
+    void setCenter(const QPointF& center);
     void updateSettings(const Settings& settings);
     int x() const { return myX; }
     void setX(int x) { myX = x; }
@@ -86,6 +86,7 @@ public:
     void setTrackPoint(int pos, const GpxPoint &point);
     void insertTrackPoint(int pos, const GpxPoint &point);
     void delTrackPoint(int pos);
+    void delTrackPart(int i0, int i1);
     void changeTrackPoint(int pos, const QPointF& lonLat);
     const Route& route() const { return myRoute; }
     Route *routePtr() { return &myRoute; }

@@ -175,6 +175,15 @@ void Track::delTrackPoint(int pos) {
     myChanged = true;
 }
 
+void Track::delTrackPart(int i0, int i1) {
+    if (i0 >= i1 || i0 < 0 || i1 < 0 || i0 >= myTrackPoints.size() || i1 >= myTrackPoints.size()) return;
+    i0++;
+    int count = i1-i0;
+    for (int i = 0; i < count; i++) myTrackPoints.removeAt(i0);
+    setPos(i1);
+    myChanged = true;
+}
+
 double Track::linedist(const QPointF &p0, const QPointF &p1, const QPointF &v) {
     QPointF v0(p1-p0);
     QPointF v1(v-p0);

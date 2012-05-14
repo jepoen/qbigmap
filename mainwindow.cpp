@@ -118,6 +118,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(photoList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(showPhotoData(QListWidgetItem*)));
     connect(photoList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(showPhoto(QListWidgetItem*)));
     connect(trackPoiListView, SIGNAL(activated(QModelIndex)), this, SLOT(selectTrackPoi(QModelIndex)));
+    connect(model, SIGNAL(trackChanged()), myTrackPoiModel, SLOT(updatePointList()));
     updateModelStatus();
 }
 
@@ -186,6 +187,8 @@ void MainWindow::createActions() {
     connect(editTrackPosAction, SIGNAL(triggered()), this, SLOT(editTrackPos()));
     deleteTrackPosAction = new QAction(tr("&Delete track position"), this);
     connect(deleteTrackPosAction, SIGNAL(triggered()), this, SLOT(deleteTrackPos()));
+    delTrackPartAction = new QAction(tr("Delete track part"), this);
+    connect(delTrackPartAction, SIGNAL(triggered()), view, SLOT(delTrackPart()));
     redrawAction = new QAction(tr("&Redraw"), this);
     redrawAction->setIcon(QIcon(":/icons/arrow_refresh.png"));
     posAction = new QAction(QIcon(":/icons/information.png"), tr("Tile Position"), this);
@@ -309,6 +312,7 @@ void MainWindow::enableTrackActions(bool enable) {
     trackSimplifyAction->setEnabled(enable);
     editTrackPosAction->setEnabled(enable);
     deleteTrackPosAction->setEnabled(enable);
+    delTrackPartAction->setEnabled(enable);
     showTrackPoiAction->setEnabled(enable);
     lTrackPos->setVisible(true);
 }
@@ -371,6 +375,7 @@ void MainWindow::createMenuBar() {
     mTrack->addAction(dIncTrackPosAction);
     mTrack->addAction(lastTrackPosAction);
     mTrack->addAction(trackBoundingBoxAction);
+    mTrack->addAction(delTrackPartAction);
     mTrack->addAction(trackSimplifyAction);
     mTrack->addSeparator();
     mTrack->addAction(editTrackPosAction);
@@ -882,10 +887,11 @@ void MainWindow::loadGpx() {
             // TODO: SIGNAL->SLOT
             qDebug()<<"updatePointList track";
             myTrackPoiModel->updatePointList();
-            if (myTrackPoiModel->rowCount(QModelIndex()) > 0) showTrackPois();
+            showTrackPois();
             enableTrackActions(true);
             profileView->setVisible(true);
             trackToolBar->setVisible(true);
+            model->setTrackPos(0);
         }
     }
     if (gpx.wayPoints().size() > 0) {
@@ -912,13 +918,12 @@ void MainWindow::loadTrack() {
     GpxPointList ptl = selectTrackSegments(gpx);
     if (ptl.size() > 0) {
         model->trackSetNew(fileName, ptl);
+        myTrackPoiModel->updatePointList();
+        showTrackPois();
         enableTrackActions(true);
         profileView->setVisible(true);
         trackToolBar->setVisible(true);
-    }
-    myTrackPoiModel->updatePointList();
-    if (myTrackPoiModel->rowCount(QModelIndex()) > 0) {
-        showTrackPois();
+        model->setTrackPos(0);
     }
 }
 

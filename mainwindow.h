@@ -64,6 +64,7 @@ private:
     QAction *moveTrackPointAction;
     QAction *moveTrackPosAction;
     QAction *deleteTrackAction;
+    QAction *delTrackPartAction;
     QAction *incTrackPosAction;
     QAction *dIncTrackPosAction;
     QAction *decTrackPosAction;

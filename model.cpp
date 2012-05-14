@@ -32,6 +32,14 @@ void Model::updateSettings(const Settings &settings) {
     mySrtmData.clear();
 }
 
+void Model::setCenter(const QPointF &center) {
+    myCenter = center;
+    QPoint iCenter = Model::lonLat2Tile(myCenter, myZoom);
+    myX = iCenter.x() - myWidth/2;
+    myY = iCenter.y() - myHeight/2;
+    emit mapChanged();
+}
+
 void Model::setZoom(int zoom) {
     myZoom = zoom;
     QPoint iCenter = Model::lonLat2Tile(myCenter, myZoom);
@@ -244,10 +252,12 @@ double Model::geodist1(const GpxPointList &points, int i0, int i1) {
 void Model::trackSetNew(const QString &fileName, const GpxPointList &ptl) {
     myTrack.setPoints(ptl);
     myTrack.setFileName(fileName);
-    BoundingBox bb = myTrack.boundingBox();
-    QPointF center(0.5*(bb.p0().x()+bb.p1().x()), 0.5*(bb.p0().y()+bb.p1().y()));
-    qDebug()<<"new center "<<center;
-    setCenter(center);
+    // Set center to the center of track bounding box
+    //BoundingBox bb = myTrack.boundingBox();
+    //QPointF center(0.5*(bb.p0().x()+bb.p1().x()), 0.5*(bb.p0().y()+bb.p1().y()));
+    //qDebug()<<"new center "<<center;
+    // Set center to first track point
+    setCenter(ptl.at(0).coord());
     emit trackChanged();
 }
 
@@ -281,6 +291,14 @@ void Model::delTrackPoint(int pos) {
     emit trackPosChanged(myTrack.pos());
 }
 
+void Model::delTrackPart(int i0, int i1) {
+    if (myTrack.isEmpty()) return;
+    myTrack.delTrackPart(i0, i1);
+    emit trackChanged();
+    myTrack.setPos(i0);
+    emit trackPosChanged(i0);
+}
+
 void Model::changeTrackPoint(int pos, const QPointF& lonLat) {
     if (myTrack.isEmpty()) return;
     myTrack.setTrackPointPos(pos, lonLat);
@@ -303,6 +321,7 @@ void Model::routeSetNew(const QString &fileName, const QString &name, const GpxP
     myRoute.setFileName(fileName);
     myRoute.setName(name);
     myRoute.setRoutePoints(points);
+    setCenter(points.at(0).coord());
     emit routeChanged();
 }
 

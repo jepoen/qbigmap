@@ -35,7 +35,8 @@ SOURCES += main.cpp \
     gpx.cpp \
     srtm.cpp \
     gpxpointdlg.cpp \
-    gpxlistmodel.cpp
+    gpxlistmodel.cpp \
+    deltrkpartdlg.cpp
 HEADERS += mainwindow.h \
     tile.h \
     httpget.h \
@@ -65,7 +66,8 @@ HEADERS += mainwindow.h \
     gpx.h \
     srtm.h \
     gpxpointdlg.h \
-    gpxlistmodel.h
+    gpxlistmodel.h \
+    deltrkpartdlg.h
 RESOURCES += qbigmap.qrc
 TRANSLATIONS = qbigmap_de.ts
 #LIBS += -lexif
