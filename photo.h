@@ -16,8 +16,9 @@ private:
 public:
     Photo(const QString& fileName);
     const QString& filename() const { return myFileName; }
+    QString baseFileName() const;
     const QIcon& icon() const { return myIcon; }
-    const QPixmap& pixmap() const { return myPixmap; }
+    const QPixmap& pixmap();
     const QDateTime& timestamp() const { return myTimestamp; }
 };
 

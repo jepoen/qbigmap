@@ -6,9 +6,13 @@
 const QString LAYER_NAME = "Mapnik";
 const QString LAYER_URL = "http://tile.openstreetmap.org/$z/$x/$y.png";
 QString defaultIcons[][3] = {
-    {"flag", ":/icons/flag.png", ":/icons/flag.png"},
+    {"flag", ":/icons/flag-s.png", ":/icons/flag.png"},
+    {"star", ":/icons/star-s.png", ":/icons/star.png"},
+    {"square", ":/icons/square.png", ":/icons/square.png"},
     {"church", ":/icons/church-s.png", ":/icons/church.png"},
+    {"hostel", ":/icons/hostel-s.png", ":/icons/hostel.png"},
     {"shell", ":/icons/shell-s.png", ":/icons/shell-png"},
+    {"pilgrim", ":/icons/pilgrim-hostel-s.png", ":/icons/pilgrim-hostel.png"},
     {0, 0, 0}
 };
 
@@ -63,12 +67,12 @@ void Settings::load() {
     for (int i = 0; i < size; i++) {
         settings->setArrayIndex(i);
         icons.append(MapIcon(settings->value("name").toString(), settings->value("icofile").toString(),
-                                  settings->value("mapicofile").toString()));
+                                  defaultIcons[i][2], settings->value("mapicofile").toString()));
     }
     settings->endArray();
     if (size == 0) {
         for (int i = 0; defaultIcons[i][0] != 0; i++) {
-            icons.append(MapIcon(defaultIcons[i][0], defaultIcons[i][1], defaultIcons[i][2]));
+            icons.append(MapIcon(defaultIcons[i][0], defaultIcons[i][1], defaultIcons[i][2], defaultIcons[i][2]));
         }
     }
     myMapIcons.setIcons(icons);
@@ -111,7 +115,7 @@ void Settings::save() {
     settings.setValue("srtmdir", mySrtmDir);
     settings.setValue("outTrackColor", myOutTrackColor.rgba());
     settings.setValue("outTrackWidth", myOutTrackWidth);
-    settings.setValue("outRouteColor", myOutTrackColor.rgba());
-    settings.setValue("outRouteWidth", myOutTrackWidth);
+    settings.setValue("outRouteColor", myOutRouteColor.rgba());
+    settings.setValue("outRouteWidth", myOutRouteWidth);
 }
 

@@ -1,7 +1,7 @@
 #include <cassert>
 #include <QtDebug>
 #include "graph.h"
-Edge::Edge(int v0, int v1, int weight) :
+Edge::Edge(int v0, int v1, double weight) :
         myV0(v0), myV1(v1), myWeight(weight)
 {}
 

@@ -33,4 +33,28 @@ public:
   */
 IdxPointF insertPoint(const QPolygonF& poly, const QPointF& pos);
 
+/**
+ * Compute Hessian normal form of a line.
+ */
+
+class Hesse {
+private:
+    double myA;
+    double myB;
+    double myC;
+public:
+    explicit Hesse(const QPointF& p0, const QPointF& p1);
+    double a() const { return myA; }
+    double b() const { return myB; }
+    double c() const { return myC; }
+    double dist(const QPointF& p) const { return myA*p.x() + myB*p.y()+myC; }
+};
+
+/**
+ * Simplify a polyline using BFS
+ * @returns index of preserved nodes
+ */
+
+QList<int> simplifyLine(const QPolygonF &line, const QList<bool>& stopNodes, double eps);
+
 #endif // GEOM_H

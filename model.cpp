@@ -305,10 +305,26 @@ void Model::changeTrackPoint(int pos, const QPointF& lonLat) {
     emit trackChanged();
 }
 
+void Model::uniqueTrack() {
+    if (myTrack.removeDoubles() > 0) emit trackChanged();
+}
+
 void Model::changeRoutePoint(int pos, const QPointF &lonLat) {
     if (myRoute.isEmpty()) return;
-    myRoute.moveRoutePoint(pos, lonLat);
+    double srtm = srtmEle(lonLat);
+    myRoute.moveRoutePoint(pos, lonLat, srtm);
     emit routeChanged();
+}
+
+void Model::setRoutePoint(int idx, const GpxPoint& p) {
+    myRoute.updateRoutePoint(idx, p);
+    emit routeChanged();
+}
+
+void Model::changeWaypoint(int pos, const QPointF &lonLat) {
+    if (myWaypoints.isEmpty()) return;
+    myWaypoints[pos].setCoord(lonLat);
+    emit waypointsChanged();
 }
 
 void Model::routeSetNew(const QString &fileName) {
@@ -333,6 +349,16 @@ void Model::waypointsSetNew(const GpxPointList &points) {
 void Model::addWaypoint(const GpxPoint &p) {
     qDebug()<<"model added waypoint "<<p.name();
     myWaypoints.append(p);
+    emit waypointsChanged();
+}
+
+void Model::setWaypoint(int idx, const GpxPoint &p) {
+    myWaypoints[idx] = p;
+    emit waypointsChanged();
+}
+
+void Model::delWaypoint(int idx) {
+    myWaypoints.removeAt(idx);
     emit waypointsChanged();
 }
 

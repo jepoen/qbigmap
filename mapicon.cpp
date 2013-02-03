@@ -1,7 +1,7 @@
 #include "mapicon.h"
 
-MapIcon::MapIcon(const QString &name, const QString &icoFile, const QString &mapFile) :
-    myName(name), myIcoFile(icoFile), myMapIcoFile(mapFile)
+MapIcon::MapIcon(const QString &name, const QString &icoFile, const QString &mapDefaultIco, const QString &mapFile) :
+    myName(name), myIcoFile(icoFile), myMapDefaultIco(mapDefaultIco), myMapIcoFile(mapFile)
 {
     myIco = QPixmap(myIcoFile);
     myMapIco = QPixmap(myMapIcoFile);

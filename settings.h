@@ -88,6 +88,7 @@ public:
     const MapIconList& mapIconList() const { return myMapIcons; }
     void setMapIcons(const QList<MapIcon>& mapIcons) { myMapIcons = mapIcons; }
     void setMapIcon(int idx, const QString& fileName) { myMapIcons.setMapIco(idx, fileName); }
+    void resetMapIcon(int idx) {myMapIcons.setMapIco(idx, myMapIcons.icons()[idx].mapDefaultIco()); }
     void load();
     void save();
 };

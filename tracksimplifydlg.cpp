@@ -1,4 +1,5 @@
 #include <QtGui>
+#include "geom.h"
 #include "tracksimplifydlg.h"
 #include "mapscene.h"
 #include "track.h"
@@ -33,23 +34,42 @@ TrackSimplifyDlg::TrackSimplifyDlg(MapScene *scene, QWidget *parent) :
     bFileName->setDefaultAction(selFileAction);
     lFileName->setBuddy(bFileName);
     ctrl->addWidget(bFileName, 2, 2);
-    QLabel *lExport = new QLabel(tr("Export"));
-    ctrl->addWidget(lExport, 3, 0);
-    QHBoxLayout *expLayout = new QHBoxLayout();
-    eOsm = new QCheckBox(tr("&OpenStreetMap"));
-    expLayout->addWidget(eOsm);
-    eGoogle = new QCheckBox(tr("&Google Maps"));
-    expLayout->addWidget(eGoogle);
-    ctrl->addLayout(expLayout, 3, 1, 1, 2);
+    eOsm = new QCheckBox(tr("&OpenStreetMap export"));
+    eOsm->setChecked(true);
+    ctrl->addWidget(eOsm, 3, 0);
+    QLabel *lTitle = new QLabel(tr("Map &title:"));
+    ctrl->addWidget(lTitle, 4, 0);
+    eTitle = new QLineEdit(tr("Track"));
+    lTitle->setBuddy(eTitle);
+    ctrl->addWidget(eTitle, 4, 1);
+    eOsmFile = new QLabel(osmFileName());
+    ctrl->addWidget(eOsmFile, 5, 1);
     mainLayout->addLayout(ctrl);
     QDialogButtonBox *box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
     mainLayout->addWidget(box);
     setLayout(mainLayout);
     connect(selFileAction, SIGNAL(triggered()), this, SLOT(selFileName()));
     connect(eFailure, SIGNAL(valueChanged(int)), this, SLOT(simplify(int)));
-    connect(box, SIGNAL(accepted()), this, SLOT(accept()));
+    connect(box, SIGNAL(accepted()), this, SLOT(finish()));
     connect(box, SIGNAL(rejected()), this, SLOT(reject()));
+    initLine();
     simplify(0);
+}
+
+void TrackSimplifyDlg::initLine() {
+    const Model* model = myScene->model();
+    const Track& track = myScene->model()->track();
+    foreach (const GpxPoint& p, track.trackPoints()) {
+        myLine.push_back(model->lonLat2SpherMerc(p.coord()));
+        bool stop = false;
+        if (!p.sym().isNull() && !p.sym().isEmpty()) stop = true;
+        myStopNodes.push_back(stop);
+    }
+    BoundingBox bb = track.boundingBox();
+    double xm = bb.p0().x()+bb.p1().x();
+    double ym = bb.p0().y()+bb.p1().y();
+    myCenter = QPointF(0.5*xm, 0.5*ym);
+    qDebug()<<"track center "<<myCenter;
 }
 
 QString TrackSimplifyDlg::getSimpleFileName(const QString &s) {
@@ -66,20 +86,17 @@ QString TrackSimplifyDlg::fileName() const {
     return eFileName->text();
 }
 
+QString TrackSimplifyDlg::osmFileName() const {
+    QFileInfo fi(fileName());
+    return fi.absoluteDir().absoluteFilePath(QFileInfo(fi).baseName()+"_osm.html");
+}
+
+QString TrackSimplifyDlg::title() const {
+    return eTitle->text();
+}
+
 bool TrackSimplifyDlg::isOsm() const {
     return eOsm->isChecked();
-}
-
-bool TrackSimplifyDlg::isGoogle() const {
-    return eGoogle->isChecked();
-}
-
-bool TrackSimplifyDlg::writeXml() const {
-    QFile file(eFileName->text());
-    if (!file.open(QFile::WriteOnly|QFile::Text)) return false;
-    mySimpleTrack->writeModifiedXml(&file);
-    file.close();
-    return true;
 }
 
 void TrackSimplifyDlg::selFileName() {
@@ -87,14 +104,33 @@ void TrackSimplifyDlg::selFileName() {
                                                     tr("GPX Files (*.gpx)"));
     if (!fileName.isEmpty()) {
         eFileName->setText(fileName);
+        eOsmFile->setText(osmFileName());
     }
+    this->update();
 }
 
 void TrackSimplifyDlg::simplify(int val) {
-    qDebug()<<"simplify "<<val;
-    mySimpleTrack.reset(myScene->model()->trackPtr()->simplify(val));
+    qDebug()<<"simplify "<<val<<" eps "<<val*myScene->model()->mercUnitsM(myCenter);
+    const Track& track = myScene->model()->track();
+    QList<int> res = simplifyLine(myLine, myStopNodes, val*myScene->model()->mercUnitsM(myCenter));
+    QList<GpxPoint> points;
+    foreach (int idx, res) {
+        const GpxPoint& p = track.trackPoints()[idx];
+        points.push_back(p);
+    }
+    mySimpleTrack.reset(new Track(points));
     eTrackPoints->setText(QString("%1").arg(mySimpleTrack->trackPoints().size()));
     redrawTrack();
+}
+
+void TrackSimplifyDlg::finish() {
+    QFile file(eFileName->text());
+    if (file.exists()) {
+        if (QMessageBox::warning(this, tr("File exists"), tr("File %1 exists. Overwrite it?").arg(file.fileName()),
+                QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
+            return;
+    }
+    emit accept();
 }
 
 void TrackSimplifyDlg::redrawTrack() {
@@ -106,7 +142,7 @@ void TrackSimplifyDlg::redrawTrack() {
     }
     if (!myTrackItem.get()) {
         myTrackItem.reset(new TrackItem(points));
-        myTrackItem->setColor(Qt::cyan);
+        myTrackItem->setColor(Qt::magenta);
         myScene->addItem(myTrackItem.get());
     }
     else {

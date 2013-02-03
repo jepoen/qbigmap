@@ -3,19 +3,6 @@
 #include "model.h"
 #include "track.h"
 
-BoundingBox::BoundingBox()
-{
-    myEle = QPoint(-32768, -32768);
-}
-
-BoundingBox::BoundingBox(const QPointF &p, int ele) :
-    myP0(p), myP1(p), myEle(ele, ele)
-{}
-
-BoundingBox::BoundingBox(const QPointF &p0, const QPointF &p1, const QPoint &ele) :
-        myP0(p0), myP1(p1), myEle(ele)
-{}
-
 Track::Track(const QList<GpxPoint>& trackpoints) :
     myTrackPoints(trackpoints), myChanged(true)
 {
@@ -33,7 +20,7 @@ void Track::writeOrigXml(QIODevice *dev) {
 
 }
 
-void Track::writeModifiedXml(QIODevice *dev, bool isSimple) {
+void Track::writeModifiedXml(QIODevice *dev, bool isSimple) const {
     QLocale locale("C");
     QDomDocument doc;
     QDomElement root = doc.createElement("gpx");
@@ -69,36 +56,43 @@ void Track::writeModifiedXml(QIODevice *dev, bool isSimple) {
             timeStamp.appendChild(doc.createTextNode(p.timestamp().toString(QString("yyyy-MM-ddThh:mm:ssZ"))));
             trkpt.appendChild(timeStamp);
         }
+        if (p.sym() != "") {
+            QDomElement el = doc.createElement("sym");
+            QDomText txt = doc.createTextNode(p.sym());
+            el.appendChild(txt);
+            trkpt.appendChild(el);
+        }
+        if (p.name() != "") {
+            QDomElement el = doc.createElement("name");
+            QDomText txt = doc.createTextNode(p.name());
+            el.appendChild(txt);
+            trkpt.appendChild(el);
+        }
+        if (p.ele() > -32768) {
+            QDomElement el = doc.createElement("ele");
+            QDomText txt = doc.createTextNode(QString("%1").arg(p.ele()));
+            el.appendChild(txt);
+            trkpt.appendChild(el);
+        }
+        if (p.desc() != "") {
+            QDomElement el = doc.createElement("desc");
+            QDomText txt = doc.createTextNode(p.desc());
+            el.appendChild(txt);
+            trkpt.appendChild(el);
+        }
+        if (p.link() != "") {
+            QDomElement el = doc.createElement("link");
+            QDomText txt = doc.createTextNode(p.link());
+            el.appendChild(txt);
+            trkpt.appendChild(el);
+        }
     }
     QTextStream stream(dev);
     doc.save(stream, 4);
 }
 
 BoundingBox Track::boundingBox() const {
-    double x0 = 0;
-    double x1 = 0;
-    double y0 = 0;
-    double y1 = 0;
-    int ele0 = 0;
-    int ele1 = 0;
-    bool start = true;
-    foreach (const GpxPoint& p, myTrackPoints) {
-        if (start) {
-            x1 = x0 = p.coord().x();
-            y1 = y0 = p.coord().y();
-            ele1 = ele0 = p.ele();
-            start = false;
-        }
-        else {
-            if (p.coord().x() < x0) x0 = p.coord().x();
-            if (p.coord().x() > x1) x1 = p.coord().x();
-            if (p.coord().y() < y0) y0 = p.coord().y();
-            if (p.coord().y() > y1) y1 = p.coord().y();
-            if (p.ele() < ele0) ele0 = p.ele();
-            if (p.ele() > ele1) ele1 = p.ele();
-        }
-    }
-    return BoundingBox(QPointF(x0, y0), QPointF(x1, y1), QPoint(ele0, ele1));
+    return Gpx::boundingBox(myTrackPoints);
 }
 
 void Track::setPos(int pos) {
@@ -197,42 +191,6 @@ double Track::linedist(const QPointF &p0, const QPointF &p1, const QPointF &v) {
     }
     //qDebug()<<"t "<<t<<" dist "<<v1;
     return hypot(v1.x(), v1.y());
-}
-
-Track * Track::simplify(int tolerance) {
-    Graph g(myTrackPoints.size());
-    for (int i = 0; i < myTrackPoints.size()-1; i++) {
-        qDebug()<<"Track::simplify add edge "<<i<<" "<<i+1<<" "<<0;
-        g.addEdge(Edge(i, i+1, 0));
-        QPointF v0 = Model::lonLat2SpherMerc(myTrackPoints[i].coord());
-        //qDebug()<<"i: "<<i<<" v0: "<<v0;
-        for (int k = i+2; k < myTrackPoints.size(); k++) {
-            QPointF v1 = Model::lonLat2SpherMerc(myTrackPoints[k].coord());
-            //qDebug()<<"k: "<<k<<" v1 :"<<v1;
-            double maxW = 0;
-            for (int m = i+1; m < k; m++) {
-                QPointF v = Model::lonLat2SpherMerc(myTrackPoints[m].coord());
-                double w = linedist(v0, v1, v);
-                if (w > maxW) maxW = w;
-                if (w > tolerance) break;
-            }
-            //qDebug()<<"maxW: "<<maxW;
-            if (maxW > 2*tolerance) break;
-            int iMax = static_cast<int>(maxW+0.5);
-            if (iMax < tolerance) {
-                qDebug()<<"Track::simplify add edge "<<i<<" "<<k<<" "<<iMax;
-                g.addEdge(Edge(i, k, iMax));
-            }
-        }
-    }
-    QList<int> idxList = g.shortestPath(0, myTrackPoints.size()-1);
-    QList<GpxPoint> newPoints;
-    foreach (int i, idxList) {
-        //qDebug()<<"copy "<<i<<" "<<myTrackPoints[i].lonLat();
-        const GpxPoint& ep = myTrackPoints[i];
-        newPoints.push_back(ep);
-    }
-    return new Track(newPoints);
 }
 
 void Track::clear() {

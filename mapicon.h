@@ -9,17 +9,19 @@ class MapIcon
 private:
     QString myName;
     QString myIcoFile;
+    QString myMapDefaultIco;
     QString myMapIcoFile;
     QPixmap myIco;
     QPixmap myMapIco;
 public:
-    MapIcon(const QString& name="", const QString& icoFile="", const QString& mapFile="");
+    MapIcon(const QString& name="", const QString& icoFile="", const QString& mapDefaultIco="", const QString& mapFile="");
     const QString& name() const { return myName; }
     const QPixmap& ico() const { return myIco; }
     const QString& icoFile() const { return myIcoFile; }
     void setIcoFile(const QString& fileName) { myIcoFile = fileName; }
     const QString& mapIcoFile() const { return myMapIcoFile; }
     void setMapIcoFile(const QString& fileName);
+    const QString& mapDefaultIco() const { return myMapDefaultIco; }
     const QPixmap& mapIco() const { return myMapIco; }
     bool isNull() const { return myName == ""; }
 };

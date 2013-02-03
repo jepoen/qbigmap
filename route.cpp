@@ -24,8 +24,9 @@ void Route::updateRoutePoint(int idx, const GpxPoint &point) {
     emit routePointMoved(idx);
 }
 
-void Route::moveRoutePoint(int idx, const QPointF &pos) {
+void Route::moveRoutePoint(int idx, const QPointF &pos, double srtm) {
     myPoints[idx].setCoord(pos);
+    myPoints[idx].setSrtm(srtm);
     myDirty = true;
     emit routePointMoved(idx);
 }

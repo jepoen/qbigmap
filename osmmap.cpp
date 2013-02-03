@@ -31,6 +31,7 @@ bool OsmMap::writeTrackFile(const QString &osmFileName, const QString &trackFile
         QFileInfo fi(f);
         QPixmap pix(icon.mapIcoFile());
         pixmaps.append(pixEntry(icon.name(), fi.fileName(), pix));
+        if (mapDir.exists(fi.fileName())) mapDir.remove(fi.fileName());
         f.copy(mapDir.absoluteFilePath(fi.fileName()));
     }
     QFile f(":/resources/qbm-track-osm.js");

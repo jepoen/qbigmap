@@ -28,7 +28,7 @@ SOURCES += main.cpp \
     tracksimplifydlg.cpp \
     saveroutedlg.cpp \
     graph.cpp \
-    #photo.cpp \
+    photo.cpp \
     #photodlg.cpp \
     mapicon.cpp \
     geom.cpp \
@@ -36,7 +36,8 @@ SOURCES += main.cpp \
     srtm.cpp \
     gpxpointdlg.cpp \
     gpxlistmodel.cpp \
-    deltrkpartdlg.cpp
+    deltrkpartdlg.cpp \
+    osmmap.cpp
 HEADERS += mainwindow.h \
     tile.h \
     httpget.h \
@@ -59,7 +60,7 @@ HEADERS += mainwindow.h \
     outputseldlg.h \
     saveroutedlg.h \
     graph.h \
-    #photo.h \
+    photo.h \
     #photodlg.h \
     mapicon.h \
     geom.h \
@@ -67,10 +68,11 @@ HEADERS += mainwindow.h \
     srtm.h \
     gpxpointdlg.h \
     gpxlistmodel.h \
-    deltrkpartdlg.h
+    deltrkpartdlg.h \
+    osmmap.h
 RESOURCES += qbigmap.qrc
 TRANSLATIONS = qbigmap_de.ts
-#LIBS += -lexif
+LIBS += -lexiv2
 
 OTHER_FILES += \
     resources/QBigMap.conf \
@@ -98,7 +100,13 @@ OTHER_FILES += \
     icons/arrow_refresh.png \
     icons/arrow_left.png \
     icons/arrow_down.png \
-    icons/add.png
+    icons/add.png \
+    icons/star.png \
+    resources/osm-track.html \
+    resources/qbm-track-osm.js \
+    icons/hostel-s.png \
+    icons/hostel.png \
+    icons/star-s.png
 
 
 

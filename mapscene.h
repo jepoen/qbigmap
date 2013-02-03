@@ -133,6 +133,7 @@ public:
     TrackItem *trackItem() const { return myTrackItem; }
     QList<TrackPointItem *> trackPointItems() const { return myTrackPointItems; }
     QList<RoutePointItem *> routePointItems() const { return myRoutePointItems; }
+    QList<WaypointItem *> waypointItems() const { return myWaypointItems; }
     void setShowGrid(bool show);
     bool isShowGrid() const { return myShowGrid; }
     void setShowTileBounds(bool show);

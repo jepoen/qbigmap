@@ -6,12 +6,12 @@
 class Edge {
 private:
     int myV0, myV1;
-    int myWeight;
+    double myWeight;
 public:
-    Edge(int v0, int v1, int weight);
+    Edge(int v0, int v1, double weight);
     int v0() const { return myV0; }
     int v1() const { return myV1; }
-    int weight() const { return myWeight; }
+    double weight() const { return myWeight; }
 };
 
 typedef QList<Edge> EdgeList;

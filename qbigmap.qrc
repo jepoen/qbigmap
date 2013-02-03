@@ -27,5 +27,15 @@
         <file>icons/church-s.png</file>
         <file>icons/shell.png</file>
         <file>icons/shell-s.png</file>
+        <file>icons/star.png</file>
+        <file>icons/pilgrim-hostel.png</file>
+        <file>icons/pilgrim-hostel-s.png</file>
+        <file>icons/square.png</file>
+        <file>resources/osm-track.html</file>
+        <file>resources/qbm-track-osm.js</file>
+        <file>icons/hostel-s.png</file>
+        <file>icons/hostel.png</file>
+        <file>icons/star-s.png</file>
+        <file>icons/flag-s.png</file>
     </qresource>
 </RCC>

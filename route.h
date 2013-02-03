@@ -29,7 +29,7 @@ public:
     void newRoutePoint(const GpxPoint& point);
     void delRoutePoint(int idx);
     void updateRoutePoint(int idx, const GpxPoint& point);
-    void moveRoutePoint(int idx, const QPointF& pos);
+    void moveRoutePoint(int idx, const QPointF& pos, double srtm);
     void insertRoutePoint(int idx, const GpxPoint &point);
     void delRoute();
     bool isDirty() const { return myDirty; }

@@ -141,6 +141,10 @@ QColor PrintTab::trackColor() const {
     return myTrackColor;
 }
 
+int PrintTab::routeWidth() const {
+    return bRouteWidth->value();
+}
+
 QColor PrintTab::routeColor() const {
     return myRouteColor;
 }
@@ -205,11 +209,11 @@ IconTableModel::~IconTableModel() {
     qDebug()<<"~IconTableModel";
 }
 
-int IconTableModel::rowCount(const QModelIndex &parent) const {
+int IconTableModel::rowCount(const QModelIndex &/*parent*/) const {
     return myIcons.size();
 }
 
-int IconTableModel::columnCount(const QModelIndex &parent) const {
+int IconTableModel::columnCount(const QModelIndex &/*parent*/) const {
     return 4;
 }
 
@@ -252,7 +256,7 @@ bool IconTableModel::setData(const QModelIndex &index, const QVariant &value, in
     if (role == Qt::EditRole) {
         if (value == QVariant()) { // reset
             qDebug()<<"setData reset "<<myIcons.icons().at(index.row()).icoFile();
-            myIcons.setMapIco(index.row(), myIcons.icons().at(index.row()).icoFile());
+            myIcons.setMapIco(index.row(), myIcons.icons().at(index.row()).mapDefaultIco());
         } else {
             myIcons.setMapIco(index.row(), value.toString());
         }
@@ -293,6 +297,7 @@ void IconTab::edit(const QModelIndex &index) {
         mySettings->setMapIcon(index.row(), file);
         myModel.setData(index, file, Qt::EditRole);
     } else if (index.column() == 3) {
+        mySettings->resetMapIcon(index.row());
         myModel.setData(index, QVariant(), Qt::EditRole);
     }
 }
@@ -344,6 +349,8 @@ void SettingsDialog::accept() {
     mySettings.setTileSize(printTab->tileSize());
     mySettings.setOutTrackWidth(printTab->trackWidth());
     mySettings.setOutTrackColor(printTab->trackColor());
+    mySettings.setOutRouteWidth(printTab->routeWidth());
+    mySettings.setOutRouteColor(printTab->routeColor());
     QDialog::accept();
 }
 

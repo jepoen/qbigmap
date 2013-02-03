@@ -5,6 +5,9 @@
 #include <QGraphicsView>
 #include "settings.h"
 
+class TrackPointItem;
+class WaypointItem;
+class RoutePointItem;
 class ViewFunction;
 class QAction;
 
@@ -17,6 +20,7 @@ private:
     int mouseX0;
     int mouseY0;
     QGraphicsItem *tempItem;
+    QAction *selectTrackPointAction;
     QAction *insertTrackPointAction;
     QAction *editTrackPointAction;
     QAction *delTrackPointAction;
@@ -34,20 +38,28 @@ public:
     void zoomOut(const QPointF& pos);
     void showPos(const QPointF& pos);
     int idxOfTrackPoint(const QPointF& pos);
+    int idxOfTrackPoint(TrackPointItem *it);
     void moveTrackPoint(int idx, const QPointF& pos);
+    void selectTrackPoint(const QPointF& pos);
     void editTrackPoint(const QPointF& pos);
     void delTrackPoint(const QPointF& pos);
     void insertTrackPoint(const QPointF& pos);
     void newRoutePoint(const QPointF& pos);
     int idxOfRoutePoint(const QPointF& pos);
+    int idxOfRoutePoint(RoutePointItem *it);
     void delRoutePoint(const QPointF& pos);
     void moveRoutePoint(int idx, const QPointF& pos);
     void editRoutePoint(const QPointF& pos);
     void insertRoutePoint(const QPointF& pos);
+    void moveWaypoint(int idx, const QPointF& pos);
     void output(QPrinter *device, double tilesize);
     void createTempPoint(const QPointF& pos);
     void deleteTempPoint();
+    int idxOfWaypoint(const QPointF& pos);
+    int idxOfWaypoint(WaypointItem *it);
     void newWaypoint(const QPointF& pos, const QString& name);
+    void editWaypoint(const QPointF& pos);
+    void delWaypoint(const QPointF& pos);
 protected:
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
@@ -61,7 +73,7 @@ public slots:
     void setZoomInFunction();
     void setZoomOutFunction();
     void setMoveTrackPosFunction();
-    void setMoveTrackPointFunction();
+    void setMoveGpxPointFunction();
     void delTrackPart();
     void setNewRoutePointFunction();
     void setDelRoutePointFunction();

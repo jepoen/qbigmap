@@ -5,6 +5,19 @@
 
 static const int ISCALE = 10000000;
 
+BoundingBox::BoundingBox()
+{
+    myEle = QPoint(-32768, -32768);
+}
+
+BoundingBox::BoundingBox(const QPointF &p, int ele) :
+    myP0(p), myP1(p), myEle(ele, ele)
+{}
+
+BoundingBox::BoundingBox(const QPointF &p0, const QPointF &p1, const QPoint &ele) :
+        myP0(p0), myP1(p1), myEle(ele)
+{}
+
 QPoint GpxPoint::iscale(const QPointF &p) {
     return QPoint(int(round(p.x()*ISCALE)), int(round(p.y()*ISCALE)));
 }
@@ -130,22 +143,52 @@ TrackSegInfo Gpx::trackSegInfo(int idx) const {
     if (ptl.size() == 0) return TrackSegInfo();
     QDateTime t0 = ptl[0].timestamp();
     QDateTime t1 = ptl[ptl.size()-1].timestamp();
-    return TrackSegInfo(t0, t1, ptl.size(), true);
+    return TrackSegInfo(t0, t1, ptl.size());
 }
 
-void Gpx::removeDoubles(GpxPointList &list) {
+int Gpx::removeDoubles(GpxPointList &list) {
     qDebug()<<"removeDoubles";
+    int cnt = 0;
     for (int i = 0; i < list.size()-1; i++) {
         if (list[i].icoord() == list[i+1].icoord()) {
             if (list[i].sym().isEmpty()) {
                 list.removeAt(i);
+                cnt++;
                 qDebug()<<"  remove "<<i;
             } else if (list[i+1].sym().isEmpty()) {
                 list.removeAt(i+1);
+                cnt++;
                 qDebug()<<"  remove "<<(i+1);
             } else {
                 std::cerr<<"points "<<i<<" and "<<(i+1)<<" are duplicates with symbols"<<std::endl;
             }
         }
     }
+    return cnt;
+}
+BoundingBox Gpx::boundingBox(const GpxPointList& points) {
+    double x0 = 0;
+    double x1 = 0;
+    double y0 = 0;
+    double y1 = 0;
+    int ele0 = 0;
+    int ele1 = 0;
+    bool start = true;
+    foreach (const GpxPoint& p, points) {
+        if (start) {
+            x1 = x0 = p.coord().x();
+            y1 = y0 = p.coord().y();
+            ele1 = ele0 = p.ele();
+            start = false;
+        }
+        else {
+            if (p.coord().x() < x0) x0 = p.coord().x();
+            if (p.coord().x() > x1) x1 = p.coord().x();
+            if (p.coord().y() < y0) y0 = p.coord().y();
+            if (p.coord().y() > y1) y1 = p.coord().y();
+            if (p.ele() < ele0) ele0 = p.ele();
+            if (p.ele() > ele1) ele1 = p.ele();
+        }
+    }
+    return BoundingBox(QPointF(x0, y0), QPointF(x1, y1), QPoint(ele0, ele1));
 }

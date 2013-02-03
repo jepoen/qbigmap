@@ -13,23 +13,6 @@
 
 class QIODevice;
 
-class BoundingBox {
-private:
-    QPointF myP0;
-    QPointF myP1;
-    QPoint myEle;
-public:
-    BoundingBox();
-    BoundingBox(const QPointF& p, int ele);
-    BoundingBox(const QPointF &p0, const QPointF& p1, const QPoint& ele);
-    const QPointF& p0() const { return myP0; }
-    void setP0(const QPointF& p0) { myP0 = p0; }
-    const QPointF& p1() const { return myP1; }
-    void setP1(const QPointF& p1) { myP1 = p1; }
-    const QPoint ele() const { return myEle; }
-    void setEle(const QPoint& ele) { myEle = ele; }
-};
-
 class Track
 {
 private:
@@ -50,7 +33,7 @@ public:
     void setPoints(const GpxPointList& points);
     const bool& changed() const { return myChanged; }
     void writeOrigXml(QIODevice *dev);
-    void writeModifiedXml(QIODevice *dev, bool isSimple=false);
+    void writeModifiedXml(QIODevice *dev, bool isSimple=false) const;
     BoundingBox boundingBox() const;
     const GpxPointList& trackPoints() const { return myTrackPoints;}
     int pos() const { return myPos; }
@@ -66,12 +49,12 @@ public:
     void delTrackPoint(int pos);
     void delTrackPart(int i0, int i1);
     double linedist(const QPointF& p0, const QPointF& p1, const QPointF& v); ///< Euklidian distance from a line
+
     /**
       * Simplify track at given tolerance.
       */
     void clear();
-    void removeDoubles() { Gpx::removeDoubles(myTrackPoints); }
-    Track* simplify(int tolerance);
+    int removeDoubles() { return Gpx::removeDoubles(myTrackPoints); }
 };
 
 #endif // TRACK_H

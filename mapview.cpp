@@ -20,6 +20,7 @@ MapView::MapView(QGraphicsScene *scene, Settings *settings) :
 }
 
 void MapView::createActions() {
+    selectTrackPointAction = new QAction(tr("Select Track Point"), this);
     insertTrackPointAction = new QAction(tr("Insert Track Point"), this);
     editTrackPointAction = new QAction(tr("Edit Track Point"), this);
     delTrackPointAction = new QAction(tr("Delete Track Point"), this);
@@ -31,9 +32,27 @@ void MapView::createActions() {
 }
 
 void MapView::mousePressEvent(QMouseEvent *event) {
+    QPoint vpos = event->pos();
+    QRect bb(vpos.x()-3, vpos.y()-3, 7, 7);
+    QGraphicsItem *currIt = 0;
+    foreach(QGraphicsItem *it, items(bb)) {
+        qDebug()<<it<<" "<<it->type();
+        if (it->type() == RoutePointItem::Type) {
+            currIt = it;
+            break;
+        }
+        if (it->type() == TrackPointItem::Type) {
+            currIt = it;
+            break;
+        }
+        if (it->type() == WaypointItem::Type) {
+            currIt = it;
+            break;
+        }
+    }
     QPointF pos = mapToScene(event->pos());
     if (event->button() == Qt::LeftButton) {
-        function->b1(pos);
+        function->b1(pos, currIt);
     }
     else if (event->button() == Qt::MidButton) {
         function->b2(pos);
@@ -110,9 +129,12 @@ void MapView::contextMenuEvent(QContextMenuEvent *event) {
             break;
         } else if (it->type() == TrackPointItem::Type) {
             QList<QAction*> actions;
-            actions<<editTrackPointAction<<delTrackPointAction;
+            actions<<selectTrackPointAction<<editTrackPointAction<<delTrackPointAction;
             QAction *action = QMenu::exec(actions, mapToGlobal(vpos), 0, this);
-            if (action == editTrackPointAction) {
+            if (action == selectTrackPointAction) {
+                selectTrackPoint(mapToScene(vpos));
+            }
+            else if (action == editTrackPointAction) {
                 editTrackPoint(mapToScene(vpos));
             } else if (action == delTrackPointAction) {
                 delTrackPoint(mapToScene(vpos));
@@ -132,11 +154,12 @@ void MapView::contextMenuEvent(QContextMenuEvent *event) {
             actions<<editWaypointAction<<delWaypointAction;
             QAction *action = QMenu::exec(actions, mapToGlobal(vpos), 0, this);
             if (action == editWaypointAction) {
-
+                editWaypoint(mapToScene(vpos));
             } else if (action == delWaypointAction) {
-                if (QMessageBox::question(this, tr("Delete Waypoint"), tr("Delete route point?"),
+                if (QMessageBox::question(this, tr("Delete Waypoint"), tr("Delete Waypoint?"),
                                           QMessageBox::Yes|QMessageBox::No, QMessageBox::No)
                         == QMessageBox::Yes) {
+                    delWaypoint(mapToScene(vpos));
                 }
             }
             break;
@@ -187,11 +210,19 @@ int MapView::idxOfTrackPoint(const QPointF& pos) {
     return mapScene->trackPointItems().indexOf(tIt);
 }
 
+int MapView::idxOfTrackPoint(TrackPointItem *it) {
+    if (!it) return -1;
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    return mapScene->trackPointItems().indexOf(it);
+}
+
 void MapView::moveTrackPoint(int idx, const QPointF& pos) {
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
     QPointF lonLat = model->lonLat(pos);
-    mapScene->model()->changeTrackPoint(idx, lonLat);
+    // don't emit track change
+    model->trackPtr()->setTrackPointPos(idx, lonLat);
+    mapScene->redrawTrack();
 }
 
 void MapView::editTrackPoint(const QPointF& pos) {
@@ -208,6 +239,13 @@ void MapView::editTrackPoint(const QPointF& pos) {
     if (dlg.exec()) {
         model->setTrackPoint(idx, dlg.point());
     }
+}
+
+void MapView::selectTrackPoint(const QPointF& pos) {
+    int idx = idxOfTrackPoint(pos);
+    if (idx < 0) return;
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    mapScene->model()->setTrackPos(idx);
 }
 
 void MapView::delTrackPoint(const QPointF& pos) {
@@ -263,7 +301,9 @@ void MapView::newRoutePoint(const QPointF &pos) {
     QPointF lonLat = model->lonLat(pos);
     int ele = model->srtmEle(lonLat);
     Route *route = model->routePtr();
-    route->newRoutePoint(GpxPoint(GpxPoint::RTE, lonLat, QDateTime(), ele));
+    GpxPoint pt(GpxPoint::RTE, lonLat, QDateTime(), ele);
+    pt.setSrtm(ele);
+    route->newRoutePoint(pt);
 }
 
 int MapView::idxOfRoutePoint(const QPointF& pos) {
@@ -281,6 +321,12 @@ int MapView::idxOfRoutePoint(const QPointF& pos) {
     if (!rIt) return -1;
     MapScene *mapScene = static_cast<MapScene*>(scene());
     return mapScene->routePointItems().indexOf(rIt);
+}
+
+int MapView::idxOfRoutePoint(RoutePointItem *it) {
+    if (!it) return -1;
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    return mapScene->routePointItems().indexOf(it);
 }
 
 void MapView::delRoutePoint(const QPointF& pos) {
@@ -319,7 +365,7 @@ void MapView::editRoutePoint(const QPointF& pos) {
     dlg.setSrtmEle(model->srtmEle(points->at(idx).coord()));
     dlg.setDists(dist0, dist1);
     if (dlg.exec()) {
-        model->routePtr()->updateRoutePoint(idx, dlg.point());
+        model->setRoutePoint(idx, dlg.point());
     }
 }
 
@@ -348,6 +394,28 @@ void MapView::insertRoutePoint(const QPointF &pos) {
     }
 }
 
+int MapView::idxOfWaypoint(const QPointF& pos) {
+    QPointF vpos = mapFromScene(pos);
+    QRect bb(vpos.x()-3, vpos.y()-3, 7, 7);
+    WaypointItem *wIt = 0;
+    foreach(QGraphicsItem *it, items(bb)) {
+        qDebug()<<"Found "<<it<<" "<<it->type()<<" "<<RoutePointItem::Type;
+        if (it->type() == WaypointItem::Type) {
+            wIt = qgraphicsitem_cast<WaypointItem *>(it);
+            break;
+        }
+    }
+    if (!wIt) return -1;
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    return mapScene->waypointItems().indexOf(wIt);
+}
+
+int MapView::idxOfWaypoint(WaypointItem *it) {
+    if (!it) return -1;
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    return mapScene->waypointItems().indexOf(it);
+}
+
 void MapView::newWaypoint(const QPointF &pos, const QString& name) {
     qDebug()<<"newWaypoint "<<pos<<" "<<name;
     if (name.trimmed().isNull()) return;
@@ -355,6 +423,35 @@ void MapView::newWaypoint(const QPointF &pos, const QString& name) {
     QPointF gpos = model->lonLat(pos);
     int ele = model->srtmEle(gpos);
     model->addWaypoint(GpxPoint(GpxPoint::WPT, gpos, QDateTime(), ele, "flag", name.trimmed()));
+}
+
+void MapView::moveWaypoint(int idx, const QPointF& pos) {
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    Model *model = mapScene->model();
+    QPointF lonLat = model->lonLat(pos);
+    mapScene->model()->changeWaypoint(idx, lonLat);
+}
+
+void MapView::editWaypoint(const QPointF& pos) {
+    int idx = idxOfWaypoint(pos);
+    if (idx < 0) return;
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    Model *model = mapScene->model();
+    GpxPointDlg dlg(model->waypoints().at(idx), mySettings->mapIconList());
+    //Test
+    //double dist1 = Model::geodist0(*points, 0, idx);
+    dlg.setSrtmEle(model->srtmEle(model->waypoints().at(idx).coord()));
+    if (dlg.exec()) {
+        model->setWaypoint(idx, dlg.point());
+    }
+}
+
+void MapView::delWaypoint(const QPointF& pos) {
+    int idx = idxOfWaypoint(pos);
+    if (idx < 0) return;
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    Model *model = mapScene->model();
+    model->delWaypoint(idx);
 }
 
 void MapView::setShowFunction() {
@@ -373,8 +470,8 @@ void MapView::setMoveTrackPosFunction() {
     function.reset(new SetTrackPosFunction(this));
 }
 
-void MapView::setMoveTrackPointFunction() {
-    function.reset(new MoveTrackPointFunction(this));
+void MapView::setMoveGpxPointFunction() {
+    function.reset(new MoveGpxPointFunction(this));
 }
 
 void MapView::setNewRoutePointFunction() {

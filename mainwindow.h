@@ -18,6 +18,7 @@ class QListWidgetItem;
 class QMenu;
 class QPainter;
 class QPrinter;
+class QPushButton;
 class QToolBar;
 class QWidget;
 class MapView;
@@ -36,6 +37,7 @@ private:
     Settings settings;
     Model *model;
     GpxListModel *myTrackPoiModel;
+    QString myPhotoDir;
     int myPhotoOffset;
     MapScene *scene;
     MapView *view;
@@ -44,10 +46,14 @@ private:
     QDockWidget *photoWidget;
     QDockWidget *trackPoiWidget;
     QListWidget *photoList;
+    QLabel *photoThumb;
+    QPushButton *bPhotoOffset;
+    QLabel *lPhotoOffset;
     QListView *trackPoiListView;
     QLabel *lModelStatus;
     QLabel *lPos;
     QLabel *lTrackPos;
+    QLabel *lPhotoDir;
     QMenu *mType;
     QMenu *mOverlays;
     QToolBar *toolBar;
@@ -61,7 +67,6 @@ private:
     QAction *trackFromGpsAction;
     QAction *loadTrackAction;
     QAction *saveTrackAction;
-    QAction *moveTrackPointAction;
     QAction *moveTrackPosAction;
     QAction *deleteTrackAction;
     QAction *delTrackPartAction;
@@ -76,7 +81,7 @@ private:
     QAction *editTrackPosAction;
     QAction *deleteTrackPosAction;
     QAction *newWaypointAction;
-    QAction *moveWaypointAction;
+    QAction *moveGpxPointAction;
     QAction *newRoutePointAction;
     QAction *delRoutePointAction;
     QAction *moveRoutePointAction;
@@ -84,7 +89,8 @@ private:
     QAction *insertRoutePointAction;
     QAction *saveRouteAction;
     QAction *delRouteAction;
-    //QAction *showPhotoAction;
+    QAction *openPhotoAction;
+    QAction *showPhotoAction;
     //QAction *hidePhotoAction;
     QAction *showTrackPoiAction;
     QAction *posAction;
@@ -134,6 +140,8 @@ private:
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
+signals:
+    void photoDirChanged(const QString& dir);
 
 private slots:
     void print();
@@ -156,11 +164,14 @@ private slots:
     void deleteTrackPos();
     void saveRoute();
     void delRoute();
-    //void showPhotos();
+    void openPhotos();
+    void showPhotoWidget();
+    void enableShowPhoto(bool);
     //void hidePhotos();
     //void showPhoto(QListWidgetItem * item);
-    //void showPhotoData(QListWidgetItem *item);
+    void showPhotoData(QListWidgetItem *item);
     void showTrackPois();
+    void showPhotoDir(const QString& dir);
     void selectTrackPoi(const QModelIndex& index);
     void toggleGrid();
     void toggleTileBounds();

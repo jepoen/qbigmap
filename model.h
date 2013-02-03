@@ -88,15 +88,20 @@ public:
     void delTrackPoint(int pos);
     void delTrackPart(int i0, int i1);
     void changeTrackPoint(int pos, const QPointF& lonLat);
+    void uniqueTrack();
     const Route& route() const { return myRoute; }
     Route *routePtr() { return &myRoute; }
     void routeSetNew(const QString& fileName);
     void routeSetNew(const QString& fileName, const QString& name, const GpxPointList& points);
     void changeRoutePoint(int pos, const QPointF& lonLat);
+    void setRoutePoint(int idx, const GpxPoint& p);
     void waypointsSetNew(const GpxPointList& points);
+    void changeWaypoint(int pos, const QPointF& lonLat);
     const GpxPointList& waypoints() const { return myWaypoints; }
     GpxPointList *wptPtr() { return &myWaypoints; }
+    void setWaypoint(int idx, const GpxPoint& p);
     void addWaypoint(const GpxPoint &p);
+    void delWaypoint(int pos);
     static QPoint lonLat2Tile (const QPointF& point, int z);
     static QPointF lonLat2TileF (const QPointF& point, int z);
     static QPointF tile2LonLat(const QPoint& tile, int z);
