@@ -106,7 +106,10 @@ OTHER_FILES += \
     resources/qbm-track-osm.js \
     icons/hostel-s.png \
     icons/hostel.png \
-    icons/star-s.png
+    icons/star-s.png \
+    icons/pilgrim-hostel-s.png \
+    icons/pilgrim-hostel.png \
+    icons/square.png
 
 
 
