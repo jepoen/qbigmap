@@ -18,27 +18,11 @@ void ShowFunction::b1(const QPointF& pos, QGraphicsItem *it) {
     myIt = it;
 }
 
-ZoomInFunction::ZoomInFunction(MapView *view) :
-        ViewFunction(view)
-{}
-
-void ZoomInFunction::b1(const QPointF& pos, QGraphicsItem *it) {
-    myView->zoomIn(pos);
-}
-
-ZoomOutFunction::ZoomOutFunction(MapView *view) :
-        ViewFunction(view)
-{}
-
-void ZoomOutFunction::b1(const QPointF& pos, QGraphicsItem *it) {
-    myView->zoomOut(pos);
-}
-
 SetTrackPosFunction::SetTrackPosFunction(MapView *view) :
     ViewFunction(view)
 {}
 
-void SetTrackPosFunction::b1(const QPointF &pos, QGraphicsItem *it) {
+void SetTrackPosFunction::b1(const QPointF &pos, QGraphicsItem */*it*/) {
     int idx = myView->idxOfTrackPoint(pos);
     MapScene *scene = static_cast<MapScene*>(myView->scene());
     scene->model()->setTrackPos(idx);
@@ -135,7 +119,7 @@ void MoveGpxPointFunction::b2(const QPointF &pos) {
     }
 }
 
-void MoveGpxPointFunction::b2_trackpoint(const QPointF &pos) {
+void MoveGpxPointFunction::b2_trackpoint(const QPointF &/*pos*/) {
     if (myIdx >= 0 && myState == 1) {
         MapScene *scene = static_cast<MapScene*>(myView->scene());
         scene->model()->changeTrackPoint(myIdx, myOldPos);
@@ -144,7 +128,7 @@ void MoveGpxPointFunction::b2_trackpoint(const QPointF &pos) {
     }
 }
 
-void MoveGpxPointFunction::b2_routepoint(const QPointF &pos) {
+void MoveGpxPointFunction::b2_routepoint(const QPointF &/*pos*/) {
     if (myIdx >= 0 && myState == 1) {
         MapScene *scene = static_cast<MapScene*>(myView->scene());
         double srtm = scene->model()->srtmEle(myOldPos);
@@ -154,7 +138,7 @@ void MoveGpxPointFunction::b2_routepoint(const QPointF &pos) {
     }
 }
 
-void MoveGpxPointFunction::b2_waypoint(const QPointF &pos) {
+void MoveGpxPointFunction::b2_waypoint(const QPointF &/*pos*/) {
     if (myIdx >= 0 && myState == 1) {
         MapScene *scene = static_cast<MapScene*>(myView->scene());
         scene->model()->changeWaypoint(myIdx, myOldPos);
@@ -199,7 +183,7 @@ NewRoutePointFunction::NewRoutePointFunction(MapView *view) :
         ViewFunction(view)
 {}
 
-void NewRoutePointFunction::b1(const QPointF &pos, QGraphicsItem *it) {
+void NewRoutePointFunction::b1(const QPointF &pos, QGraphicsItem */*it*/) {
     myView->newRoutePoint(pos);
 }
 
@@ -207,7 +191,7 @@ DelRoutePointFunction::DelRoutePointFunction(MapView *view) :
         ViewFunction(view)
 {}
 
-void DelRoutePointFunction::b1(const QPointF &pos, QGraphicsItem *it) {
+void DelRoutePointFunction::b1(const QPointF &pos, QGraphicsItem */*it*/) {
     myView->delRoutePoint(pos);
 }
 
@@ -216,7 +200,7 @@ MoveRoutePointFunction::MoveRoutePointFunction(MapView *view) :
         myState(0), myIdx(-1)
 {}
 
-void MoveRoutePointFunction::b1(const QPointF &pos, QGraphicsItem *it) {
+void MoveRoutePointFunction::b1(const QPointF &pos, QGraphicsItem */*it*/) {
     if (myState == 0) {
         myIdx = myView->idxOfRoutePoint(pos);
         if (myIdx >= 0) {
@@ -231,7 +215,7 @@ void MoveRoutePointFunction::b1(const QPointF &pos, QGraphicsItem *it) {
     }
 }
 
-void MoveRoutePointFunction::b2(const QPointF &pos) {
+void MoveRoutePointFunction::b2(const QPointF &/*pos*/) {
     if (myIdx >= 0 && myState == 1) {
         MapScene *scene = static_cast<MapScene*>(myView->scene());
         double srtm = scene->model()->srtmEle(myOldPos);
@@ -251,7 +235,7 @@ EditRoutePointFunction::EditRoutePointFunction(MapView *view) :
     ViewFunction(view)
 {}
 
-void EditRoutePointFunction::b1(const QPointF &pos, QGraphicsItem *it) {
+void EditRoutePointFunction::b1(const QPointF &pos, QGraphicsItem */*it*/) {
     myView->editRoutePoint(pos);
 }
 
@@ -259,7 +243,7 @@ InsertRoutePointFunction::InsertRoutePointFunction(MapView *view) :
     ViewFunction(view)
 {}
 
-void InsertRoutePointFunction::b1(const QPointF &pos, QGraphicsItem *it) {
+void InsertRoutePointFunction::b1(const QPointF &pos, QGraphicsItem */*it*/) {
     myView->insertRoutePoint(pos);
 }
 
@@ -271,7 +255,7 @@ NewWaypointFunction::~NewWaypointFunction() {
     delete myIt;
 }
 
-void NewWaypointFunction::b1(const QPointF &pos, QGraphicsItem *it) {
+void NewWaypointFunction::b1(const QPointF &pos, QGraphicsItem */*it*/) {
     if (myIt != 0) {
         myView->newWaypoint(myPos, myIt->toPlainText());
         reset();

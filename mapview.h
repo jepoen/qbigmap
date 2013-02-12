@@ -31,7 +31,7 @@ private:
     QAction *delWaypointAction;
 
     void createActions();
-
+    void centerView();
 public:
     MapView(QGraphicsScene *scene, Settings *settings);
     void zoomIn(const QPointF& pos);
@@ -70,8 +70,6 @@ signals:
     void mouseGeoPos(const QPointF& lonLat);
 public slots:
     void setShowFunction();
-    void setZoomInFunction();
-    void setZoomOutFunction();
     void setMoveTrackPosFunction();
     void setMoveGpxPointFunction();
     void delTrackPart();
@@ -82,6 +80,8 @@ public slots:
     void setInsertRoutePointFunction();
     void setNewWaypointFunction();
     void moveTempPoint(const QPointF& pos);
+    void zoomInCenter();
+    void zoomOutCenter();
 };
 
 #endif // MAPVIEW_H

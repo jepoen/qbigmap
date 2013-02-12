@@ -165,6 +165,7 @@ void MainWindow::createActions() {
     printAction->setIcon(QIcon(":/icons/printer.png"));
     connect(printAction, SIGNAL(triggered()), this, SLOT(print()));
     savePixmapAction = new QAction(tr("Save pixmap..."), this);
+    connect(savePixmapAction, SIGNAL(triggered()), this, SLOT(savePixmap()));
     quitAction = new QAction(tr("Quit"), this);
     loadGpxAction = new QAction(tr("Read GPX file..."), this);
     connect(loadGpxAction, SIGNAL(triggered()), this, SLOT(loadGpx()));
@@ -208,11 +209,13 @@ void MainWindow::createActions() {
     posAction->setChecked(true);
     functionActionGroup->addAction(posAction);
     zoomInAction = new QAction(QIcon(":/icons/zoom_in.png"), tr("Zoom in"), this);
-    zoomInAction->setCheckable(true);
-    functionActionGroup->addAction(zoomInAction);
+    connect(zoomInAction, SIGNAL(triggered()), view, SLOT(zoomInCenter()));
+    //zoomInAction->setCheckable(true);
+    //functionActionGroup->addAction(zoomInAction);
     zoomOutAction = new QAction(QIcon(":/icons/zoom_out.png"), tr("Zoom out"), this);
-    zoomOutAction->setCheckable(true);
-    functionActionGroup->addAction(zoomOutAction);
+    connect(zoomOutAction, SIGNAL(triggered()), view, SLOT(zoomOutCenter()));
+    //zoomOutAction->setCheckable(true);
+    //functionActionGroup->addAction(zoomOutAction);
     newWaypointAction = new QAction(tr("New waypoint"), functionActionGroup);
     newWaypointAction->setCheckable(true);
     connect(newWaypointAction, SIGNAL(triggered()), view, SLOT(setNewWaypointFunction()));
@@ -289,14 +292,11 @@ void MainWindow::createActions() {
     editLayersAction = new QAction(tr("Edit base layers..."), this);
     editOverlaysAction = new QAction(tr("Edit overlays..."), this);
     editSettingsAction = new QAction(tr("Edit settings..."), this);
-    connect(savePixmapAction, SIGNAL(triggered()), this, SLOT(savePixmap()));
     connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
     connect(deleteTrackAction, SIGNAL(triggered()), this, SLOT(deleteTrack()));
     connect(lastTrackPosAction, SIGNAL(triggered()), this, SLOT(lastTrackPos()));
     connect(redrawAction, SIGNAL(triggered()), scene, SLOT(redraw()));
     connect(posAction, SIGNAL(triggered()), view, SLOT(setShowFunction()));
-    connect(zoomInAction, SIGNAL(triggered()), view, SLOT(setZoomInFunction()));
-    connect(zoomOutAction, SIGNAL(triggered()), view, SLOT(setZoomOutFunction()));
     connect(addNorthAction, SIGNAL(triggered()), this, SLOT(addNorth()));
     connect(addEastAction, SIGNAL(triggered()), this, SLOT(addEast()));
     connect(addSouthAction, SIGNAL(triggered()), this, SLOT(addSouth()));
@@ -586,6 +586,19 @@ void MainWindow::paintRoute(QPainter *painter, bool showSym) {
     }
 }
 
+void MainWindow::paintWpt(QPainter *painter) {
+    foreach(const GpxPoint& point, model->waypoints()) {
+        if (point.sym() == "") continue;
+        QPoint p = model->lonLat2Scene(point.coord());
+        MapIcon ico = settings.mapIconList().icon(point.sym());
+        QPixmap px(ico.mapIcoFile());
+        int offx = px.width()/2;
+        int offy = px.height()/2;
+        painter->drawPixmap(QPoint(p.x()-offx, p.y()-offy), px);
+        painter->drawText(p.x()+offx, p.y(), point.name());
+    }
+}
+
 void MainWindow::paintGrid(QPainter *painter) {
     QPointF lonLat0 = model->lonLat(QPointF(0, 0));
     QPointF lonLat1 = model->lonLat(QPointF(0, model->height()*256));
@@ -611,6 +624,7 @@ QPixmap* MainWindow::createPixmap() {
     dlg.setTrackSym(scene->isShowTrack());
     dlg.setRoute(model->route().points()->size() > 0);
     dlg.setRouteSym(dlg.getRoute());
+    dlg.setWptSym(model->waypoints().size() > 0);
     if (dlg.exec() != QDialog::Accepted) {
         return 0;
     }
@@ -621,6 +635,7 @@ QPixmap* MainWindow::createPixmap() {
     bool restrict = dlg.getRestrict();
     bool showRoute = dlg.getRoute();
     bool showRouteSym = dlg.getRouteSym();
+    bool showWptSym = dlg.getWptSym();
     int w = model->width()*256;
     int h = model->height()*256;
     int x0 = 0;
@@ -652,6 +667,7 @@ QPixmap* MainWindow::createPixmap() {
     if (showRoute && !model->route().isEmpty()) {
         paintRoute(&painter, showRouteSym);
     }
+    if (showWptSym) paintWpt(&painter);
     return pixmap;
 }
 

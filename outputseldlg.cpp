@@ -20,8 +20,10 @@ OutputSelDlg::OutputSelDlg(QWidget *parent) :
     control->addWidget(eRoute, 4, 0);
     eRouteSym = new QCheckBox(tr("Include Route Symbols"));
     control->addWidget(eRouteSym, 5, 0);
+    eWptSym = new QCheckBox(tr("Include Waypoint Symbols"));
+    control->addWidget(eWptSym, 6, 0);
     eRestrict = new QCheckBox(tr("Restrict Size to track"));
-    control->addWidget(eRestrict, 6, 0);
+    control->addWidget(eRestrict, 7, 0);
 
     mainLayout->addLayout(control);
     QDialogButtonBox *box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
@@ -59,6 +61,10 @@ void OutputSelDlg::setRouteSym(bool bRouteSym) {
     eRouteSym->setChecked(bRouteSym);
 }
 
+void OutputSelDlg::setWptSym(bool bWptSym) {
+    eWptSym->setChecked(bWptSym);
+}
+
 bool OutputSelDlg::getTrack() const {
     return eTrack->isChecked();
 }
@@ -73,6 +79,10 @@ bool OutputSelDlg::getRoute() const {
 
 bool OutputSelDlg::getRouteSym() const {
     return eRouteSym->isChecked();
+}
+
+bool OutputSelDlg::getWptSym() const {
+    return eWptSym->isChecked();
 }
 
 void OutputSelDlg::setRestrict(bool bRestrict) {

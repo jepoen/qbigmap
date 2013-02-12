@@ -11,7 +11,7 @@ QString defaultIcons[][3] = {
     {"square", ":/icons/square.png", ":/icons/square.png"},
     {"church", ":/icons/church-s.png", ":/icons/church.png"},
     {"hostel", ":/icons/hostel-s.png", ":/icons/hostel.png"},
-    {"shell", ":/icons/shell-s.png", ":/icons/shell-png"},
+    {"shell", ":/icons/shell-s.png", ":/icons/shell.png"},
     {"pilgrim", ":/icons/pilgrim-hostel-s.png", ":/icons/pilgrim-hostel.png"},
     {0, 0, 0}
 };

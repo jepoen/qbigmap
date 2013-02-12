@@ -14,26 +14,14 @@ public:
     ViewFunction(MapView *view);
     virtual ~ViewFunction() {}
     virtual void b1(const QPointF& pos, QGraphicsItem *it) = 0;
-    virtual void b2(const QPointF& pos) {}
-    virtual void motion(const QPointF& pos) {}
+    virtual void b2(const QPointF& /*pos*/) {}
+    virtual void motion(const QPointF& /*pos*/) {}
     virtual bool key(QKeyEvent */*event*/) { return false; }
 };
 
 class ShowFunction : public ViewFunction {
 public:
     ShowFunction(MapView *view);
-    void b1(const QPointF& pos, QGraphicsItem *it);
-};
-
-class ZoomInFunction : public ViewFunction {
-public:
-    ZoomInFunction(MapView *view);
-    void b1(const QPointF& pos, QGraphicsItem *it);
-};
-
-class ZoomOutFunction : public ViewFunction {
-public:
-    ZoomOutFunction(MapView *view);
     void b1(const QPointF& pos, QGraphicsItem *it);
 };
 
@@ -57,8 +45,8 @@ private:
     void motion_routepoint(const QPointF& pos);
     void motion_waypoint(const QPointF& pos);
     void b2_trackpoint(const QPointF& pos);
-    void b2_routepoint(const QPointF& pos);
-    void b2_waypoint(const QPointF& pos);
+    void b2_routepoint(const QPointF& );
+    void b2_waypoint(const QPointF& );
 public:
     MoveGpxPointFunction(MapView *view);
     void b1(const QPointF &pos, QGraphicsItem *it);
@@ -70,13 +58,13 @@ public:
 class NewRoutePointFunction : public ViewFunction {
 public:
     NewRoutePointFunction(MapView *view);
-    void b1(const QPointF &pos, QGraphicsItem *it);
+    void b1(const QPointF &pos, QGraphicsItem *);
 };
 
 class DelRoutePointFunction : public ViewFunction {
 public:
     DelRoutePointFunction(MapView *view);
-    void b1(const QPointF &pos, QGraphicsItem *it);
+    void b1(const QPointF &pos, QGraphicsItem *);
 };
 
 class MoveRoutePointFunction : public ViewFunction {
@@ -86,21 +74,21 @@ private:
     int myIdx;
 public:
     MoveRoutePointFunction(MapView *view);
-    void b1(const QPointF &pos, QGraphicsItem *it);
-    void b2(const QPointF &pos);
+    void b1(const QPointF &pos, QGraphicsItem *);
+    void b2(const QPointF &);
     void motion(const QPointF &pos);
 };
 
 class EditRoutePointFunction : public ViewFunction {
 public:
     explicit EditRoutePointFunction(MapView *view);
-    void b1(const QPointF &pos, QGraphicsItem *it);
+    void b1(const QPointF &pos, QGraphicsItem *);
 };
 
 class InsertRoutePointFunction: public ViewFunction {
 public:
     explicit InsertRoutePointFunction(MapView *view);
-    void b1(const QPointF &pos, QGraphicsItem *it);
+    void b1(const QPointF &pos, QGraphicsItem *);
 };
 
 class NewWaypointFunction: public ViewFunction {
@@ -112,7 +100,7 @@ private:
 public:
     explicit NewWaypointFunction(MapView *view);
     ~NewWaypointFunction();
-    void b1(const QPointF &pos, QGraphicsItem *it);
+    void b1(const QPointF &pos, QGraphicsItem *);
     bool key(QKeyEvent *);
 };
 

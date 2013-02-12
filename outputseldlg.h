@@ -15,6 +15,7 @@ private:
     QCheckBox *eTrackSym;
     QCheckBox *eRoute;
     QCheckBox *eRouteSym;
+    QCheckBox *eWptSym;
     QCheckBox *eRestrict;
 
 public:
@@ -30,6 +31,8 @@ public:
     void setRoute(bool bShowRoute);
     bool getRouteSym() const;
     void setRouteSym(bool bRouteSym);
+    bool getWptSym() const;
+    void setWptSym(bool bWptSym);
     bool getRestrict() const;
     void setRestrict(bool bRestrict);
 

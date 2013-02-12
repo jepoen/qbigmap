@@ -68,6 +68,8 @@ void MapView::mouseMoveEvent(QMouseEvent *event) {
     Model *model = mapScene->model();
     QPointF pos = mapToScene(event->pos());
     QPointF lonLat = model->lonLat(pos);
+    //qDebug()<<"mouse "<<event->pos()<<" scrollbars: "<<horizontalScrollBar()->value()<<","<<verticalScrollBar()->value()
+    //       <<" size: "<<width()<<", "<<height();
     //qDebug()<<"lonLat: "<<lonLat;
     if ((event->buttons() & Qt::RightButton) != 0) {
         qDebug()<<"motion "<<pos.x()-mouseX0<<" "<<pos.y()-mouseY0;
@@ -167,16 +169,37 @@ void MapView::contextMenuEvent(QContextMenuEvent *event) {
     }
 }
 
+void MapView::centerView() {
+    QScrollBar *hsb = horizontalScrollBar();
+    QScrollBar *vsb = verticalScrollBar();
+    hsb->setValue(hsb->maximum()/2);
+    vsb->setValue(vsb->maximum()/2);
+}
+
 void MapView::zoomIn(const QPointF& pos) {
     Model *model = static_cast<MapScene*>(scene())->model();
     QPointF lonLat = model->lonLat(pos);
     model->zoomIn(lonLat);
+    centerView();
 }
 
 void MapView::zoomOut(const QPointF& pos) {
     Model *model = static_cast<MapScene*>(scene())->model();
     QPointF lonLat = model->lonLat(pos);
     model->zoomOut(lonLat);
+    centerView();
+}
+
+void MapView::zoomInCenter() {
+    QPoint vCenter(width()/2, height()/2);
+    qDebug()<<"zoomIn center "<<vCenter;
+    zoomIn(mapToScene(vCenter));
+}
+
+void MapView::zoomOutCenter() {
+    QPoint vCenter(width()/2, height()/2);
+    qDebug()<<"zoomOut center "<<vCenter;
+    zoomOut(mapToScene(vCenter));
 }
 
 void MapView::showPos(const QPointF& pos) {
@@ -456,14 +479,6 @@ void MapView::delWaypoint(const QPointF& pos) {
 
 void MapView::setShowFunction() {
     function.reset(new ShowFunction(this));
-}
-
-void MapView::setZoomInFunction() {
-    function.reset(new ZoomInFunction(this));
-}
-
-void MapView::setZoomOutFunction() {
-    function.reset(new ZoomOutFunction(this));
 }
 
 void MapView::setMoveTrackPosFunction() {

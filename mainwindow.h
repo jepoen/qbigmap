@@ -133,6 +133,7 @@ private:
     void paintTiles(QPainter *painter, bool showOverlays);
     void paintTrack(QPainter *painter, bool showSym);
     void paintRoute(QPainter *painter, bool showSym);
+    void paintWpt(QPainter *painter);
     void paintGrid(QPainter *painter);
     QPixmap* createPixmap();
     void connectPhotos();
