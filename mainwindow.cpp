@@ -18,6 +18,7 @@
 #include "route.h"
 #include "trackposdlg.h"
 #include "trackseldialog.h"
+#include "trackexportdlg.h"
 #include "tracksimplifydlg.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -204,10 +205,6 @@ void MainWindow::createActions() {
     connect(delTrackPartAction, SIGNAL(triggered()), view, SLOT(delTrackPart()));
     redrawAction = new QAction(tr("&Redraw"), this);
     redrawAction->setIcon(QIcon(":/icons/arrow_refresh.png"));
-    posAction = new QAction(QIcon(":/icons/information.png"), tr("Tile Position"), this);
-    posAction->setCheckable(true);
-    posAction->setChecked(true);
-    functionActionGroup->addAction(posAction);
     zoomInAction = new QAction(QIcon(":/icons/zoom_in.png"), tr("Zoom in"), this);
     connect(zoomInAction, SIGNAL(triggered()), view, SLOT(zoomInCenter()));
     //zoomInAction->setCheckable(true);
@@ -239,7 +236,7 @@ void MainWindow::createActions() {
     insertRoutePointAction = new QAction(tr("Insert route point"), functionActionGroup);
     insertRoutePointAction->setCheckable(true);
     connect(insertRoutePointAction, SIGNAL(triggered()), view, SLOT(setInsertRoutePointFunction()));
-    saveRouteAction = new QAction(tr("Save as"), this);
+    saveRouteAction = new QAction(tr("Save Route ..."), this);
     connect(saveRouteAction, SIGNAL(triggered()), this, SLOT(saveRoute()));
     delRouteAction = new QAction(tr("Delete complete route"), this);
     connect(delRouteAction, SIGNAL(triggered()), this, SLOT(delRoute()));
@@ -296,7 +293,6 @@ void MainWindow::createActions() {
     connect(deleteTrackAction, SIGNAL(triggered()), this, SLOT(deleteTrack()));
     connect(lastTrackPosAction, SIGNAL(triggered()), this, SLOT(lastTrackPos()));
     connect(redrawAction, SIGNAL(triggered()), scene, SLOT(redraw()));
-    connect(posAction, SIGNAL(triggered()), view, SLOT(setShowFunction()));
     connect(addNorthAction, SIGNAL(triggered()), this, SLOT(addNorth()));
     connect(addEastAction, SIGNAL(triggered()), this, SLOT(addEast()));
     connect(addSouthAction, SIGNAL(triggered()), this, SLOT(addSouth()));
@@ -396,7 +392,7 @@ void MainWindow::createMenuBar() {
     mTrack->addSeparator();
     mTrack->addAction(editTrackPosAction);
     mTrack->addAction(deleteTrackPosAction);
-    QMenu *mGpx = menuBar()->addMenu(tr("&GPX"));
+    QMenu *mGpx = menuBar()->addMenu(tr("&Route/Waypoint"));
     mGpx->addAction(newWaypointAction);
     mGpx->addAction(newRoutePointAction);
     mGpx->addAction(moveGpxPointAction);
@@ -434,7 +430,6 @@ void MainWindow::createToolBar() {
     toolBar->addAction(printAction);
     toolBar->addSeparator();
     toolBar->addAction(redrawAction);
-    toolBar->addAction(posAction);
     toolBar->addAction(zoomInAction);
     toolBar->addAction(zoomOutAction);
     toolBar->addAction(showGridAction);
@@ -901,10 +896,12 @@ void MainWindow::readTrackFromGps() {
         enableTrackActions(true);
         profileView->setVisible(true);
         trackToolBar->setVisible(true);
+        model->setTrackPos(0);
     }
     if (gpx.wayPoints().size() > 0) {
         model->waypointsSetNew(gpx.wayPoints());
     }
+    view->centerView();
 }
 
 void MainWindow::loadGpx() {
@@ -934,6 +931,7 @@ void MainWindow::loadGpx() {
     if (gpx.routePoints().size() > 0) {
         model->routeSetNew(fileName, gpx.routeName(), gpx.routePoints());
     }
+    view->centerView();
 }
 
 void MainWindow::loadTrack() {
@@ -1066,15 +1064,22 @@ void MainWindow::simplifyTrack() {
     model->uniqueTrack();
     TrackSimplifyDlg dlg(scene);
     if (dlg.exec() != QDialog::Accepted) return;
-    Track *simpleTrack = dlg.simpleTrack();
-    QFile file(dlg.fileName());
-    if (!file.open(QFile::WriteOnly|QFile::Text)) return;
-    simpleTrack->writeModifiedXml(&file, true);
-    file.close();
-    if (dlg.isOsm()) {
-        QPointF center = simpleTrack->boundingBox().center();
-        OsmMap map(center, model->zoom());
-        map.writeTrackFile(dlg.osmFileName(), dlg.fileName(), dlg.title(), settings.mapIconList());
+    if (dlg.action() == TrackSimplifyDlg::REPLACE) {
+        model->trackSetNew(dlg.fileName(), dlg.simpleTrack()->trackPoints());
+    } else if (dlg.action() == TrackSimplifyDlg::EXPORT) {
+        QFileInfo fi(dlg.fileName());
+        TrackExportDlg expdlg(settings.exportDir()+"/"+fi.fileName(), this);
+        if (expdlg.exec() == QDialog::Accepted) {
+            QFile file(expdlg.fileName());
+            if (!file.open(QFile::WriteOnly|QFile::Text)) return;
+            dlg.simpleTrack()->writeModifiedXml(&file, expdlg.isSimple());
+            file.close();
+            if (expdlg.isOsm()) {
+                QPointF center = dlg.simpleTrack()->boundingBox().center();
+                OsmMap map(center, model->zoom());
+                map.writeTrackFile(expdlg.osmFileName(), expdlg.fileName(), expdlg.title(), settings.mapIconList());
+            }
+        }
     }
 }
 

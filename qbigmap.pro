@@ -37,7 +37,8 @@ SOURCES += main.cpp \
     gpxpointdlg.cpp \
     gpxlistmodel.cpp \
     deltrkpartdlg.cpp \
-    osmmap.cpp
+    osmmap.cpp \
+    trackexportdlg.cpp
 HEADERS += mainwindow.h \
     tile.h \
     httpget.h \
@@ -69,7 +70,8 @@ HEADERS += mainwindow.h \
     gpxpointdlg.h \
     gpxlistmodel.h \
     deltrkpartdlg.h \
-    osmmap.h
+    osmmap.h \
+    trackexportdlg.h
 RESOURCES += qbigmap.qrc
 TRANSLATIONS = qbigmap_de.ts
 LIBS += -lexiv2

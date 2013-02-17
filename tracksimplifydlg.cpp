@@ -7,7 +7,8 @@
 TrackSimplifyDlg::TrackSimplifyDlg(MapScene *scene, QWidget *parent) :
         QDialog(parent),
         myScene(scene),
-        mySimpleTrack(0), myTrackItem(0)
+        mySimpleTrack(0), myTrackItem(0),
+        myAction(CANCEL)
 {
     const Track& track = myScene->model()->track();
     QString fileName = getSimpleFileName(track.fileName());
@@ -34,26 +35,26 @@ TrackSimplifyDlg::TrackSimplifyDlg(MapScene *scene, QWidget *parent) :
     bFileName->setDefaultAction(selFileAction);
     lFileName->setBuddy(bFileName);
     ctrl->addWidget(bFileName, 2, 2);
-    eOsm = new QCheckBox(tr("&OpenStreetMap export"));
-    eOsm->setChecked(true);
-    ctrl->addWidget(eOsm, 3, 0);
-    QLabel *lTitle = new QLabel(tr("Map &title:"));
-    ctrl->addWidget(lTitle, 4, 0);
-    eTitle = new QLineEdit(tr("Track"));
-    lTitle->setBuddy(eTitle);
-    ctrl->addWidget(eTitle, 4, 1);
-    eOsmFile = new QLabel(osmFileName());
-    ctrl->addWidget(eOsmFile, 5, 1);
     mainLayout->addLayout(ctrl);
-    QDialogButtonBox *box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
+    bExport = new QPushButton(tr("E&xport"));
+    connect(bExport, SIGNAL(clicked()), this, SLOT(exportTrk()));
+    bReplace = new QPushButton(tr("&Replace"));
+    connect(bReplace, SIGNAL(clicked()), this, SLOT(replaceTrk()));
+    QDialogButtonBox *box = new QDialogButtonBox();
+    box->addButton(bExport, QDialogButtonBox::ActionRole);
+    box->addButton(bReplace, QDialogButtonBox::ActionRole);
+    box->addButton(QDialogButtonBox::Cancel);
     mainLayout->addWidget(box);
     setLayout(mainLayout);
     connect(selFileAction, SIGNAL(triggered()), this, SLOT(selFileName()));
     connect(eFailure, SIGNAL(valueChanged(int)), this, SLOT(simplify(int)));
-    connect(box, SIGNAL(accepted()), this, SLOT(finish()));
     connect(box, SIGNAL(rejected()), this, SLOT(reject()));
     initLine();
     simplify(0);
+}
+
+TrackSimplifyDlg::~TrackSimplifyDlg() {
+    //qDebug()<<"TrackSimplifyDlg destroyed";
 }
 
 void TrackSimplifyDlg::initLine() {
@@ -86,25 +87,11 @@ QString TrackSimplifyDlg::fileName() const {
     return eFileName->text();
 }
 
-QString TrackSimplifyDlg::osmFileName() const {
-    QFileInfo fi(fileName());
-    return fi.absoluteDir().absoluteFilePath(QFileInfo(fi).baseName()+"_osm.html");
-}
-
-QString TrackSimplifyDlg::title() const {
-    return eTitle->text();
-}
-
-bool TrackSimplifyDlg::isOsm() const {
-    return eOsm->isChecked();
-}
-
 void TrackSimplifyDlg::selFileName() {
     QString fileName = QFileDialog::getSaveFileName(this, tr("Simple Track File"), eFileName->text(),
                                                     tr("GPX Files (*.gpx)"));
     if (!fileName.isEmpty()) {
         eFileName->setText(fileName);
-        eOsmFile->setText(osmFileName());
     }
     this->update();
 }
@@ -133,6 +120,16 @@ void TrackSimplifyDlg::finish() {
     emit accept();
 }
 
+void TrackSimplifyDlg::exportTrk() {
+    myAction = EXPORT;
+    emit accept();
+}
+
+void TrackSimplifyDlg::replaceTrk() {
+    myAction = REPLACE;
+    emit accept();
+}
+
 void TrackSimplifyDlg::redrawTrack() {
     QPolygonF points;
     Model *myModel = myScene->model();
@@ -149,3 +146,4 @@ void TrackSimplifyDlg::redrawTrack() {
         myTrackItem->setPoints(points);
     }
 }
+

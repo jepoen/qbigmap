@@ -31,12 +31,12 @@ private:
     QAction *delWaypointAction;
 
     void createActions();
-    void centerView();
 public:
     MapView(QGraphicsScene *scene, Settings *settings);
     void zoomIn(const QPointF& pos);
     void zoomOut(const QPointF& pos);
     void showPos(const QPointF& pos);
+    void centerView();
     int idxOfTrackPoint(const QPointF& pos);
     int idxOfTrackPoint(TrackPointItem *it);
     void moveTrackPoint(int idx, const QPointF& pos);

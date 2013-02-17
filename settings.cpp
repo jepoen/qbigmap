@@ -41,6 +41,7 @@ void Settings::load() {
     myGpsInterface = settings->value("gpsInterface", "usb:").toString();
     myTrackDir = settings->value("trackdir", ".").toString();
     mySrtmDir = settings->value("srtmdir", ".").toString();
+    myExportDir = settings->value("exportdir", ".").toString();
     myOutTrackColor = QColor::fromRgba(settings->value("outTrackColor", QString("%1").arg(0xff7f007f)).toInt());
     myOutTrackWidth = settings->value("outTrackWidth", "2").toInt();
     myOutRouteColor = QColor::fromRgba(settings->value("outRouteColor", QString("%1").arg(0xff00007f)).toInt());
@@ -113,6 +114,7 @@ void Settings::save() {
     settings.setValue("gpsInterface", myGpsInterface);
     settings.setValue("trackdir", myTrackDir);
     settings.setValue("srtmdir", mySrtmDir);
+    settings.setValue("exportdir", myExportDir);
     settings.setValue("outTrackColor", myOutTrackColor.rgba());
     settings.setValue("outTrackWidth", myOutTrackWidth);
     settings.setValue("outRouteColor", myOutRouteColor.rgba());

@@ -49,9 +49,11 @@ void Track::writeModifiedXml(QIODevice *dev, bool isSimple) const {
         trkpt.setAttribute("lat", locale.toString(p.coord().y(), 'g', 10));
         trkseg.appendChild(trkpt);
         if (!isSimple) {
-            QDomElement ele = doc.createElement("ele");
-            ele.appendChild(doc.createTextNode(QString("%1").arg(p.ele())));
-            trkpt.appendChild(ele);
+            if (p.ele() > -32768) {
+                QDomElement ele = doc.createElement("ele");
+                ele.appendChild(doc.createTextNode(QString("%1").arg(p.ele())));
+                trkpt.appendChild(ele);
+            }
             QDomElement timeStamp = doc.createElement("time");
             timeStamp.appendChild(doc.createTextNode(p.timestamp().toString(QString("yyyy-MM-ddThh:mm:ssZ"))));
             trkpt.appendChild(timeStamp);
@@ -65,12 +67,6 @@ void Track::writeModifiedXml(QIODevice *dev, bool isSimple) const {
         if (p.name() != "") {
             QDomElement el = doc.createElement("name");
             QDomText txt = doc.createTextNode(p.name());
-            el.appendChild(txt);
-            trkpt.appendChild(el);
-        }
-        if (p.ele() > -32768) {
-            QDomElement el = doc.createElement("ele");
-            QDomText txt = doc.createTextNode(QString("%1").arg(p.ele()));
             el.appendChild(txt);
             trkpt.appendChild(el);
         }

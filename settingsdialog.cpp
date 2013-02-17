@@ -53,16 +53,25 @@ DirTab::DirTab(Settings *settings, QWidget *parent) :
     control->addWidget(lTrackDir, 0, 0);
     control->addWidget(eTrackDir, 0, 1);
     control->addWidget(bTrackDir, 0, 2);
-    QLabel *lSrtmDir = new QLabel(tr("SRTM data directory:"));
+    QLabel *lSrtmDir = new QLabel(tr("&SRTM data directory:"));
     eSrtmDir = new QLineEdit(mySettings->srtmDir());
     lSrtmDir->setBuddy(eSrtmDir);
     bSrtmDir = new QPushButton(tr("Select"));
     control->addWidget(lSrtmDir, 1, 0);
     control->addWidget(eSrtmDir, 1, 1);
     control->addWidget(bSrtmDir, 1, 2);
+    QLabel *lExportDir = new QLabel(tr("GPX e&xport directory:"));
+    lExportDir->setToolTip(tr("Directory for simplified tracks and online maps"));
+    eExportDir = new QLineEdit(mySettings->exportDir());
+    lExportDir->setBuddy(eExportDir);
+    bExportDir = new QPushButton(tr("Select"));
+    control->addWidget(lExportDir, 2, 0);
+    control->addWidget(eExportDir, 2, 1);
+    control->addWidget(bExportDir, 2, 2);
     setLayout(control);
     connect(bTrackDir, SIGNAL(clicked()), this, SLOT(selectTrackDir()));
     connect(bSrtmDir, SIGNAL(clicked()), this, SLOT(selectSrtmDir()));
+    connect(bExportDir, SIGNAL(clicked()), this, SLOT(selectExportDir()));
 }
 
 void DirTab::selectTrackDir() {
@@ -79,12 +88,23 @@ void DirTab::selectSrtmDir() {
     }
 }
 
+void DirTab::selectExportDir() {
+    QString dirName = QFileDialog::getExistingDirectory(this, tr("Select SRTM dir"), mySettings->exportDir());
+    if (!dirName.isEmpty()) {
+        eExportDir->setText(dirName);
+    }
+}
+
 const QString DirTab::trackDir() const {
     return eTrackDir->text();
 }
 
 const QString DirTab::srtmDir() const {
     return eSrtmDir->text();
+}
+
+const QString DirTab::exportDir() const {
+    return eExportDir->text();
 }
 
 PrintTab::PrintTab(Settings *settings, QWidget *parent) :
@@ -346,6 +366,7 @@ void SettingsDialog::accept() {
     mySettings.setGpsInterface(gpsTab->gpsInterface());
     mySettings.setTrackDir(trackTab->trackDir());
     mySettings.setSrtmDir(trackTab->srtmDir());
+    mySettings.setExportDir(trackTab->exportDir());
     mySettings.setTileSize(printTab->tileSize());
     mySettings.setOutTrackWidth(printTab->trackWidth());
     mySettings.setOutTrackColor(printTab->trackColor());

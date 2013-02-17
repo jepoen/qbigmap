@@ -44,6 +44,7 @@ private:
     int myTileSize;
     QString myTrackDir;
     QString mySrtmDir;
+    QString myExportDir;
     QList<Layer> myBaseLayers;
     QList<Layer> myOverlays;
     QColor myOutTrackColor;
@@ -77,6 +78,8 @@ public:
     void setTrackDir(const QString& dir) { myTrackDir = dir; }
     const QString& srtmDir() const { return mySrtmDir; }
     void setSrtmDir(const QString& dir) { mySrtmDir = dir; }
+    const QString& exportDir() const { return myExportDir; }
+    void setExportDir(const QString& dir) { myExportDir = dir; }
     const QColor& outTrackColor() const { return myOutTrackColor; }
     void setOutTrackColor(const QColor& co) { myOutTrackColor = co; }
     int outTrackWidth() const { return myOutTrackWidth; }

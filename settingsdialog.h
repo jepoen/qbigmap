@@ -49,13 +49,18 @@ private:
     QPushButton *bTrackDir;
     QLineEdit *eSrtmDir;
     QPushButton *bSrtmDir;
+    QLineEdit *eExportDir;
+    QPushButton *bExportDir;
 public:
     DirTab(Settings *settings, QWidget *parent = 0);
     const QString trackDir() const;
     const QString srtmDir() const;
+    const QString exportDir() const;
+
 private slots:
     void selectTrackDir();
     void selectSrtmDir();
+    void selectExportDir();
 };
 
 class PrintTab: public QWidget
