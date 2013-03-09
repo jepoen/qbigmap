@@ -249,9 +249,10 @@ double Model::geodist1(const GpxPointList &points, int i0, int i1) {
     return sum;
 }
 
-void Model::trackSetNew(const QString &fileName, const GpxPointList &ptl) {
+void Model::trackSetNew(const QString &fileName, const QString& name, const GpxPointList &ptl) {
     myTrack.setPoints(ptl);
     myTrack.setFileName(fileName);
+    myTrack.setName(name);
     // Set center to the center of track bounding box
     //BoundingBox bb = myTrack.boundingBox();
     //QPointF center(0.5*(bb.p0().x()+bb.p1().x()), 0.5*(bb.p0().y()+bb.p1().y()));
@@ -307,6 +308,11 @@ void Model::changeTrackPoint(int pos, const QPointF& lonLat) {
 
 void Model::uniqueTrack() {
     if (myTrack.removeDoubles() > 0) emit trackChanged();
+}
+
+void Model::saveModifiedTrack(QIODevice *dev, bool addWaypoints, bool isSimple) {
+    if (addWaypoints) trackPtr()->writeModifiedXml(dev, waypoints(), isSimple);
+    else              trackPtr()->writeModifiedXml(dev, GpxPointList(), isSimple);
 }
 
 void Model::changeRoutePoint(int pos, const QPointF &lonLat) {

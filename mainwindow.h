@@ -43,6 +43,7 @@ private:
     MapView *view;
     ProfileScene *profileScene;
     ProfileView *profileView;
+    QDockWidget *profileWidget;
     QDockWidget *photoWidget;
     QDockWidget *trackPoiWidget;
     QListWidget *photoList;
@@ -93,6 +94,7 @@ private:
     QAction *showPhotoAction;
     //QAction *hidePhotoAction;
     QAction *showTrackPoiAction;
+    QAction *showTrackProfileAction;
     QAction *posAction;
     QAction *zoomInAction;
     QAction *zoomOutAction;
@@ -128,6 +130,7 @@ private:
     void createMenuBar();
     void createToolBar();
     void createStatusBar();
+    void createProfileWidget();
     void createTrackPoiTable();
     void output(QPrinter *device);
     void paintTiles(QPainter *painter, bool showOverlays);
@@ -135,9 +138,10 @@ private:
     void paintRoute(QPainter *painter, bool showSym);
     void paintWpt(QPainter *painter);
     void paintGrid(QPainter *painter);
+    void paintCopy(QPainter *painter, int w, int h, const QString &copy);
     QPixmap* createPixmap();
     void connectPhotos();
-    void setPhotoOffset();
+    void run(const QString& path, const QStringList& params);
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -149,7 +153,6 @@ private slots:
     void savePixmap();
     void loadGpx();
     void readTrackFromGps();
-    void loadTrack();
     void saveTrack();
     void deleteTrack();
     GpxPointList selectTrackSegments(const Gpx& gpx);
@@ -169,10 +172,12 @@ private slots:
     void showPhotoWidget();
     void enableShowPhoto(bool);
     //void hidePhotos();
-    //void showPhoto(QListWidgetItem * item);
+    void selectPhotoPos(QListWidgetItem* item);
     void showPhotoData(QListWidgetItem *item);
     void showTrackPois();
+    void showTrackProfile();
     void showPhotoDir(const QString& dir);
+    void setPhotoOffset();
     void selectTrackPoi(const QModelIndex& index);
     void toggleGrid();
     void toggleTileBounds();

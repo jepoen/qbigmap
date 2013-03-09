@@ -24,7 +24,12 @@ OutputSelDlg::OutputSelDlg(QWidget *parent) :
     control->addWidget(eWptSym, 6, 0);
     eRestrict = new QCheckBox(tr("Restrict Size to track"));
     control->addWidget(eRestrict, 7, 0);
-
+    QLabel *lCopy = new QLabel(tr("&Copyright notice:"));
+    eCopy = new QLineEdit(tr("Map data from OpenStreetMap Contributors"));
+    eCopy->setMinimumWidth(450);
+    lCopy->setBuddy(eCopy);
+    control->addWidget(lCopy, 8, 0);
+    control->addWidget(eCopy, 9, 0);
     mainLayout->addLayout(control);
     QDialogButtonBox *box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
     mainLayout->addWidget(box);
@@ -91,4 +96,8 @@ void OutputSelDlg::setRestrict(bool bRestrict) {
 
 bool OutputSelDlg::getRestrict() const {
     return eRestrict->isChecked();
+}
+
+QString OutputSelDlg::copy() const {
+    return eCopy->text();
 }

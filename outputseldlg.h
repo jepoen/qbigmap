@@ -4,6 +4,7 @@
 #include <QDialog>
 
 class QCheckBox;
+class QLineEdit;
 
 class OutputSelDlg : public QDialog
 {
@@ -17,6 +18,7 @@ private:
     QCheckBox *eRouteSym;
     QCheckBox *eWptSym;
     QCheckBox *eRestrict;
+    QLineEdit *eCopy;
 
 public:
     explicit OutputSelDlg(QWidget *parent = 0);
@@ -35,7 +37,7 @@ public:
     void setWptSym(bool bWptSym);
     bool getRestrict() const;
     void setRestrict(bool bRestrict);
-
+    QString copy() const;
 signals:
 
 public slots:

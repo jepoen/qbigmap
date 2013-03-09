@@ -21,6 +21,7 @@ void Photo::readTimestamp() {
     if (it != end) {
         qDebug()<<QString(it->value().toString().c_str());
         myTimestamp = QDateTime::fromString(QString(it->value().toString().c_str()), "yyyy:MM:dd HH:mm:ss");
+        myTimestamp.setTimeSpec(Qt::UTC);
     }
     qDebug()<<myTimestamp;
 //    for (Exiv2::ExifData::const_iterator i = exifData.begin(); i != end; ++i) {
@@ -35,7 +36,11 @@ QString Photo::baseFileName() const {
 
 const QPixmap& Photo::pixmap() {
     if (myPixmap.isNull()) {
-        myPixmap = QPixmap(myFileName).scaledToWidth(200);
+        QPixmap px(myFileName);
+        if (px.height() > px.width())
+            myPixmap = px.scaledToHeight(200);
+        else
+            myPixmap = px.scaledToWidth(200);
     }
     return myPixmap;
 }

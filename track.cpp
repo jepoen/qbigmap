@@ -20,7 +20,7 @@ void Track::writeOrigXml(QIODevice *dev) {
 
 }
 
-void Track::writeModifiedXml(QIODevice *dev, bool isSimple) const {
+void Track::writeModifiedXml(QIODevice *dev, const GpxPointList& waypoints, bool isSimple) const {
     QLocale locale("C");
     QDomDocument doc;
     QDomElement root = doc.createElement("gpx");
@@ -36,10 +36,40 @@ void Track::writeModifiedXml(QIODevice *dev, bool isSimple) const {
     bounds.setAttribute("maxlon", locale.toString(bbox.p1().x(), 'g', 10));
     bounds.setAttribute("maxlat", locale.toString(bbox.p1().y(), 'g', 10));
     root.appendChild(bounds);
+    foreach (const GpxPoint& p, waypoints) {
+        QDomElement wpt = doc.createElement("wpt");
+        wpt.setAttribute("lon", locale.toString(p.coord().x(), 'g', 10));
+        wpt.setAttribute("lat", locale.toString(p.coord().y(), 'g', 10));
+        if (p.sym() != "") {
+            QDomElement el = doc.createElement("sym");
+            QDomText txt = doc.createTextNode(p.sym());
+            el.appendChild(txt);
+            wpt.appendChild(el);
+        }
+        if (p.name() != "") {
+            QDomElement el = doc.createElement("name");
+            QDomText txt = doc.createTextNode(p.name());
+            el.appendChild(txt);
+            wpt.appendChild(el);
+        }
+        if (p.desc() != "") {
+            QDomElement el = doc.createElement("desc");
+            QDomText txt = doc.createTextNode(p.desc());
+            el.appendChild(txt);
+            wpt.appendChild(el);
+        }
+        if (p.link() != "") {
+            QDomElement el = doc.createElement("link");
+            QDomText txt = doc.createTextNode(p.link());
+            el.appendChild(txt);
+            wpt.appendChild(el);
+        }
+        root.appendChild(wpt);
+    }
     QDomElement trk = doc.createElement("trk");
     root.appendChild(trk);
     QDomElement name = doc.createElement("name");
-    name.appendChild(doc.createTextNode("QBIGMAP"));
+    name.appendChild(doc.createTextNode(myName));
     trk.appendChild(name);
     QDomElement trkseg = doc.createElement("trkseg");
     trk.appendChild(trkseg);

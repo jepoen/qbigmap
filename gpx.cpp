@@ -71,6 +71,8 @@ void Gpx::readXml(const QString& fileName) {
                 if (c.nodeName() == "trkseg") {
                     GpxPointList ptl = xmlParseTrackSeg(c);
                     if (ptl.size() > 0) myTrackSegments.append(ptl);
+                } else if (c.nodeName() == "name") {
+                    myTrackName = c.text();
                 }
             }
         } else if (el.nodeName() == "rte") {

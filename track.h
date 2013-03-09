@@ -16,6 +16,7 @@ class QIODevice;
 class Track
 {
 private:
+    QString myName;
     QString myFileName;
     GpxPointList myTrackPoints;
     int myPos;
@@ -27,13 +28,15 @@ private:
 
 public:
     Track(const QList<GpxPoint>& trackpoints = QList<GpxPoint>());
+    const QString& name() const { return myName; }
+    void setName(const QString& name) { myName = name; }
     const QString& fileName() const {return myFileName;}
     void setFileName(const QString& filename) { myFileName = filename; }
     bool isEmpty() const { return myTrackPoints.size() == 0; }
     void setPoints(const GpxPointList& points);
     const bool& changed() const { return myChanged; }
     void writeOrigXml(QIODevice *dev);
-    void writeModifiedXml(QIODevice *dev, bool isSimple=false) const;
+    void writeModifiedXml(QIODevice *dev, const GpxPointList& waypoints, bool isSimple=false) const;
     BoundingBox boundingBox() const;
     const GpxPointList& trackPoints() const { return myTrackPoints;}
     int pos() const { return myPos; }

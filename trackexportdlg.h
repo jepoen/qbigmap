@@ -13,6 +13,7 @@ class TrackExportDlg : public QDialog
     Q_OBJECT
 private:
     QLabel *eTrkFile;
+    QCheckBox *eHasWpts;
     QCheckBox *eOsm;
     QCheckBox *eSimple;
     QLineEdit *eTitle;
@@ -26,7 +27,8 @@ public:
     QString osmFileName() const;
     bool isOsm() const;
     bool isSimple() const;
-
+    void setWpts(bool val);
+    bool hasWpts() const;
 signals:
 
 private slots:

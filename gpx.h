@@ -83,6 +83,7 @@ public:
 
 class Gpx {
 private:
+    QString myTrackName;
     TrackSegList myTrackSegments;
     GpxPointList myWayPoints;
     QString myRouteName;
@@ -93,6 +94,7 @@ private:
     GpxPointList xmlParseTrackSeg(const QDomElement& el);
 public:
     Gpx(const QString& fileName);
+    const QString& trackName() const { return myTrackName; }
     const TrackSegList& trackSegments() const { return myTrackSegments; }
     GpxPointList trackPoints() const;
     const GpxPointList& wayPoints() const { return myWayPoints; }

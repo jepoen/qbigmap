@@ -26,6 +26,8 @@ private:
     int myWidth;
     int myX0;
     int myY0;
+    double myScKm;
+    double myScEle;
     QGraphicsLineItem *myTrackPosItem;
 
 public:

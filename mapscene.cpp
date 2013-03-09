@@ -312,6 +312,7 @@ void MapScene::redraw() {
 }
 
 void MapScene::addPixmap(QPixmap *pixmap, int ix, int iy, int z) {
+    if (pixmap->isNull()) return;
     QGraphicsPixmapItem *it = new QGraphicsPixmapItem(*pixmap);
     it->setOffset(ix, iy);
     it->setZValue(z);
@@ -356,7 +357,7 @@ void MapScene::tileLoaded(bool error) {
             QPixmap *pixmap = new QPixmap();
             qDebug()<<"pixmap";
             //getter->close();
-            bool res = pixmap->loadFromData(getter.getData());
+            bool res = pixmap->loadFromData(getter.getData(), 0, Qt::AutoColor|Qt::NoOpaqueDetection);
             qDebug()<<"...loaded"<<res;
             if (res) {
                 myModel->savePixmap(req.key(), pixmap);

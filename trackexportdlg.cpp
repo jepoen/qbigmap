@@ -10,12 +10,14 @@ TrackExportDlg::TrackExportDlg(const QString &trackFileName, QWidget *parent) :
     ctrl->addWidget(lTrkFile, 0, 0);
     eTrkFile = new QLabel(myTrackFileName);
     ctrl->addWidget(eTrkFile, 0, 1);
+    eHasWpts = new QCheckBox("Add &waypoints");
+    ctrl->addWidget(eHasWpts, 1, 0, 1, 2);
     eOsm = new QCheckBox(tr("&OpenStreetMap export"));
     eOsm->setChecked(true);
-    ctrl->addWidget(eOsm, 1, 0, 1, 2);
+    ctrl->addWidget(eOsm, 2, 0, 1, 2);
     eSimple = new QCheckBox(tr("&Remove timestamp/elevation"));
     eSimple->setChecked(true);
-    ctrl->addWidget(eSimple, 2, 0, 1, 2);
+    ctrl->addWidget(eSimple, 3, 0, 1, 2);
     QLabel *lTitle = new QLabel(tr("Map &title:"));
     ctrl->addWidget(lTitle, 4, 0);
     eTitle = new QLineEdit(tr("Track"));
@@ -39,6 +41,14 @@ bool TrackExportDlg::isOsm() const {
 
 bool TrackExportDlg::isSimple() const {
     return eSimple->isChecked();
+}
+
+void TrackExportDlg::setWpts(bool val) {
+    eHasWpts->setChecked(val);
+}
+
+bool TrackExportDlg::hasWpts() const {
+    return eHasWpts->isChecked();
 }
 
 QString TrackExportDlg::title() const {

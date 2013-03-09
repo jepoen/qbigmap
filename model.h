@@ -79,8 +79,10 @@ public:
     static const QPointF spherMerc2lonLat(const QPointF &point);
     const Track& track() const { return myTrack; }
     Track* trackPtr() { return &myTrack; }
-    void trackSetNew(const QString& fileName, const GpxPointList& ptl);
+    bool isEmptyTrack() const { return myTrack.trackPoints().size() == 0; }
+    void trackSetNew(const QString& fileName, const QString &name, const GpxPointList& ptl);
     void setTrack(const Track &track);
+    int trackPos() const { return myTrack.pos(); }
     void setTrackPos(int pos);
     void changeTrackPos(int delta);
     void setTrackPoint(int pos, const GpxPoint &point);
@@ -88,7 +90,8 @@ public:
     void delTrackPoint(int pos);
     void delTrackPart(int i0, int i1);
     void changeTrackPoint(int pos, const QPointF& lonLat);
-    void uniqueTrack();
+    void uniqueTrack();    
+    void saveModifiedTrack(QIODevice *dev, bool addWaypoints, bool isSimple=false);
     const Route& route() const { return myRoute; }
     Route *routePtr() { return &myRoute; }
     void routeSetNew(const QString& fileName);

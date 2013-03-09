@@ -20,6 +20,7 @@ ProfileScene::ProfileScene(Model *model, QObject *parent) :
     QGraphicsScene(parent),
     myModel(model),
     myEle0(0), myEle1(0), myWidth(0), myX0(50), myY0(0),
+    myScKm(10), myScEle(0.3),
     myTrackPosItem(0)
 {
     connect(myModel, SIGNAL(mapChanged()), this, SLOT(redrawTrack()));
@@ -37,27 +38,27 @@ void ProfileScene::redrawTrack() {
     if (track.isEmpty()) return;
     const QList<GpxPoint>& points = track.trackPoints();
     int trackLen = int(ceil(Model::geodist1(points, 0, points.size()-1)));
-    myWidth = (trackLen+1)*10;
+    myWidth = (trackLen+1)*myScKm;
     BoundingBox bb = track.boundingBox();
     int ele0 = bb.ele().x();
     int ele1 = bb.ele().y();
     myEle0 = (ele0/100)*100;
     myEle1 = (ele1/100+1)*100;
-    setSceneRect(0, 0, myWidth+myX0+10, (myEle1-myEle0)+20);
-    myY0 = (myEle1-myEle0)+10;
-    QGraphicsItem *it = new QGraphicsLineItem(myX0, myY0, myX0, myY0-(myEle1-myEle0));
+    setSceneRect(0, 0, myWidth+myX0+10, myScEle*(myEle1-myEle0)+20);
+    myY0 = myScEle*(myEle1-myEle0)+10;
+    QGraphicsItem *it = new QGraphicsLineItem(myX0, myY0, myX0, myY0-myScEle*(myEle1-myEle0));
     addItem(it);
     it = new QGraphicsLineItem(myX0, myY0, myX0+myWidth, myY0);
     addItem(it);
     for (int ele = myEle0; ele <= myEle1; ele += 50) {
-        it = new QGraphicsLineItem(myX0-1, myY0+myEle0-ele, myX0+1, myY0+myEle0-ele);
+        it = new QGraphicsLineItem(myX0-1, myY0+myScEle*(myEle0-ele), myX0+1, myY0+myScEle*(myEle0-ele));
         addItem(it);
         if (ele % 100 == 0) {
             QGraphicsTextItem *tit = new QGraphicsTextItem(QString("%1").arg(ele));
             tit->setFont(QFont("FreeSans", 8));
-            tit->setPos(10, myY0+myEle0-ele-4);
+            tit->setPos(10, myY0+myScEle*(myEle0-ele)-4);
             addItem(tit);
-            QGraphicsLineItem *lit = new QGraphicsLineItem(myX0, myY0+myEle0-ele, myX0+myWidth, myY0+myEle0-ele);
+            QGraphicsLineItem *lit = new QGraphicsLineItem(myX0, myY0+myScEle*(myEle0-ele), myX0+myWidth, myY0+myScEle*(myEle0-ele));
             lit->setPen(QPen(Qt::DotLine));
             addItem(lit);
         }
@@ -76,7 +77,7 @@ void ProfileScene::redrawTrack() {
         } else {
             sumDist += Model::geodist1(pold.coord(), p.coord());
         }
-        QPointF pt(int(sumDist*10)+myX0, myY0+myEle0-p.ele());
+        QPointF pt(int(sumDist*myScKm)+myX0, myY0+myScEle*(myEle0-p.ele()));
         polygon.append(pt);
         pold = p;
     }
@@ -94,7 +95,7 @@ void ProfileScene::changeTrackPos(int pos) {
     }
     GpxPoint p = myModel->track().trackPoint(pos);
     double dist = myModel->track().dist(pos);
-    int x = int(dist*10)+myX0;
-    myTrackPosItem->setLine(x, myY0, x, myY0+myEle0-p.ele());
+    int x = int(dist*myScKm)+myX0;
+    myTrackPosItem->setLine(x, myY0, x, myY0+myScEle*(myEle0-p.ele()));
 }
 

@@ -11,13 +11,15 @@ class SaveRouteDlg : public QDialog
 {
     Q_OBJECT
 private:
+    int myTyp;
     QLineEdit *eName;
     QLabel *eFileName;
     QToolButton *bFileName;
     QCheckBox *eWaypoints;
     QCheckBox *eUpload;
 public:
-    explicit SaveRouteDlg(const QString& fileName, const QString& name, QWidget *parent = 0);
+    enum {ROUTE, TRACK};
+    explicit SaveRouteDlg(int typ, const QString& fileName, const QString& name, QWidget *parent = 0);
     const QString name() const;
     const QString fileName() const;
     bool isWaywaypoints() const;

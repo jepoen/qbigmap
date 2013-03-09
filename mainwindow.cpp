@@ -12,6 +12,7 @@
 #include "osmmap.h"
 #include "photo.h"
 #include "photodlg.h"
+#include "photooffsetdlg.h"
 #include "saveroutedlg.h"
 #include "settingsdialog.h"
 #include "track.h"
@@ -41,9 +42,6 @@ MainWindow::MainWindow(QWidget *parent)
     createToolBar();
     createStatusBar();
     printer = new QPrinter();
-    QSplitter *horizontalSplitter = new QSplitter(Qt::Horizontal);
-    QSplitter *verticalSplitter = new QSplitter(Qt::Vertical);
-    horizontalSplitter->addWidget(verticalSplitter);
     QGridLayout *mainLayout = new QGridLayout();
     mainLayout->addWidget(view, 1, 1);
     QHBoxLayout *northLayout = new QHBoxLayout();
@@ -100,15 +98,16 @@ MainWindow::MainWindow(QWidget *parent)
     mainLayout->addLayout(southLayout, 2, 0, 1, 3);
     QWidget *center = new QWidget();
     center->setLayout(mainLayout);
-    verticalSplitter->addWidget(center);
-    verticalSplitter->addWidget(profileView);
+    profileWidget = new QDockWidget(tr("Profile"));
+    createProfileWidget();
+    addDockWidget(Qt::BottomDockWidgetArea, profileWidget, Qt::Horizontal);
     trackPoiWidget = new QDockWidget(tr("Track POIs"));
     createTrackPoiTable();
     addDockWidget(Qt::RightDockWidgetArea, trackPoiWidget, Qt::Vertical);
     createPhotoWidget();
     //horizontalSplitter->addWidget(photoWidget);
     addDockWidget(Qt::RightDockWidgetArea, photoWidget, Qt::Vertical);
-    setCentralWidget(horizontalSplitter);
+    setCentralWidget(center);
     createBaselayerActions();
     createOverlayActions();
     enableTrackActions(false);
@@ -118,8 +117,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(model, SIGNAL(mapChanged()), this, SLOT(updateModelStatus()));
     connect(model, SIGNAL(trackPosChanged(int)), this, SLOT(changeTrackPos(int)));
     connect(view, SIGNAL(mouseGeoPos(QPointF)), this, SLOT(showGeoPos(QPointF)));
+    connect(photoList, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)), this, SLOT(showPhotoData(QListWidgetItem*)));
     connect(photoList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(showPhotoData(QListWidgetItem*)));
-    connect(photoList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(showPhoto(QListWidgetItem*)));
+    connect(photoList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(selectPhotoPos(QListWidgetItem*)));
+    connect(bPhotoOffset, SIGNAL(clicked()), this, SLOT(setPhotoOffset()));
     connect(trackPoiListView, SIGNAL(activated(QModelIndex)), this, SLOT(selectTrackPoi(QModelIndex)));
     connect(model, SIGNAL(trackChanged()), myTrackPoiModel, SLOT(updatePointList()));
     updateModelStatus();
@@ -144,7 +145,7 @@ void MainWindow::createPhotoWidget() {
     //photoList->setIconSize(QSize(200, 200));
     //QLabel *lText = new QLabel(tr("Test"));
     //photoLayout->addWidget(lText, 0, 0);
-    photoList->setMinimumWidth(210);
+    photoList->setMinimumWidth(180);
     photoLayout->addWidget(photoList, 0, 0, 1, 2);
     bPhotoOffset = new QPushButton(tr("+/-"));
     bPhotoOffset->setToolTip(tr("Time Offet between track and photos"));
@@ -174,7 +175,7 @@ void MainWindow::createActions() {
     trackFromGpsAction = new QAction(tr("Read GPS device"), this);
     connect(trackFromGpsAction, SIGNAL(triggered()), this, SLOT(readTrackFromGps()));
     loadTrackAction = new QAction(tr("Load track..."), this);
-    connect(loadTrackAction, SIGNAL(triggered()), this, SLOT(loadTrack()));
+    connect(loadTrackAction, SIGNAL(triggered()), this, SLOT(loadGpx()));
     saveTrackAction = new QAction(QIcon(":/icons/disk.png"), tr("Save..."), this);
     connect(saveTrackAction, SIGNAL(triggered()), this, SLOT(saveTrack()));
     moveTrackPosAction = new QAction(tr("Select Track Position"), functionActionGroup);
@@ -201,7 +202,7 @@ void MainWindow::createActions() {
     connect(editTrackPosAction, SIGNAL(triggered()), this, SLOT(editTrackPos()));
     deleteTrackPosAction = new QAction(tr("&Delete track position"), this);
     connect(deleteTrackPosAction, SIGNAL(triggered()), this, SLOT(deleteTrackPos()));
-    delTrackPartAction = new QAction(tr("Delete track part"), this);
+    delTrackPartAction = new QAction(tr("Delete track part..."), this);
     connect(delTrackPartAction, SIGNAL(triggered()), view, SLOT(delTrackPart()));
     redrawAction = new QAction(tr("&Redraw"), this);
     redrawAction->setIcon(QIcon(":/icons/arrow_refresh.png"));
@@ -249,6 +250,8 @@ void MainWindow::createActions() {
     //connect(hidePhotoAction, SIGNAL(triggered()), this, SLOT(hidePhotos()));
     showTrackPoiAction = new QAction(tr("Track POIs"), this);
     connect(showTrackPoiAction, SIGNAL(triggered()), this, SLOT(showTrackPois()));
+    showTrackProfileAction = new QAction(tr("Track Profile"), this);
+    connect(showTrackProfileAction, SIGNAL(triggered()), this, SLOT(showTrackProfile()));
     typeActionGroup = new QActionGroup(this);
     typeActionGroup->setExclusive(true);
     ovlActionGroup = new QActionGroup(this);
@@ -327,6 +330,7 @@ void MainWindow::enableTrackActions(bool enable) {
     deleteTrackPosAction->setEnabled(enable);
     delTrackPartAction->setEnabled(enable);
     showTrackPoiAction->setEnabled(enable);
+    showTrackProfileAction->setEnabled(enable);
     lTrackPos->setVisible(true);
 }
 
@@ -410,6 +414,7 @@ void MainWindow::createMenuBar() {
         mType->addAction(a);
     }
     mView->addAction(showTrackPoiAction);
+    mView->addAction(showTrackProfileAction);
     mOverlays = mView->addMenu(tr("&Overlays"));
     foreach (QAction *a, ovlActionGroup->actions()) {
         mOverlays->addAction(a);
@@ -458,6 +463,11 @@ void MainWindow::createStatusBar() {
     statusBar()->addWidget(lTrackPos);
     lPhotoDir = new QLabel("");
     statusBar()->addWidget(lPhotoDir);
+}
+
+void MainWindow::createProfileWidget() {
+    profileWidget->setWidget(profileView);
+    profileWidget->hide();
 }
 
 void MainWindow::createTrackPoiTable() {
@@ -590,6 +600,7 @@ void MainWindow::paintWpt(QPainter *painter) {
         int offx = px.width()/2;
         int offy = px.height()/2;
         painter->drawPixmap(QPoint(p.x()-offx, p.y()-offy), px);
+        painter->setPen(Qt::black);
         painter->drawText(p.x()+offx, p.y(), point.name());
     }
 }
@@ -612,6 +623,12 @@ void MainWindow::paintGrid(QPainter *painter) {
     }
 }
 
+void MainWindow::paintCopy(QPainter *painter, int w, int h, const QString& copy) {
+    painter->setPen(QColor(128, 128, 128));
+    painter->setFont(QFont("Helvetica", 8));
+    painter->drawText(QRect(0, h-30, w-10, 20), Qt::AlignRight|Qt::AlignBottom, copy);
+}
+
 QPixmap* MainWindow::createPixmap() {
     OutputSelDlg dlg;
     dlg.setGrid(scene->isShowGrid());
@@ -631,6 +648,7 @@ QPixmap* MainWindow::createPixmap() {
     bool showRoute = dlg.getRoute();
     bool showRouteSym = dlg.getRouteSym();
     bool showWptSym = dlg.getWptSym();
+    QString copy = dlg.copy();
     int w = model->width()*256;
     int h = model->height()*256;
     int x0 = 0;
@@ -663,6 +681,7 @@ QPixmap* MainWindow::createPixmap() {
         paintRoute(&painter, showRouteSym);
     }
     if (showWptSym) paintWpt(&painter);
+    paintCopy(&painter, w, h, copy);
     return pixmap;
 }
 
@@ -892,7 +911,7 @@ void MainWindow::readTrackFromGps() {
     Gpx gpx(rawFileName);
     GpxPointList ptl = selectTrackSegments(gpx);
     if (ptl.size() > 0) {
-        model->trackSetNew(filename, ptl);
+        model->trackSetNew(filename, gpx.trackName(), ptl);
         enableTrackActions(true);
         profileView->setVisible(true);
         trackToolBar->setVisible(true);
@@ -914,15 +933,16 @@ void MainWindow::loadGpx() {
     if (gpx.trackSegments().size() > 0) {
         GpxPointList ptl = selectTrackSegments(gpx);
         if (ptl.size() > 0) {
-            model->trackSetNew(fileName, ptl);
+            model->trackSetNew(fileName, gpx.trackName(), ptl);
             // TODO: SIGNAL->SLOT
             qDebug()<<"updatePointList track";
             myTrackPoiModel->updatePointList();
-            showTrackPois();
+            if (myTrackPoiModel->rowCount(QModelIndex()) > 0) showTrackPois();
             enableTrackActions(true);
             profileView->setVisible(true);
             trackToolBar->setVisible(true);
             model->setTrackPos(0);
+            profileWidget->show();
         }
     }
     if (gpx.wayPoints().size() > 0) {
@@ -934,43 +954,30 @@ void MainWindow::loadGpx() {
     view->centerView();
 }
 
-void MainWindow::loadTrack() {
-    QString dir = settings.trackDir();
-    const Track& track = model->track();
-    if (!track.isEmpty()) {
-        QFileInfo fi(track.fileName());
-        qDebug()<<"Dir: "<<fi.absoluteDir();
-        dir = fi.absoluteDir().absolutePath();
-    }
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Load track"), dir,
-                                               tr("GPX track (*.gpx)"));
-    if (fileName.isEmpty())
-        return;
-    Gpx gpx(fileName);
-    GpxPointList ptl = selectTrackSegments(gpx);
-    if (ptl.size() > 0) {
-        model->trackSetNew(fileName, ptl);
-        myTrackPoiModel->updatePointList();
-        showTrackPois();
-        enableTrackActions(true);
-        profileView->setVisible(true);
-        trackToolBar->setVisible(true);
-        model->setTrackPos(0);
-    }
-}
-
 void MainWindow::saveTrack() {
-    QString fileName = model->track().fileName();
-    fileName = QFileDialog::getSaveFileName(this, tr("Save track"), fileName,
-                                            tr("GPX track (*.gpx)"));
-    if (fileName.isEmpty()) return;
-    int idx = fileName.lastIndexOf(".");
-    if (idx < 0) fileName +".gpx";
+    SaveRouteDlg dlg(SaveRouteDlg::TRACK, model->track().fileName(), model->track().name());
+    dlg.setWaypoints(model->waypoints().size() > 0);
+    if (dlg.exec() != QDialog::Accepted) {
+        return;
+    }
+    QString fileName = dlg.fileName();
+    QString name = dlg.name();
+    bool isUpload = dlg.isUpload();
+    model->trackPtr()->setName(name);
     QFile file(fileName);
     file.open(QFile::WriteOnly|QFile::Text);
-    model->trackPtr()->writeModifiedXml(&file, false);
+    model->saveModifiedTrack(&file, dlg.isWaywaypoints(), false);
     file.close();
     model->trackPtr()->setFileName(fileName);
+    if (isUpload) {
+        QStringList params;
+        params<<"-t"
+              <<"-i"<<"gpx"<<"-f"<<fileName
+              <<"-o"<<settings.gpsDevice()
+              <<"-F"<<settings.gpsInterface();
+        qDebug()<<settings.gpsbabel()<<params;
+        run(settings.gpsbabel(), params);
+    }
 }
 
 GpxPointList MainWindow::selectTrackSegments(const Gpx& gpx) {
@@ -1065,14 +1072,16 @@ void MainWindow::simplifyTrack() {
     TrackSimplifyDlg dlg(scene);
     if (dlg.exec() != QDialog::Accepted) return;
     if (dlg.action() == TrackSimplifyDlg::REPLACE) {
-        model->trackSetNew(dlg.fileName(), dlg.simpleTrack()->trackPoints());
+        model->trackSetNew(dlg.fileName(), model->track().name()+" (S)", dlg.simpleTrack()->trackPoints());
     } else if (dlg.action() == TrackSimplifyDlg::EXPORT) {
         QFileInfo fi(dlg.fileName());
         TrackExportDlg expdlg(settings.exportDir()+"/"+fi.fileName(), this);
+        if (model->waypoints().size() > 0) expdlg.setWpts(true);
         if (expdlg.exec() == QDialog::Accepted) {
             QFile file(expdlg.fileName());
             if (!file.open(QFile::WriteOnly|QFile::Text)) return;
-            dlg.simpleTrack()->writeModifiedXml(&file, expdlg.isSimple());
+            if (expdlg.hasWpts()) dlg.simpleTrack()->writeModifiedXml(&file, model->waypoints(), expdlg.isSimple());
+            else                  dlg.simpleTrack()->writeModifiedXml(&file, GpxPointList(), expdlg.isSimple());
             file.close();
             if (expdlg.isOsm()) {
                 QPointF center = dlg.simpleTrack()->boundingBox().center();
@@ -1116,7 +1125,7 @@ void MainWindow::delRoute() {
 }
 
 void MainWindow::saveRoute() {
-    SaveRouteDlg dlg(model->route().fileName(), model->route().name());
+    SaveRouteDlg dlg(SaveRouteDlg::ROUTE, model->route().fileName(), model->route().name());
     dlg.setWaypoints(model->waypoints().size() > 0);
     if (dlg.exec() != QDialog::Accepted) {
         return;
@@ -1143,18 +1152,23 @@ void MainWindow::saveRoute() {
               <<"-o"<<settings.gpsDevice()
               <<"-F"<<settings.gpsInterface();
         qDebug()<<settings.gpsbabel()<<params;
-        QProcess gpsbabel;
-        gpsbabel.start(settings.gpsbabel(), params);
-        if (!gpsbabel.waitForStarted()) {
-            QMessageBox::warning(this, tr("Cannot upload route"), tr("Cannot start gpsbabel"));
-            return;
-        }
-        if (!gpsbabel.waitForFinished()) {
-            QMessageBox::warning(this, tr("Cannot upload route"), tr("Cannot upload route %1: %2").arg(name)
-                                 .arg(gpsbabel.errorString()));
-            return;
-        }
+        run(settings.gpsbabel(), params);
     }
+}
+
+void MainWindow::run(const QString& path, const QStringList& params) {
+    QProcess proc;
+    proc.start(settings.gpsbabel(), params);
+    if (!proc.waitForStarted()) {
+        QMessageBox::warning(this, tr("Process failed"), tr("Cannot start %1").arg(path));
+        return;
+    }
+    if (!proc.waitForFinished()) {
+        QMessageBox::warning(this, tr("Process failed"), tr("Process %1 failed: %2").arg(path)
+                             .arg(proc.errorString()));
+        return;
+    }
+
 }
 
 void MainWindow::enableShowPhoto(bool visible) {
@@ -1176,38 +1190,23 @@ void MainWindow::openPhotos() {
     filter<<"*.jpg";
     QStringList files = dir.entryList(filter, QDir::Files, QDir::Time);
     QList<Photo> photos;
-//    QProgressDialog progressDlg(tr("Download tiles"), tr("&Cancel"), 0, files.size(), this);
-//    //connect(&progressDlg, SIGNAL(canceled()), this, SLOT(cancelRequests()));
-//    //connect(&progressDlg, SIGNAL(destroyed()), this, SLOT(cancelRequests()));
-//    progressDlg.setWindowModality(Qt::WindowModal);
-//    progressDlg.show();
-//    progressDlg.setValue(0);
-//    qApp->processEvents();
     foreach (const QString& basefilename, files) {
-//        qApp->processEvents();
-//        if (progressDlg.isHidden()) break;
         QString filename = dir.absoluteFilePath(basefilename);
         qDebug()<<filename;
         Photo photo(filename);
         photos.push_back(photo);
-//        progressDlg.setValue(progressDlg.value()+1);
     }
-//    progressDlg.hide();
     qSort(photos);
     photoWidget->setVisible(true);
     foreach(Photo photo, photos) {
-        QListWidgetItem *it = new QListWidgetItem(photo.timestamp().toString("hh:mm:ss ")+photo.baseFileName());
-//        it->setIcon(photo.icon());
+        QListWidgetItem *it = new QListWidgetItem(photo.timestamp().toLocalTime().toString("hh:mm:ss ")+photo.baseFileName());
         qDebug()<<"Add to List: "<<photo.filename();
-        //it->setText(photo.timestamp().toString("yyyy-MM-dd HH:mm"));
         it->setToolTip(photo.filename());
         it->setData(PHOTO_FILENAME, photo.filename());
         it->setData(PHOTO_ORIGTIME, photo.timestamp());
-//        it->setData(PHOTO_TIMESTAMP, photo.timestamp().addSecs(myPhotoOffset));
-//        it->setData(PHOTO_TRACKIDX, -1);
-//        it->setBackgroundColor(Qt::yellow);
         photoList->addItem(it);
     }
+    photoList->setCurrentRow(0);
 //    if (model->track() != 0) connectPhotos();
 }
 
@@ -1242,6 +1241,7 @@ void MainWindow::openPhotos() {
 //}
 
 void MainWindow::showPhotoData(QListWidgetItem *item) {
+    if (item == 0) return;
     QString filename = item->data(PHOTO_FILENAME).toString();
     QDateTime timestamp = item->data(PHOTO_TIMESTAMP).toDateTime();
     qDebug()<<filename<<" "<<timestamp;
@@ -1253,15 +1253,35 @@ void MainWindow::showPhotoData(QListWidgetItem *item) {
 //    if (idx >= 0) model->setTrackPos(idx);
 }
 
-//void MainWindow::setPhotoOffset() {
-//    int cnt = photoList->count();
-//    for (int i = 0; i < cnt; i++) {
-//        QListWidgetItem *it = photoList->item(i);
-//        QDateTime timestamp = it->data(PHOTO_ORIGTIME).toDateTime();
-//        it->setData(PHOTO_TIMESTAMP, timestamp.addSecs(myPhotoOffset));
-//    }
-//    connectPhotos();
-//}
+void MainWindow::selectPhotoPos(QListWidgetItem *item) {
+    if (item == 0) return;
+    showPhotoData(item);
+    if (model->isEmptyTrack()) return;
+    QDateTime timestamp = item->data(PHOTO_TIMESTAMP).toDateTime();
+    int pos = model->track().nearest(timestamp);
+    int diff = model->track().trackPoint(pos).timestamp().secsTo(timestamp);
+    if (abs(diff) < 300) model->setTrackPos(pos);
+}
+
+void MainWindow::setPhotoOffset() {
+    QListWidgetItem *it = photoList->currentItem();
+    QDateTime timestamp = it->data(PHOTO_ORIGTIME).toDateTime();
+    PhotoOffsetDlg dlg(model, timestamp, myPhotoOffset);
+    if (dlg.exec() != QDialog::Accepted) {
+        return;
+    }
+    myPhotoOffset = dlg.offset();
+    lPhotoOffset->setText(QString("%1").arg(myPhotoOffset));
+    int cnt = photoList->count();
+    for (int i = 0; i < cnt; i++) {
+        QListWidgetItem *it = photoList->item(i);
+        QDateTime timestamp = it->data(PHOTO_ORIGTIME).toDateTime().addSecs(myPhotoOffset);
+        it->setData(PHOTO_TIMESTAMP, timestamp);
+        QString filename = it->data(PHOTO_FILENAME).toString();
+        it->setText(timestamp.toLocalTime().toString("hh:mm:ss ")+QFileInfo(filename).baseName());
+    }
+    //connectPhotos();
+}
 
 void MainWindow::showPhotoDir(const QString &dir) {
     lPhotoDir->setText(dir);
@@ -1271,7 +1291,12 @@ void MainWindow::showTrackPois() {
     trackPoiWidget->show();
 }
 
+void MainWindow::showTrackProfile() {
+    profileWidget->show();
+}
+
 void MainWindow::selectTrackPoi(const QModelIndex &index) {
     int trackPos = myTrackPoiModel->data(index, GpxListModel::GpxIndexRole).toInt();
     model->setTrackPos(trackPos);
 }
+
