@@ -1,5 +1,26 @@
 var icons = {
-${pix}
+flag: new OpenLayers.Icon('flag.png',
+  new OpenLayers.Size(32, 32),
+  new OpenLayers.Pixel(-16, -16)),
+star: new OpenLayers.Icon('star.png',
+  new OpenLayers.Size(32, 32),
+  new OpenLayers.Pixel(-16, -16)),
+square: new OpenLayers.Icon('square.png',
+  new OpenLayers.Size(16, 16),
+  new OpenLayers.Pixel(-8, -8)),
+church: new OpenLayers.Icon('church.png',
+  new OpenLayers.Size(20, 20),
+  new OpenLayers.Pixel(-10, -10)),
+hostel: new OpenLayers.Icon('hostel.png',
+  new OpenLayers.Size(32, 32),
+  new OpenLayers.Pixel(-16, -16)),
+shell: new OpenLayers.Icon('shell.png',
+  new OpenLayers.Size(20, 20),
+  new OpenLayers.Pixel(-10, -10)),
+pilgrim: new OpenLayers.Icon('pilgrim-hostel.png',
+  new OpenLayers.Size(32, 32),
+  new OpenLayers.Pixel(-16, -16)),
+
 };
 
 // Function to convert normal latitude/longitude to mercator easting/northings
@@ -54,6 +75,10 @@ function loadtrack(gpxfile, lon, lat, zoom) {
   proj4326 = new OpenLayers.Projection("EPSG:4326");
   projmerc = new OpenLayers.Projection("EPSG:900913");
   lonLat = new OpenLayers.LonLat(lon, lat);
+  var attrib = 'Map Data from <a href="http://www.openstreetmap.org/">'
+             + 'OpenStreetMap Contributors</a> '
+	     + '(<a href="http://creativecommons.org/licenses/by-sa/2.0/">'
+	     + 'CC-by-SA 2.0</a>)';
 
   var mapDiv = document.getElementById("map");
   mapDiv.style.width = ""+getWidth()+"px";
@@ -88,27 +113,35 @@ function loadtrack(gpxfile, lon, lat, zoom) {
 //    { type: 'png', getURL: getTileURL, displayOutsideMaxExtent: true});
   var layerHikeBike = new OpenLayers.Layer.TMS("Hike & Bike map",
     "http://toolserver.org/tiles/hikebike/",
-    { type: 'png', getURL: getTileURL, displayOutsideMaxExtent: true,
-    attribution: 'Map Data from <a href="http://www.openstreetmap.org/">OpenStreetMap</a> (<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-by-SA 2.0</a>)'
+    { type: 'png',
+      getURL: getTileURL,
+      displayOutsideMaxExtent: true,
+      attribution: attrib,
     });
   var layerCycle = new OpenLayers.Layer.TMS("Cycle",
     ["http://a.tile.opencyclemap.org/cycle/",
      "http://b.tile.opencyclemap.org/cycle/",
      "http://c.tile.opencyclemap.org/cycle/"],
-    { type: 'png', getURL: getTileURL, displayOutsideMaxExtent: true,
-    attribution: 'Map Data from <a href="http://www.openstreetmap.org/">OpenStreetMap</a> (<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-by-SA 2.0</a>)'
+    { type: 'png',
+      getURL: getTileURL,
+      displayOutsideMaxExtent: true,
+      attribution: attrib,
     });
   var layerMapnik1 = new OpenLayers.Layer.TMS("Mapnik",
     "http://tile.openstreetmap.org/",
-    { numZoomLevels: 18, type: 'png', getURL: getTileURL, 
-    displayOutsideMaxExtent: true,
-    attribution: 'Map Data from <a href="http://www.openstreetmap.org/">OpenStreetMap</a> (<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-by-SA 2.0</a>)'
+    { numZoomLevels: 18,
+      type: 'png',
+      getURL: getTileURL, 
+      displayOutsideMaxExtent: true,
+      attribution: attrib,
     });
   var layerOSB = new OpenLayers.Layer.TMS("OpenStreetBrowser",
     "http://tiles-base.openstreetbrowser.org/tiles/basemap_base/",
-    { numZoomLevels: 18, type: 'png', getURL: getTileURL, 
-    displayOutsideMaxExtent: true,
-    attribution: 'Map Data from <a href="http://www.openstreetmap.org/">OpenStreetMap</a> (<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-by-SA 2.0</a>)'
+    { numZoomLevels: 18,
+      type: 'png',
+      getURL: getTileURL, 
+      displayOutsideMaxExtent: true,
+      attribution: attrib,
     });
   var hillShade = new OpenLayers.Layer.TMS("HillShade",
       "http://toolserver.org/~cmarqu/hill/",
@@ -120,7 +153,6 @@ function loadtrack(gpxfile, lon, lat, zoom) {
        transparent: 'true',
        visibility: 'true'});
   hillShade.setOpacity(0.8);
-  //hillShade.visibility = false;
   map.addLayers([layerHikeBike, layerCycle, layerMapnik1, layerOSB,
     hillShade]);
   lonLat.transform(proj4326, projmerc);
@@ -146,14 +178,12 @@ function showTrack(req) {
     pointRadius: 6,
     pointerEvents: "visiblePainted"
   };
-  //var point = new OpenLayers.Geometry.Point(lonLat.lon, lonLat.lat);
-  //var pointFeature = new OpenLayers.Feature.Vector(point, null, styleGreen);
-  //alert("showTrack"+req+typeof(req.responseText)+req.responseText.length);
   var xml = OpenLayers.Format.XML.prototype.read(req.responseText);
   var gpx = xml.documentElement.getElementsByTagName("gpx");
   var trk = xml.getElementsByTagName("trk");
   var trkseg = trk[0].getElementsByTagName("trkseg");
-  var trkpt = trkseg[0].getElementsByTagName("trkpt");
+  var trkpt = xml.getElementsByTagName("trkpt");
+  var wpt = xml.getElementsByTagName("wpt");
   var vectorLayer = new OpenLayers.Layer.Vector("Track",
     {style: layerStyle, numZoomLevels:18});
   var points = [];
@@ -163,30 +193,11 @@ function showTrack(req) {
     var ll = new OpenLayers.LonLat(lon, lat);
     ll.transform(proj4326, projmerc);
     points.push(new OpenLayers.Geometry.Point(ll.lon, ll.lat));
-    nName = trkpt[i].getElementsByTagName("name");
-    nSym = trkpt[i].getElementsByTagName("sym");
-    nDesc = trkpt[i].getElementsByTagName("desc");
-    nLink = trkpt[i].getElementsByTagName("link");
-    var name = "";
-    if (nName.length > 0) {
-      var sym = null;
-      var desc = "";
-      var link = null;
-      name = nName[0].firstChild.nodeValue;
-      if (nSym.length > 0 && nSym[0].firstChild != null) {
-        sym = nSym[0].firstChild.nodeValue;
-      }
-      if (nDesc.length > 0 && nDesc[0].firstChild != null) {
-        desc = nDesc[0].firstChild.nodeValue;
-      }
-      if (nLink.length > 0 && nLink[0].firstChild != null) {
-        link = nLink[0].firstChild.nodeValue;
-      }
-      markerlist.push({lat: lat, lon: lon, name: name, sym: sym,
-        desc: desc, link: link});
-    }
+    addMarker(markerlist, trkpt[i]);
   }
-  //alert("markers:" + markerlist);
+  for (var i = 0; i < wpt.length; i++) {
+    addMarker(markerlist, wpt[i]);
+  }
   var lineFeature = new OpenLayers.Feature.Vector(
     new OpenLayers.Geometry.LineString(points), null, styleGreen);
   lineFeature.myData = "my own Data";
@@ -194,13 +205,10 @@ function showTrack(req) {
   vectorLayer.addFeatures([lineFeature]);
   var markers = new OpenLayers.Layer.Markers("Marker");
   map.addLayer(markers);
-  //alert("poi "+poi.length);
   for (var i = 0; i < markerlist.length; i++) {
     if (icons[markerlist[i].sym]) {
       img = icons[markerlist[i].sym].clone();
-      //alert(sym+img.url);
     } else {
-      //img = icons[sym].clone();
       img = OpenLayers.Marker.defaultIcon();
     }
     var ll = new OpenLayers.LonLat(markerlist[i].lon, markerlist[i].lat);
@@ -215,14 +223,38 @@ function showTrack(req) {
   }
   selectControl = new OpenLayers.Control.SelectFeature(vectorLayer,
     {onSelect: onFeatureSelect, onUnselect: onFeatureUnselect});
-  //map.addControl(selectControl);
-  //selectControl.activate();
+}
+
+function addMarker(markerlist, pt) {
+  var lon = parseFloat(pt.getAttribute("lon"));
+  var lat = parseFloat(pt.getAttribute("lat"));
+  var nName = pt.getElementsByTagName("name");
+  var nSym = pt.getElementsByTagName("sym");
+  var nDesc = pt.getElementsByTagName("desc");
+  var nLink = pt.getElementsByTagName("link");
+  var name = "";
+  if (nName.length > 0) {
+    var sym = null;
+    var desc = "";
+    var link = null;
+    var name = nName[0].firstChild.nodeValue;
+    if (nSym.length > 0 && nSym[0].firstChild != null) {
+      sym = nSym[0].firstChild.nodeValue;
+    }
+    if (nDesc.length > 0 && nDesc[0].firstChild != null) {
+      desc = nDesc[0].firstChild.nodeValue;
+    }
+    if (nLink.length > 0 && nLink[0].firstChild != null) {
+      link = nLink[0].firstChild.nodeValue;
+    }
+    markerlist.push({lat: lat, lon: lon, name: name, sym: sym,
+      desc: desc, link: link});
+  }
 }
 
 var popup = null;
 
 function showPopup(evt) {
-  //alert(""+this.name+":"+evt);
   if (!this) return;
   if (popup)
     popup.destroy();
@@ -249,7 +281,6 @@ var selectedFeature;
 
 function onFeatureSelect(feature) {
   selectedFeature = feature;
-  //feature.style.strokeColor = "#ff0000";
   popup = new OpenLayers.Popup.AnchoredBubble("chicken",
     feature.geometry.getBounds().getCenterLonLat(),
     new OpenLayers.Size(250, 75),
@@ -263,11 +294,9 @@ function onFeatureUnselect(feature) {
   map.removePopup(feature.popup);
   feature.popup.destroy();
   feature.popup = null;
-  //feature.style.strokeColor = "#00ff00";
 }
 
 function onPopupClose(evt) {
-  //alert("unselect" + selectedFeature);
   selectControl.unselect(selectedFeature);
 }
 

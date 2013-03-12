@@ -69,7 +69,7 @@ public:
     QRectF boundingRect() const;
     QPainterPath shape() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    void setPos(const QPointF &pos);
+    //void setPos(const QPointF &pos);
 };
 
 class RouteItem: public QGraphicsItem
@@ -131,6 +131,7 @@ public:
     MapScene(Model *model, QObject *parent = 0);
     Model *model() { return myModel; }
     TrackItem *trackItem() const { return myTrackItem; }
+    TrackPosItem *trackPosItem() const { return myTrackPosItem; }
     QList<TrackPointItem *> trackPointItems() const { return myTrackPointItems; }
     QList<RoutePointItem *> routePointItems() const { return myRoutePointItems; }
     QList<WaypointItem *> waypointItems() const { return myWaypointItems; }

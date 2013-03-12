@@ -52,6 +52,8 @@ private:
     QColor myOutRouteColor;
     int myOutRouteWidth;
     MapIconList myMapIcons;
+
+    int iconIndex(const QString icons[][3], const QString& key);
 public:
     Settings();
     int zoom() const { return myZoom; }

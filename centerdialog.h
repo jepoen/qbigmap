@@ -25,14 +25,17 @@ private:
     QDoubleSpinBox *bLat;
     MapScene *mapScene;
     CenterItem *centerItem;
-
+    bool mySave;
 public:
     CenterDialog(const QPointF& lonLat, MapScene *scene, QWidget *parent = 0);
     void setLonLat(const QPointF& lonLat) { myLonLat = lonLat; }
     const QPointF& lonLat() const { return myLonLat; }
+    bool saveVals() const { return  mySave; }
 public slots:
     void hide();
     void changeValue(double val);
+private slots:
+    void saveAndAccept();
 };
 
 #endif // CENTERDIALOG_H

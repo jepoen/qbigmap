@@ -79,7 +79,7 @@ private:
     QAction *lastTrackPosAction;
     QAction *trackSimplifyAction;
     QAction *trackBoundingBoxAction;
-    QAction *editTrackPosAction;
+    QAction *editTrackPointAction;
     QAction *deleteTrackPosAction;
     QAction *newWaypointAction;
     QAction *moveGpxPointAction;
@@ -164,7 +164,7 @@ private slots:
     void lastTrackPos();
     void toggleTrackBoundingBox();
     void simplifyTrack();
-    void editTrackPos();
+    void editTrackPoint();
     void deleteTrackPos();
     void saveRoute();
     void delRoute();

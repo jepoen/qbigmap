@@ -251,6 +251,10 @@ void MapView::moveTrackPoint(int idx, const QPointF& pos) {
 void MapView::editTrackPoint(const QPointF& pos) {
     int idx = idxOfTrackPoint(pos);
     if (idx < 0) return;
+    editTrackPoint(idx);
+}
+
+void MapView::editTrackPoint(int idx) {
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
     const GpxPointList& points = model->track().trackPoints();
@@ -259,9 +263,12 @@ void MapView::editTrackPoint(const QPointF& pos) {
     GpxPointDlg dlg(model->track().trackPoint(idx), mySettings->mapIconList());
     dlg.setSrtmEle(model->srtmEle(points[idx].coord()));
     dlg.setDists(dist0, dist1);
+    createTempPoint(points[idx].coord());
+    connect(&dlg, SIGNAL(posChanged(const QPointF&)), this, SLOT(moveTempPoint(QPointF)));
     if (dlg.exec()) {
         model->setTrackPoint(idx, dlg.point());
     }
+    deleteTempPoint();
 }
 
 void MapView::selectTrackPoint(const QPointF& pos) {
@@ -387,9 +394,12 @@ void MapView::editRoutePoint(const QPointF& pos) {
     //double dist1 = Model::geodist0(*points, 0, idx);
     dlg.setSrtmEle(model->srtmEle(points->at(idx).coord()));
     dlg.setDists(dist0, dist1);
+    createTempPoint(points->at(idx).coord());
+    connect(&dlg, SIGNAL(posChanged(const QPointF&)), this, SLOT(moveTempPoint(QPointF)));
     if (dlg.exec()) {
         model->setRoutePoint(idx, dlg.point());
     }
+    deleteTempPoint();
 }
 
 void MapView::insertRoutePoint(const QPointF &pos) {
@@ -464,9 +474,12 @@ void MapView::editWaypoint(const QPointF& pos) {
     //Test
     //double dist1 = Model::geodist0(*points, 0, idx);
     dlg.setSrtmEle(model->srtmEle(model->waypoints().at(idx).coord()));
+    createTempPoint(model->waypoints().at(idx).coord());
+    connect(&dlg, SIGNAL(posChanged(const QPointF&)), this, SLOT(moveTempPoint(QPointF)));
     if (dlg.exec()) {
         model->setWaypoint(idx, dlg.point());
     }
+    deleteTempPoint();
 }
 
 void MapView::delWaypoint(const QPointF& pos) {
@@ -545,4 +558,9 @@ void MapView::delTrackPart() {
         int i1 = dlg.pos1();
         model->delTrackPart(i0, i1);
     }
+}
+
+void MapView::changeTrackPos(int) {
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    ensureVisible(mapScene->trackPosItem());
 }

@@ -116,6 +116,7 @@ MainWindow::MainWindow(QWidget *parent)
     toggleGrid();
     connect(model, SIGNAL(mapChanged()), this, SLOT(updateModelStatus()));
     connect(model, SIGNAL(trackPosChanged(int)), this, SLOT(changeTrackPos(int)));
+    connect(model, SIGNAL(trackPosChanged(int)), view, SLOT(changeTrackPos(int)));
     connect(view, SIGNAL(mouseGeoPos(QPointF)), this, SLOT(showGeoPos(QPointF)));
     connect(photoList, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)), this, SLOT(showPhotoData(QListWidgetItem*)));
     connect(photoList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(showPhotoData(QListWidgetItem*)));
@@ -198,8 +199,8 @@ void MainWindow::createActions() {
     connect(trackBoundingBoxAction, SIGNAL(triggered()), this, SLOT(toggleTrackBoundingBox()));
     trackSimplifyAction = new QAction(tr("Simplify track..."), this);
     connect(trackSimplifyAction, SIGNAL(triggered()), this, SLOT(simplifyTrack()));
-    editTrackPosAction = new QAction(tr("&Edit track position..."), this);
-    connect(editTrackPosAction, SIGNAL(triggered()), this, SLOT(editTrackPos()));
+    editTrackPointAction = new QAction(tr("&Edit track point..."), this);
+    connect(editTrackPointAction, SIGNAL(triggered()), this, SLOT(editTrackPoint()));
     deleteTrackPosAction = new QAction(tr("&Delete track position"), this);
     connect(deleteTrackPosAction, SIGNAL(triggered()), this, SLOT(deleteTrackPos()));
     delTrackPartAction = new QAction(tr("Delete track part..."), this);
@@ -326,7 +327,7 @@ void MainWindow::enableTrackActions(bool enable) {
     deleteTrackAction->setEnabled(enable);
     trackBoundingBoxAction->setEnabled(enable);
     trackSimplifyAction->setEnabled(enable);
-    editTrackPosAction->setEnabled(enable);
+    editTrackPointAction->setEnabled(enable);
     deleteTrackPosAction->setEnabled(enable);
     delTrackPartAction->setEnabled(enable);
     showTrackPoiAction->setEnabled(enable);
@@ -394,8 +395,8 @@ void MainWindow::createMenuBar() {
     mTrack->addAction(delTrackPartAction);
     mTrack->addAction(trackSimplifyAction);
     mTrack->addSeparator();
-    mTrack->addAction(editTrackPosAction);
-    mTrack->addAction(deleteTrackPosAction);
+    mTrack->addAction(editTrackPointAction);
+   mTrack->addAction(deleteTrackPosAction);
     QMenu *mGpx = menuBar()->addMenu(tr("&Route/Waypoint"));
     mGpx->addAction(newWaypointAction);
     mGpx->addAction(newRoutePointAction);
@@ -443,7 +444,7 @@ void MainWindow::createToolBar() {
     trackToolBar->addAction(firstTrackPosAction);
     trackToolBar->addAction(dDecTrackPosAction);
     trackToolBar->addAction(decTrackPosAction);
-    trackToolBar->addAction(editTrackPosAction);
+    trackToolBar->addAction(editTrackPointAction);
     trackToolBar->addAction(incTrackPosAction);
     trackToolBar->addAction(dIncTrackPosAction);
     trackToolBar->addAction(lastTrackPosAction);
@@ -827,14 +828,14 @@ void MainWindow::setCenter() {
     qDebug()<<"Map center: "<<lonLat;
     CenterDialog dlg(lonLat, scene);
     if (dlg.exec()) {
-        settings.setCenter(dlg.lonLat());
-        settings.setZoom(model->zoom());
-        settings.setXExt(model->width());
-        settings.setYExt(model->height());
-        settings.save();
-        QMessageBox::information(this, tr("Save settings"),
-                                 tr("Saved new center and zoom"),
-                                 QMessageBox::Ok);
+        model->setCenter(dlg.lonLat());
+        if (dlg.saveVals()) {
+            settings.setCenter(dlg.lonLat());
+            settings.setZoom(model->zoom());
+            settings.setXExt(model->width());
+            settings.setYExt(model->height());
+            settings.save();
+        }
     }
 }
 
@@ -1092,20 +1093,11 @@ void MainWindow::simplifyTrack() {
     }
 }
 
-void MainWindow::editTrackPos() {
+void MainWindow::editTrackPoint() {
     if (model->track().isEmpty())
         return;
     int pos = model->track().pos();
-    GpxPoint p = model->track().trackPoint(pos);
-    TrackPosDlg dlg(p);
-    view->createTempPoint(p.coord());
-    connect(&dlg, SIGNAL(posChanged(const QPointF&)), view, SLOT(moveTempPoint(QPointF)));
-    if (dlg.exec() == QDialog::Accepted) {
-        qDebug()<<"accepted";
-        GpxPoint point(dlg.trackPoint());
-        model->setTrackPoint(pos, point);
-    }
-    view->deleteTempPoint();
+    view->editTrackPoint(pos);
 }
 
 void MainWindow::deleteTrackPos() {
@@ -1121,7 +1113,12 @@ void MainWindow::deleteTrackPos() {
 }
 
 void MainWindow::delRoute() {
-    model->routePtr()->delRoute();
+    int routeSize = model->routePtr()->points()->size();
+    if (QMessageBox::question(this, tr("Delete route"),
+                              tr("Delete this route (%1 points)?").arg(routeSize),
+                              QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
+        model->routePtr()->delRoute();
+    }
 }
 
 void MainWindow::saveRoute() {

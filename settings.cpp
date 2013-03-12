@@ -23,12 +23,19 @@ Layer::Layer(const QString &name, const QString &url) :
 Settings::Settings()
 {}
 
+int Settings::iconIndex(const QString icons[][3], const QString &key) {
+    for (int i = 0; icons[i][0] != 0; i++) {
+        if (icons[i][0] == key) return i;
+    }
+    return -1;
+}
+
 void Settings::load() {
     QSettings *settings = new QSettings("osm", "QBigMap");
     //qDebug()<<"settings size"<<settings->allKeys().size();
     if (settings->allKeys().size() == 0) {
-        delete settings;
-        settings = new QSettings(":/resources/QBigMap.conf", QSettings::IniFormat);
+        //delete settings;
+        //settings = new QSettings(":/resources/QBigMap.conf", QSettings::IniFormat);
         //qDebug()<<"settings size"<<settings->allKeys().size();
     }
     myCenter = settings->value("center", QPointF(12.9, 50.8)).toPointF();
@@ -64,18 +71,24 @@ void Settings::load() {
     }
     settings->endArray();
     QList<MapIcon> icons;
+    for (int i = 0; defaultIcons[i][0] != 0; i++) {
+        icons.append(MapIcon(defaultIcons[i][0], defaultIcons[i][1], defaultIcons[i][2], defaultIcons[i][2]));
+    }
     size = settings->beginReadArray("mapicons");
     for (int i = 0; i < size; i++) {
         settings->setArrayIndex(i);
-        icons.append(MapIcon(settings->value("name").toString(), settings->value("icofile").toString(),
-                                  defaultIcons[i][2], settings->value("mapicofile").toString()));
-    }
-    settings->endArray();
-    if (size == 0) {
-        for (int i = 0; defaultIcons[i][0] != 0; i++) {
-            icons.append(MapIcon(defaultIcons[i][0], defaultIcons[i][1], defaultIcons[i][2], defaultIcons[i][2]));
+        int idx = iconIndex(defaultIcons, settings->value("name").toString());
+        if (idx >= 0) {
+            icons[idx] = MapIcon(settings->value("name").toString(), settings->value("icofile").toString(),
+                         defaultIcons[i][2], settings->value("mapicofile").toString());
+        } else {
+            // added icons
+            icons.push_back(MapIcon(settings->value("name").toString(), settings->value("icofile").toString(),
+                         defaultIcons[i][2], settings->value("mapicofile").toString()));
+
         }
     }
+    settings->endArray();
     myMapIcons.setIcons(icons);
 }
 
@@ -120,4 +133,3 @@ void Settings::save() {
     settings.setValue("outRouteColor", myOutRouteColor.rgba());
     settings.setValue("outRouteWidth", myOutRouteWidth);
 }
-

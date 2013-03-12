@@ -42,6 +42,7 @@ public:
     void moveTrackPoint(int idx, const QPointF& pos);
     void selectTrackPoint(const QPointF& pos);
     void editTrackPoint(const QPointF& pos);
+    void editTrackPoint(int idx);
     void delTrackPoint(const QPointF& pos);
     void insertTrackPoint(const QPointF& pos);
     void newRoutePoint(const QPointF& pos);
@@ -69,6 +70,7 @@ protected:
 signals:
     void mouseGeoPos(const QPointF& lonLat);
 public slots:
+    void changeTrackPos(int);
     void setShowFunction();
     void setMoveTrackPosFunction();
     void setMoveGpxPointFunction();

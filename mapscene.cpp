@@ -126,9 +126,10 @@ void WaypointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 }
 
 TrackPosItem::TrackPosItem(const QPointF& pos, QGraphicsItem *parent) :
-    QGraphicsItem(parent), myPos(pos)
+    QGraphicsItem(parent), myPos(QPointF(0,0))
 {
     //setFlags(ItemSendsGeometryChanges|ItemSendsScenePositionChanges);
+    setPos(pos);
 }
 
 QRectF TrackPosItem::boundingRect() const {
@@ -153,10 +154,12 @@ void TrackPosItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     painter->drawLine(myPos.x()-16, myPos.y()+16, myPos.x()+16, myPos.y()-16);
 }
 
-void TrackPosItem::setPos(const QPointF &pos) {
-    prepareGeometryChange();
-    myPos = pos;
-}
+//void TrackPosItem::setPos(const QPointF &pos) {
+//    //prepareGeometryChange();
+//    qDebug()<<"setPos "<<pos;
+//    //setPos(pos);
+//    //myPos = pos;
+//}
 
 RouteItem::RouteItem(const QPolygonF &points, QGraphicsItem *parent) :
         QGraphicsItem(parent), myPoints(points)
@@ -525,7 +528,9 @@ void MapScene::changeTrackPos(int pos) {
         addItem(myTrackPosItem);
         trackGroup.append(myTrackPosItem);
     } else {
+        QRectF oldRect = myTrackPosItem->sceneBoundingRect();
         myTrackPosItem->setPos(pt);
+        invalidate(oldRect);
     }
 }
 

@@ -73,6 +73,11 @@ void Model::zoomOut(const QPointF& center) {
     emit mapChanged();
 }
 
+bool Model::isInMap(const QPointF &lonLat) const {
+    QPoint p = Model::lonLat2Tile(lonLat, myZoom);
+    return p.x() >= myX && p.x() < myX+myWidth && p.y() >= myY && p.y() < myY+myHeight;
+}
+
 void Model::changeSize(int north, int east, int south, int west) {
     if (myWidth+west+east < 2 || myHeight+north+south < 2)
         return;
@@ -265,6 +270,7 @@ void Model::trackSetNew(const QString &fileName, const QString& name, const GpxP
 void Model::setTrackPos(int pos) {
     if (myTrack.isEmpty()) return;
     myTrack.setPos(pos);
+    if (!isInMap(myTrack.trackPoint(pos).coord())) setCenter(myTrack.trackPoint(pos).coord());
     emit trackPosChanged(myTrack.pos());
 }
 

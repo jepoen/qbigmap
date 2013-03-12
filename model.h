@@ -63,6 +63,7 @@ public:
     void setZoom(int zoom);
     const Layer& layer() { return myLayer; }
     void setLayer(const Layer& layer) { myLayer = layer; emit mapChanged(); }
+    bool isInMap(const QPointF& lonLat) const;
     void zoomIn(const QPointF& center);
     void zoomOut(const QPointF& center);
     void changeSize(int nord, int east, int south, int west);

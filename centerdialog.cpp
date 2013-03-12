@@ -22,7 +22,7 @@ void CenterItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 }
 
 CenterDialog::CenterDialog(const QPointF &lonLat, MapScene *scene, QWidget *parent) :
-        QDialog(parent), myLonLat(lonLat), mapScene(scene)
+    QDialog(parent), myLonLat(lonLat), mapScene(scene), mySave(false)
 {
     setWindowTitle(tr("Set map center"));
     QVBoxLayout *mainLayout = new QVBoxLayout();
@@ -43,10 +43,14 @@ CenterDialog::CenterDialog(const QPointF &lonLat, MapScene *scene, QWidget *pare
     bLat->setSingleStep(0.001);
     bLat->setValue(lonLat.y());
     controls->addWidget(bLat, 1, 1);
-    QDialogButtonBox *buttonBox = new QDialogButtonBox(QDialogButtonBox::Save|QDialogButtonBox::Cancel);
+    QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal);
+    buttonBox->addButton(QDialogButtonBox::Ok);
+    QPushButton *saveButton = buttonBox->addButton(tr("Save as default"), QDialogButtonBox::ApplyRole);
+    buttonBox->addButton(QDialogButtonBox::Cancel);
     connect(bLon, SIGNAL(valueChanged(double)), this, SLOT(changeValue(double)));
     connect(bLat, SIGNAL(valueChanged(double)), this, SLOT(changeValue(double)));
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+    connect(saveButton, SIGNAL(clicked()), this, SLOT(saveAndAccept()));
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
     connect(this, SIGNAL(finished(int)), this, SLOT(hide()));
     mainLayout->addLayout(controls);
@@ -75,4 +79,9 @@ void CenterDialog::changeValue(double val) {
     Model *model = mapScene->model();
     QPoint pos = model->lonLat2Scene(myLonLat);
     centerItem->setPos(pos);
+}
+
+void CenterDialog::saveAndAccept() {
+    mySave = true;
+    accept();
 }

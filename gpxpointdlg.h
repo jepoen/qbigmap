@@ -7,6 +7,8 @@
 #include "gpx.h"
 
 class QComboBox;
+class QDateTimeEdit;
+class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
 
@@ -14,6 +16,9 @@ class GpxPointDlg : public QDialog
 {
     Q_OBJECT
 private:
+    QDoubleSpinBox *eLon;
+    QDoubleSpinBox *eLat;
+    QDateTimeEdit *eTimestamp;
     QLineEdit *eEle;
     QLabel *eSrtmEle;
     QComboBox *eSym;
@@ -34,9 +39,11 @@ public:
     void setSrtmEle(int ele);
     GpxPoint point() const;
 signals:
-    
+    void posChanged(const QPointF& pos);
+
 public slots:
 private slots:
+    void changePos(double val);
     void check();
 };
 

@@ -76,7 +76,7 @@ HEADERS += mainwindow.h \
     photooffsetdlg.h
 RESOURCES += qbigmap.qrc
 TRANSLATIONS = qbigmap_de.ts
-LIBS += -lexiv2
+LIBS += /usr/lib/libexiv2.a
 
 OTHER_FILES += \
     resources/QBigMap.conf \
