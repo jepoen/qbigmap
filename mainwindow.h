@@ -92,6 +92,8 @@ private:
     QAction *delRouteAction;
     QAction *openPhotoAction;
     QAction *showPhotoAction;
+    QAction *fixPhotoTimestampAction;
+    QAction *geoTagPhotoAction;
     //QAction *hidePhotoAction;
     QAction *showTrackPoiAction;
     QAction *showTrackProfileAction;
@@ -178,6 +180,8 @@ private slots:
     void showTrackProfile();
     void showPhotoDir(const QString& dir);
     void setPhotoOffset();
+    void fixPhotoTimestamp();
+    void geoTagPhotos();
     void selectTrackPoi(const QModelIndex& index);
     void toggleGrid();
     void toggleTileBounds();

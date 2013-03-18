@@ -247,6 +247,10 @@ void MainWindow::createActions() {
     showPhotoAction = new QAction(tr("Show photo list"), this);
     connect(showPhotoAction, SIGNAL(triggered()), this, SLOT(showPhotoWidget()));
     showPhotoAction->setEnabled(false);
+    fixPhotoTimestampAction = new QAction(tr("Fix Photo Timestamps"), this);
+    connect(fixPhotoTimestampAction, SIGNAL(triggered()), this, SLOT(fixPhotoTimestamp()));
+    geoTagPhotoAction = new QAction(tr("Geotag all photos"), this);
+    connect(geoTagPhotoAction, SIGNAL(triggered()), this, SLOT(geoTagPhotos()));
     //hidePhotoAction = new QAction(tr("Hide photos"), this);
     //connect(hidePhotoAction, SIGNAL(triggered()), this, SLOT(hidePhotos()));
     showTrackPoiAction = new QAction(tr("Track POIs"), this);
@@ -423,6 +427,8 @@ void MainWindow::createMenuBar() {
     QMenu *mPhotos = menuBar()->addMenu(tr("&Photos"));
     mPhotos->addAction(openPhotoAction);
     mPhotos->addAction(showPhotoAction);
+    mPhotos->addAction(fixPhotoTimestampAction);
+    mPhotos->addAction(geoTagPhotoAction);
     //mPhotos->addAction(hidePhotoAction);
 
     QMenu *mSettings = menuBar()->addMenu(tr("&Settings"));
@@ -1279,6 +1285,35 @@ void MainWindow::setPhotoOffset() {
     }
     //connectPhotos();
 }
+
+void MainWindow::fixPhotoTimestamp() {
+    int cnt = photoList->count();
+    for (int i = 0; i < cnt; i++) {
+        QListWidgetItem *it = photoList->item(i);
+        QString fileName = it->data(PHOTO_FILENAME).toString();
+        Photo photo(fileName);
+        photo.fixTimestamp(myPhotoOffset);
+        it->setData(PHOTO_ORIGTIME, photo.timestamp());
+    }
+    myPhotoOffset = 0;
+    lPhotoOffset->setText(QString("%1").arg(myPhotoOffset));
+}
+
+void MainWindow::geoTagPhotos() {
+    int cnt = photoList->count();
+    for (int i = 0; i < cnt; i++) {
+        QListWidgetItem *it = photoList->item(i);
+        QDateTime timestamp = it->data(PHOTO_TIMESTAMP).toDateTime();
+        int pos = model->track().nearest(timestamp);
+        int diff = model->track().trackPoint(pos).timestamp().secsTo(timestamp);
+        if (abs(diff) > 300) continue;
+        const QPointF &coord = model->track().trackPoint(pos).coord();
+        QString fileName = it->data(PHOTO_FILENAME).toString();
+        Photo photo(fileName);
+        photo.setGeoPos(coord);
+    }
+}
+
 
 void MainWindow::showPhotoDir(const QString &dir) {
     lPhotoDir->setText(dir);
