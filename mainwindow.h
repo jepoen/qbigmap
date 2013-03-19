@@ -33,7 +33,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 private:
     enum {PHOTO_FILENAME = Qt::UserRole, PHOTO_ORIGTIME = Qt::UserRole+1, PHOTO_TIMESTAMP = Qt::UserRole+2,
-          PHOTO_TRACKIDX = Qt::UserRole+3};
+          PHOTO_TRACKIDX = Qt::UserRole+3, PHOTO_COORD = Qt::UserRole+4};
     Settings settings;
     Model *model;
     GpxListModel *myTrackPoiModel;
@@ -81,6 +81,7 @@ private:
     QAction *trackBoundingBoxAction;
     QAction *editTrackPointAction;
     QAction *deleteTrackPosAction;
+    QAction *saveTrackProfileAction;
     QAction *newWaypointAction;
     QAction *moveGpxPointAction;
     QAction *newRoutePointAction;
@@ -90,6 +91,7 @@ private:
     QAction *insertRoutePointAction;
     QAction *saveRouteAction;
     QAction *delRouteAction;
+    QAction *saveRouteProfileAction;
     QAction *openPhotoAction;
     QAction *showPhotoAction;
     QAction *fixPhotoTimestampAction;
@@ -127,6 +129,7 @@ private:
     void createPhotoWidget();
     void createActions();
     void enableTrackActions(bool enable);
+    void enablePhotoActions(bool enable);
     void createBaselayerActions();
     void createOverlayActions();
     void createMenuBar();
@@ -168,8 +171,10 @@ private slots:
     void simplifyTrack();
     void editTrackPoint();
     void deleteTrackPos();
+    void saveTrackProfile();
     void saveRoute();
     void delRoute();
+    void saveRouteProfile();
     void openPhotos();
     void showPhotoWidget();
     void enableShowPhoto(bool);

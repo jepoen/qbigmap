@@ -90,6 +90,7 @@ public:
     void insertTrackPoint(int pos, const GpxPoint &point);
     void delTrackPoint(int pos);
     void delTrackPart(int i0, int i1);
+    void delTrack();
     void changeTrackPoint(int pos, const QPointF& lonLat);
     void uniqueTrack();    
     void saveModifiedTrack(QIODevice *dev, bool addWaypoints, bool isSimple=false);

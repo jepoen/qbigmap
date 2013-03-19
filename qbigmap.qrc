@@ -37,5 +37,6 @@
         <file>icons/hostel.png</file>
         <file>icons/star-s.png</file>
         <file>icons/flag-s.png</file>
+        <file>icons/world.png</file>
     </qresource>
 </RCC>

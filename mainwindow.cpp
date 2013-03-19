@@ -34,9 +34,6 @@ MainWindow::MainWindow(QWidget *parent)
     scene = new MapScene(model);
     scene->setSceneRect(0, 0, 256*model->width(), 256*model->height());
     view = new MapView(scene, &settings);
-    profileScene = new ProfileScene(model);
-    profileView = new ProfileView(profileScene);
-    profileView->setVisible(false);
     createActions();
     createMenuBar();
     createToolBar();
@@ -98,7 +95,6 @@ MainWindow::MainWindow(QWidget *parent)
     mainLayout->addLayout(southLayout, 2, 0, 1, 3);
     QWidget *center = new QWidget();
     center->setLayout(mainLayout);
-    profileWidget = new QDockWidget(tr("Profile"));
     createProfileWidget();
     addDockWidget(Qt::BottomDockWidgetArea, profileWidget, Qt::Horizontal);
     trackPoiWidget = new QDockWidget(tr("Track POIs"));
@@ -111,6 +107,7 @@ MainWindow::MainWindow(QWidget *parent)
     createBaselayerActions();
     createOverlayActions();
     enableTrackActions(false);
+    enablePhotoActions(false);
     // should draw the scene
     changeOverlays();
     toggleGrid();
@@ -154,12 +151,14 @@ void MainWindow::createPhotoWidget() {
     lPhotoOffset = new QLabel(QString("%1").arg(myPhotoOffset));
     photoLayout->addWidget(lPhotoOffset);
     photoThumb = new QLabel();
+    photoThumb->setMinimumHeight(200);
+    photoThumb->setAlignment(Qt::AlignCenter);
     photoLayout->addWidget(photoThumb, 2, 0, 1, 2);
     content->setLayout(photoLayout);
     photoWidget->setWidget(content);
     photoWidget->setVisible(false);
     connect(photoWidget, SIGNAL(visibilityChanged(bool)), this, SLOT(enableShowPhoto(bool)));
-    connect(this, SIGNAL(photoDirChanged(QString)), this, SLOT(showPhotoDir(QString)));
+    //connect(this, SIGNAL(photoDirChanged(QString)), this, SLOT(showPhotoDir(QString)));
 }
 
 void MainWindow::createActions() {
@@ -205,6 +204,8 @@ void MainWindow::createActions() {
     connect(deleteTrackPosAction, SIGNAL(triggered()), this, SLOT(deleteTrackPos()));
     delTrackPartAction = new QAction(tr("Delete track part..."), this);
     connect(delTrackPartAction, SIGNAL(triggered()), view, SLOT(delTrackPart()));
+    saveTrackProfileAction = new QAction(tr("Save track profile..."), this);
+    connect(saveTrackProfileAction, SIGNAL(triggered()), this, SLOT(saveTrackProfile()));
     redrawAction = new QAction(tr("&Redraw"), this);
     redrawAction->setIcon(QIcon(":/icons/arrow_refresh.png"));
     zoomInAction = new QAction(QIcon(":/icons/zoom_in.png"), tr("Zoom in"), this);
@@ -242,6 +243,8 @@ void MainWindow::createActions() {
     connect(saveRouteAction, SIGNAL(triggered()), this, SLOT(saveRoute()));
     delRouteAction = new QAction(tr("Delete complete route"), this);
     connect(delRouteAction, SIGNAL(triggered()), this, SLOT(delRoute()));
+    saveRouteProfileAction = new QAction("Save route profile...", this);
+    connect(saveRouteProfileAction, SIGNAL(triggered()), this, SLOT(saveRouteProfile()));
     openPhotoAction = new QAction(tr("Open photos..."), this);
     connect(openPhotoAction, SIGNAL(triggered()), this, SLOT(openPhotos()));
     showPhotoAction = new QAction(tr("Show photo list"), this);
@@ -339,6 +342,11 @@ void MainWindow::enableTrackActions(bool enable) {
     lTrackPos->setVisible(true);
 }
 
+void MainWindow::enablePhotoActions(bool enable) {
+    fixPhotoTimestampAction->setEnabled(enable);
+    geoTagPhotoAction->setEnabled(enable);
+}
+
 void MainWindow::createBaselayerActions() {
     foreach (QAction *a, typeActionGroup->actions()) {
         typeActionGroup->removeAction(a);
@@ -387,6 +395,9 @@ void MainWindow::createMenuBar() {
     mTrack->addAction(trackFromGpsAction);
     mTrack->addAction(loadTrackAction);
     mTrack->addAction(saveTrackAction);
+    mTrack->addAction(saveTrackProfileAction);
+    mTrack->addAction(trackSimplifyAction);
+    mTrack->addSeparator();
     mTrack->addAction(moveTrackPosAction);
     mTrack->addAction(deleteTrackAction);
     mTrack->addAction(firstTrackPosAction);
@@ -397,10 +408,8 @@ void MainWindow::createMenuBar() {
     mTrack->addAction(lastTrackPosAction);
     mTrack->addAction(trackBoundingBoxAction);
     mTrack->addAction(delTrackPartAction);
-    mTrack->addAction(trackSimplifyAction);
-    mTrack->addSeparator();
     mTrack->addAction(editTrackPointAction);
-   mTrack->addAction(deleteTrackPosAction);
+    mTrack->addAction(deleteTrackPosAction);
     QMenu *mGpx = menuBar()->addMenu(tr("&Route/Waypoint"));
     mGpx->addAction(newWaypointAction);
     mGpx->addAction(newRoutePointAction);
@@ -409,6 +418,7 @@ void MainWindow::createMenuBar() {
     mGpx->addAction(editRoutePointAction);
     mGpx->addAction(insertRoutePointAction);
     mGpx->addAction(saveRouteAction);
+    mGpx->addAction(saveRouteProfileAction);
     mGpx->addAction(delRouteAction);
     QMenu *mView = menuBar()->addMenu(tr("&View"));
     mView->addAction(redrawAction);
@@ -473,7 +483,16 @@ void MainWindow::createStatusBar() {
 }
 
 void MainWindow::createProfileWidget() {
-    profileWidget->setWidget(profileView);
+    profileWidget = new QDockWidget(tr("Profile"));
+    QWidget *content = new QWidget();
+    QVBoxLayout *layout = new QVBoxLayout();
+    QHBoxLayout *control = new QHBoxLayout();
+    layout->addLayout(control);
+    profileScene = new ProfileScene(model);
+    profileView = new ProfileView(profileScene);
+    layout->addWidget(profileView);
+    content->setLayout(layout);
+    profileWidget->setWidget(content);
     profileWidget->hide();
 }
 
@@ -1024,10 +1043,9 @@ void MainWindow::deleteTrack() {
     if (QMessageBox::question(this, tr("Delete track"), tr("Delete current track?"),
                              QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes)
             == QMessageBox::Yes) {
-        model->trackPtr()->clear();
+        model->delTrack();
         trackToolBar->setVisible(false);
-        profileView->setVisible(false);
-        //connectPhotos();
+        profileWidget->hide();
         enableTrackActions(false);
     }
 }
@@ -1118,6 +1136,14 @@ void MainWindow::deleteTrackPos() {
     }
 }
 
+void MainWindow::saveTrackProfile() {
+    // TODO
+    QFileInfo fileInfo(model->track().fileName());
+    QFileInfo newFile(fileInfo.baseName(), fileInfo.baseName()+"-profile.png");
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Track Profile"), newFile.absoluteFilePath(), tr("PNG (*.png);;PDF (*.pdf)"));
+    if (fileName.isEmpty()) return;
+}
+
 void MainWindow::delRoute() {
     int routeSize = model->routePtr()->points()->size();
     if (QMessageBox::question(this, tr("Delete route"),
@@ -1157,6 +1183,14 @@ void MainWindow::saveRoute() {
         qDebug()<<settings.gpsbabel()<<params;
         run(settings.gpsbabel(), params);
     }
+}
+
+void MainWindow::saveRouteProfile() {
+    // TODO
+    QFileInfo fileInfo(model->route().fileName());
+    QFileInfo newFile(fileInfo.baseName(), fileInfo.baseName()+"-profile.png");
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Route Profile"), newFile.absoluteFilePath(), tr("PNG (*.png);;PDF (*.pdf)"));
+    if (fileName.isEmpty()) return;
 }
 
 void MainWindow::run(const QString& path, const QStringList& params) {
@@ -1199,16 +1233,24 @@ void MainWindow::openPhotos() {
         Photo photo(filename);
         photos.push_back(photo);
     }
+    if (photos.size() == 0) return;
     qSort(photos);
-    photoWidget->setVisible(true);
     foreach(Photo photo, photos) {
         QListWidgetItem *it = new QListWidgetItem(photo.timestamp().toLocalTime().toString("hh:mm:ss ")+photo.baseFileName());
         qDebug()<<"Add to List: "<<photo.filename();
         it->setToolTip(photo.filename());
         it->setData(PHOTO_FILENAME, photo.filename());
         it->setData(PHOTO_ORIGTIME, photo.timestamp());
+        it->setData(PHOTO_COORD, QVariant());
+        if (photo.hasCoord()) {
+            it->setData(PHOTO_COORD, photo.coord());
+            it->setIcon(QIcon(":/icons/world.png"));
+            it->setToolTip(QString("%1 (geotagged)").arg(photo.filename()));
+        }
         photoList->addItem(it);
     }
+    photoWidget->setVisible(true);
+    enablePhotoActions(true);
     photoList->setCurrentRow(0);
 //    if (model->track() != 0) connectPhotos();
 }
@@ -1251,6 +1293,10 @@ void MainWindow::showPhotoData(QListWidgetItem *item) {
     Photo photo(filename);
     QPixmap thumb = photo.pixmap();
     photoThumb->setPixmap(thumb);
+    if (item->data(PHOTO_COORD).isValid()) {
+        // TODO
+        qDebug()<<"Photo coord: "<<item->data(PHOTO_COORD).toPointF();
+    }
     //photoThumb->setText(timestamp.toString());
 //    int idx = item->data(PHOTO_TRACKIDX).toInt();
 //    if (idx >= 0) model->setTrackPos(idx);

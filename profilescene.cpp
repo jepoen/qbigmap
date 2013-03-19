@@ -12,7 +12,7 @@ QRectF ProfileTrackItem::boundingRect() const {
     return myTrack.boundingRect();
 }
 
-void ProfileTrackItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
+void ProfileTrackItem::paint(QPainter *painter, const QStyleOptionGraphicsItem */*option*/, QWidget */*widget*/) {
     painter->drawPolyline(myTrack);
 }
 
@@ -83,6 +83,7 @@ void ProfileScene::redrawTrack() {
     }
     it = new ProfileTrackItem(polygon);
     addItem(it);
+    changeTrackPos(myModel->trackPos());
 }
 
 void ProfileScene::changeTrackPos(int pos) {

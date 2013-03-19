@@ -213,7 +213,6 @@ void MapView::showPos(const QPointF& pos) {
             model->setTrackPos(idx);
         }
     }
-
 }
 
 int MapView::idxOfTrackPoint(const QPointF& pos) {

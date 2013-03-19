@@ -306,6 +306,11 @@ void Model::delTrackPart(int i0, int i1) {
     emit trackPosChanged(i0);
 }
 
+void Model::delTrack() {
+    myTrack.clear();
+    emit trackChanged();
+}
+
 void Model::changeTrackPoint(int pos, const QPointF& lonLat) {
     if (myTrack.isEmpty()) return;
     myTrack.setTrackPointPos(pos, lonLat);

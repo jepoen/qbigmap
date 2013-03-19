@@ -113,7 +113,8 @@ OTHER_FILES += \
     icons/star-s.png \
     icons/pilgrim-hostel-s.png \
     icons/pilgrim-hostel.png \
-    icons/square.png
+    icons/square.png \
+    icons/world.png
 
 
 
