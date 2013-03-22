@@ -2,6 +2,7 @@
 #include <QtDebug>
 #include "model.h"
 #include "profilescene.h"
+#include "settings.h"
 
 ProfileTrackItem::ProfileTrackItem(const QPolygonF &track, QGraphicsItem *parent) :
         QGraphicsItem(parent),
@@ -16,9 +17,10 @@ void ProfileTrackItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
     painter->drawPolyline(myTrack);
 }
 
-ProfileScene::ProfileScene(Model *model, QObject *parent) :
+ProfileScene::ProfileScene(Model *model, Settings *settings, QObject *parent) :
     QGraphicsScene(parent),
     myModel(model),
+    mySettings(settings),
     myEle0(0), myEle1(0), myWidth(0), myX0(50), myY0(0),
     myScKm(10), myScEle(0.3),
     myTrackPosItem(0)
@@ -78,6 +80,16 @@ void ProfileScene::redrawTrack() {
             sumDist += Model::geodist1(pold.coord(), p.coord());
         }
         QPointF pt(int(sumDist*myScKm)+myX0, myY0+myScEle*(myEle0-p.ele()));
+        if (!p.sym().isEmpty()) {
+            QGraphicsLineItem *lit = new QGraphicsLineItem(pt.x(), pt.y(), pt.x(), pt.y()-20);
+            lit->setZValue(0);
+            addItem(lit);
+            QGraphicsPixmapItem *it = new QGraphicsPixmapItem(mySettings->mapIconList().icon(p.sym()).ico());
+            it->setPos(pt.x(), pt.y()-20);
+            it->setOffset(-it->pixmap().width()/2, -it->pixmap().height()/2);
+            it->setZValue(10);
+            addItem(it);
+        }
         polygon.append(pt);
         pold = p;
     }

@@ -3,8 +3,10 @@
 
 #include <QGraphicsItem>
 #include <QGraphicsScene>
+
 class QGraphicsLineItem;
 class Model;
+class Settings;
 
 class ProfileTrackItem : public QGraphicsItem
 {
@@ -21,6 +23,7 @@ class ProfileScene : public QGraphicsScene
     Q_OBJECT
 private:
     Model *myModel;
+    Settings *mySettings;
     int myEle0;
     int myEle1;
     int myWidth;
@@ -31,7 +34,7 @@ private:
     QGraphicsLineItem *myTrackPosItem;
 
 public:
-    explicit ProfileScene(Model *model, QObject *parent = 0);
+    explicit ProfileScene(Model *model, Settings *settings, QObject *parent = 0);
 
 signals:
 

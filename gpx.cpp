@@ -2,20 +2,22 @@
 #include <iostream>
 #include <QtXml>
 #include "gpx.h"
+#include "model.h"
 
 static const int ISCALE = 10000000;
 
 BoundingBox::BoundingBox()
 {
     myEle = QPoint(-32768, -32768);
+    myLen = 0;
 }
 
 BoundingBox::BoundingBox(const QPointF &p, int ele) :
-    myP0(p), myP1(p), myEle(ele, ele)
+    myP0(p), myP1(p), myEle(ele, ele), myLen(0)
 {}
 
-BoundingBox::BoundingBox(const QPointF &p0, const QPointF &p1, const QPoint &ele) :
-        myP0(p0), myP1(p1), myEle(ele)
+BoundingBox::BoundingBox(const QPointF &p0, const QPointF &p1, const QPoint &ele, double len) :
+    myP0(p0), myP1(p1), myEle(ele), myLen(len)
 {}
 
 QPoint GpxPoint::iscale(const QPointF &p) {
@@ -176,6 +178,8 @@ BoundingBox Gpx::boundingBox(const GpxPointList& points) {
     int ele0 = 0;
     int ele1 = 0;
     bool start = true;
+    double len = 0.0;
+    GpxPoint pOld(0, QPointF());
     foreach (const GpxPoint& p, points) {
         if (start) {
             x1 = x0 = p.coord().x();
@@ -190,7 +194,16 @@ BoundingBox Gpx::boundingBox(const GpxPointList& points) {
             if (p.coord().y() > y1) y1 = p.coord().y();
             if (p.ele() < ele0) ele0 = p.ele();
             if (p.ele() > ele1) ele1 = p.ele();
+            len += Model::geodist1(pOld.coord(), p.coord());
         }
+        pOld = p;
     }
-    return BoundingBox(QPointF(x0, y0), QPointF(x1, y1), QPoint(ele0, ele1));
+    return BoundingBox(QPointF(x0, y0), QPointF(x1, y1), QPoint(ele0, ele1), len);
+}
+
+bool Gpx::hasSym(const GpxPointList &points) {
+    foreach (const GpxPoint& p, points) {
+        if (!p.sym().isEmpty()) return true;
+    }
+    return false;
 }

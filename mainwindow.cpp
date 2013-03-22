@@ -1,6 +1,8 @@
 #include <QtGui>
 #include <QtDebug>
 #include "centerdialog.h"
+#include "gpxprofile.h"
+#include "gpxprofiledlg.h"
 #include "mainwindow.h"
 #include "model.h"
 #include "mapscene.h"
@@ -324,6 +326,7 @@ void MainWindow::createActions() {
 
 void MainWindow::enableTrackActions(bool enable) {
     saveTrackAction->setEnabled(enable);
+    saveTrackProfileAction->setEnabled(enable);
     moveTrackPosAction->setEnabled(enable);
     firstTrackPosAction->setEnabled(enable);
     decTrackPosAction->setEnabled(enable);
@@ -488,7 +491,7 @@ void MainWindow::createProfileWidget() {
     QVBoxLayout *layout = new QVBoxLayout();
     QHBoxLayout *control = new QHBoxLayout();
     layout->addLayout(control);
-    profileScene = new ProfileScene(model);
+    profileScene = new ProfileScene(model, &settings);
     profileView = new ProfileView(profileScene);
     layout->addWidget(profileView);
     content->setLayout(layout);
@@ -1137,11 +1140,18 @@ void MainWindow::deleteTrackPos() {
 }
 
 void MainWindow::saveTrackProfile() {
-    // TODO
     QFileInfo fileInfo(model->track().fileName());
     QFileInfo newFile(fileInfo.baseName(), fileInfo.baseName()+"-profile.png");
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Track Profile"), newFile.absoluteFilePath(), tr("PNG (*.png);;PDF (*.pdf)"));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Track Profile"), newFile.absoluteFilePath(), tr("PNG (*.png,*.jpg);;PDF (*.pdf)"));
     if (fileName.isEmpty()) return;
+    GpxProfileDlg dlg(model->track().trackPoints());
+    if (dlg.exec() != QDialog::Accepted) return;
+    GpxProfile profile(model->track().trackPoints(), &settings);
+    QSize size(dlg.pixmapSize());
+    QPixmap pixmap(size.width(), size.height());
+    profile.paint(&pixmap, size.width(), size.height(), dlg.textWidth());
+    pixmap.save(fileName);
+    // TODO
 }
 
 void MainWindow::delRoute() {

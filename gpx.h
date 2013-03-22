@@ -13,16 +13,18 @@ private:
     QPointF myP0;
     QPointF myP1;
     QPoint myEle;
+    double myLen;
 public:
     BoundingBox();
     BoundingBox(const QPointF& p, int ele);
-    BoundingBox(const QPointF &p0, const QPointF& p1, const QPoint& ele);
+    BoundingBox(const QPointF &p0, const QPointF& p1, const QPoint& ele, double len);
     const QPointF& p0() const { return myP0; }
     void setP0(const QPointF& p0) { myP0 = p0; }
     const QPointF& p1() const { return myP1; }
     void setP1(const QPointF& p1) { myP1 = p1; }
     const QPoint ele() const { return myEle; }
     void setEle(const QPoint& ele) { myEle = ele; }
+    double len() const { return myLen; }
     QPointF center() const { return QPointF(0.5*(myP0.x()+myP1.x()), 0.5*(myP0.y()+myP1.y())); }
 };
 
@@ -103,6 +105,7 @@ public:
     TrackSegInfo trackSegInfo(int idx) const;
     static int removeDoubles(GpxPointList& list);
     static BoundingBox boundingBox(const GpxPointList& points);
+    static bool hasSym(const GpxPointList& points);
 };
 
 #endif // GPX_H
