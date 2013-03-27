@@ -383,7 +383,7 @@ const SrtmEntry *Model::srtmEntry(int lon0, int lat0) {
     for (int i = 0; i < mySrtmData.size(); i++) {
         if (mySrtmData[i]->lon0() == lon0 && mySrtmData[i]->lat0() == lat0) return mySrtmData[i];
     }
-    if (mySrtmData.size() > 10) {
+    if (mySrtmData.size() > 100) {
         SrtmEntry *entry = mySrtmData.last();
         mySrtmData.removeLast();
         delete entry;

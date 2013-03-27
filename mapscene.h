@@ -103,6 +103,20 @@ public:
     void setSym(const QString& sym);
 };
 
+class PhotoItem: public QGraphicsItem {
+private:
+    QPointF myPoint;
+    QPainterPath myPath;
+
+    QPainterPath createPath();
+public:
+    enum {Type = UserType + 7};
+    explicit PhotoItem(const QPointF& point, QGraphicsItem *parent = 0);
+    QRectF boundingRect() const;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
+    void setPoint(const QPointF& point);
+};
+
 class MapScene : public QGraphicsScene
 {
     Q_OBJECT

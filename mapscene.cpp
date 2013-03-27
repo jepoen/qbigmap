@@ -239,6 +239,37 @@ void RoutePointItem::setSym(const QString& sym) {
     update();
 }
 
+PhotoItem::PhotoItem(const QPointF &point, QGraphicsItem *parent) :
+        QGraphicsItem(parent),
+    myPoint(point)
+{
+    setZValue(10);
+    myPath = createPath();
+}
+QPainterPath PhotoItem::createPath() {
+    QPainterPath path;
+    path.addRect(myPoint.x()-10, myPoint.y()-5, 20, 10);
+    path.moveTo(myPoint.x()-10, myPoint.y()-5);
+    path.lineTo(myPoint.x()+10, myPoint.y()+5);
+    path.moveTo(myPoint.x()-10, myPoint.y()+5);
+    path.lineTo(myPoint.x()+10, myPoint.y()-5);
+    return path;
+}
+
+QRectF PhotoItem::boundingRect() const {
+    return QRectF(myPoint.x()-11, myPoint.y()-6, 22, 12);
+}
+
+void PhotoItem::paint(QPainter *painter, const QStyleOptionGraphicsItem */*option*/, QWidget */*widget*/) {
+    painter->strokePath(myPath, QPen(QBrush(Qt::blue), 1));
+}
+
+void PhotoItem::setPoint(const QPointF &point) {
+    prepareGeometryChange();
+    myPoint = point;
+    myPath = createPath();
+}
+
 MapScene::MapScene(Model *model, QObject *parent) :
         QGraphicsScene(parent),
         myModel(model),

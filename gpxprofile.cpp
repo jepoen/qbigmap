@@ -1,17 +1,19 @@
-#include <QtGui>
-#include <QtDebug>
 #include "gpxprofile.h"
 #include "model.h"
 #include "settings.h"
+#include <QtGui>
+#include <QtDebug>
 
-void GpxProfile::paint(QPaintDevice *dev, int width, int height, int textwidth) {
+void GpxProfile::paint(QPaintDevice *dev, int width, int height, int top, int textwidth) {
     QPainter painter(dev);
     painter.setFont(QFont("FreeSans", 9));
-    painter.fillRect(0, 0, width, height, QBrush(Qt::yellow));
+    int linespace = 11;
+    painter.fillRect(0, 0, width, height, QBrush(Qt::white));
     BoundingBox bb = Gpx::boundingBox(myGpxPoints);
-    width -= textwidth+4*myOffset;
-    height -= 3*myOffset;
-    QPoint p0(3*myOffset, height+myOffset);
+    width -= textwidth+5*myOffset;
+    height -= top+3*myOffset;
+    QPoint p0(3*myOffset, height+top+myOffset);
+    QPoint pText(p0.x()+width+myOffset, myOffset+linespace);
     qDebug()<<"offset "<<myOffset<<" width "<<width<<" heigth "<<height;
     qDebug()<<"p0 "<<p0;
     double scaleX = width/bb.len();
@@ -24,13 +26,13 @@ void GpxProfile::paint(QPaintDevice *dev, int width, int height, int textwidth) 
     painter.drawLine(p0, QPoint(p0.x(), p0.y()-height));
     for (double dist = 0; dist < bb.len(); dist += 10) {
         int x = int(p0.x()+dist*scaleX);
-        painter.drawLine(x, p0.y()-5, x, p0.y()+5);
+        painter.drawLine(x, p0.y()-3, x, p0.y()+3);
         painter.drawText(QRectF(x-10, p0.y()+6, 20, 10), Qt::AlignCenter, QString("%1").arg(int(dist)));
     }
     painter.setPen(QPen(QBrush(Qt::black), 1, Qt::DotLine));
     for (int ele = ele0; ele < ele1; ele += 100) {
         int y = int(p0.y()-(ele-ele0)*scaleY);
-        painter.drawLine(p0.x(), y, p0.x()+width, y);
+        painter.drawLine(p0.x()-1, y, p0.x()+width, y);
         painter.drawText(QRectF(p0.x()-2*myOffset-5, y-5, 2*myOffset, 10), Qt::AlignVCenter|Qt::AlignRight, QString("%1").arg(ele));
     }
     painter.setPen(QPen(QBrush(Qt::black), 1, Qt::SolidLine));
@@ -38,6 +40,7 @@ void GpxProfile::paint(QPaintDevice *dev, int width, int height, int textwidth) 
     bool isFirst = true;
     GpxPoint pOld(0, QPointF(0,0));
     double dist = 0;
+    int symCount = 0;
     foreach (const GpxPoint& p, myGpxPoints) {
         //qDebug()<<"ele "<<p.ele()<<" ele0 "<<ele0;
         double x = p0.x();
@@ -52,13 +55,18 @@ void GpxProfile::paint(QPaintDevice *dev, int width, int height, int textwidth) 
             path.lineTo(x, y);
         }
         if (!p.sym().isEmpty() && textwidth > 0) {
+            symCount++;
             const QPixmap pix = mySettings->mapIconList().icon(p.sym()).mapIco();
             int w = pix.width();
             int h = pix.height();
-            painter.drawLine(x, y, x, y-3*h/2);
-            painter.drawPixmap(x-w/2, y-3*h/2, w, h, pix);
+            painter.drawLine(x, y, x, y-h);
+            painter.drawPixmap(x-w/2, y-2*h, w, h, pix);
+            painter.drawText(x, y-2*h, QString("(%1)").arg(symCount));
+            painter.drawText(pText, QString("(%1) %2 (%3m)").arg(symCount).arg(p.name()).arg(p.ele()));
+            pText.setY(pText.y()+linespace);
         }
         pOld = p;
     }
+    painter.setPen(QPen(QBrush(Qt::blue), 2, Qt::SolidLine));
     painter.drawPath(path);
 }

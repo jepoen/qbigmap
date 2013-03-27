@@ -1142,16 +1142,11 @@ void MainWindow::deleteTrackPos() {
 void MainWindow::saveTrackProfile() {
     QFileInfo fileInfo(model->track().fileName());
     QFileInfo newFile(fileInfo.baseName(), fileInfo.baseName()+"-profile.png");
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Track Profile"), newFile.absoluteFilePath(), tr("PNG (*.png,*.jpg);;PDF (*.pdf)"));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Track Profile"), newFile.absoluteFilePath(), tr("PNG (*.png *.jpg);;PDF (*.pdf)"));
     if (fileName.isEmpty()) return;
-    GpxProfileDlg dlg(model->track().trackPoints());
+    GpxProfileDlg dlg(model->track().trackPoints(), &settings);
     if (dlg.exec() != QDialog::Accepted) return;
-    GpxProfile profile(model->track().trackPoints(), &settings);
-    QSize size(dlg.pixmapSize());
-    QPixmap pixmap(size.width(), size.height());
-    profile.paint(&pixmap, size.width(), size.height(), dlg.textWidth());
-    pixmap.save(fileName);
-    // TODO
+    dlg.pixmap()->save(fileName);
 }
 
 void MainWindow::delRoute() {
@@ -1201,6 +1196,9 @@ void MainWindow::saveRouteProfile() {
     QFileInfo newFile(fileInfo.baseName(), fileInfo.baseName()+"-profile.png");
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save Route Profile"), newFile.absoluteFilePath(), tr("PNG (*.png);;PDF (*.pdf)"));
     if (fileName.isEmpty()) return;
+    GpxProfileDlg dlg(*model->route().points(), &settings);
+    if (dlg.exec() != QDialog::Accepted) return;
+    dlg.pixmap()->save(fileName);
 }
 
 void MainWindow::run(const QString& path, const QStringList& params) {
