@@ -48,6 +48,12 @@ GpxProfileDlg::GpxProfileDlg(const GpxPointList &gpxPoints, Settings *settings, 
     lTop->setBuddy(eTop);
     control->addWidget(lTop, 2, 2);
     control->addWidget(eTop, 2, 3);
+    QRadioButton *bEle = new QRadioButton(tr("Elevation"), this);
+    bEle->setChecked(true);
+    myVariant = GpxProfile::ELE;
+    QRadioButton *bSrtm = new QRadioButton(tr("SRTM"), this);
+    control->addWidget(bEle, 3, 1);
+    control->addWidget(bSrtm, 3, 2);
     QDialogButtonBox *box = new QDialogButtonBox(QDialogButtonBox::Save|QDialogButtonBox::Cancel);
     mainLayout->addWidget(box);
     setLayout(mainLayout);
@@ -58,6 +64,8 @@ GpxProfileDlg::GpxProfileDlg(const GpxPointList &gpxPoints, Settings *settings, 
     connect(eText, SIGNAL(toggled(bool)), this, SLOT(fixWidth(bool)));
     connect(eTextWidth, SIGNAL(valueChanged(int)), this, SLOT(computePixmap()));
     connect(eTop, SIGNAL(valueChanged(int)), this, SLOT(computePixmap()));
+    connect(bEle, SIGNAL(toggled(bool)), this, SLOT(setVariantEle(bool)));
+    connect(bSrtm, SIGNAL(toggled(bool)), this, SLOT(setVariantSrtm(bool)));
     computePreferredSize();
     computePixmap();
 }
@@ -90,9 +98,19 @@ void GpxProfileDlg::fixWidth(bool val) {
     computePixmap();
 }
 
+void GpxProfileDlg::setVariantEle(bool val) {
+    myVariant = val? GpxProfile::ELE : GpxProfile::SRTM;
+    computePixmap();
+}
+
+void GpxProfileDlg::setVariantSrtm(bool val) {
+    myVariant = val? GpxProfile::SRTM : GpxProfile::ELE;
+    computePixmap();
+}
+
 void GpxProfileDlg::computePixmap() {
     QPixmap pixmap(eWidth->value(), eHeight->value());
-    myProfile.paint(&pixmap, eWidth->value(), eHeight->value(), topOffset(), textWidth());
+    myProfile.paint(&pixmap, myVariant, eWidth->value(), eHeight->value(), topOffset(), textWidth());
     eProfile->setPixmap(pixmap);
     eProfile->resize(pixmap.width(), pixmap.height());
 }

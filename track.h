@@ -49,6 +49,7 @@ public:
     void insertTrackPoint(int pos, const GpxPoint &point);
     void setTrackPoint(int pos, const GpxPoint &point);
     void setTrackPointPos(int pos, const QPointF& lonLat);
+    void setSrtm(int pos, int ele);
     void delTrackPoint(int pos);
     void delTrackPart(int i0, int i1);
     double linedist(const QPointF& p0, const QPointF& p1, const QPointF& v); ///< Euklidian distance from a line

@@ -8,16 +8,16 @@ static const int ISCALE = 10000000;
 
 BoundingBox::BoundingBox()
 {
-    myEle = QPoint(-32768, -32768);
+    mySrtm = myEle = QPoint(-32768, -32768);
     myLen = 0;
 }
 
-BoundingBox::BoundingBox(const QPointF &p, int ele) :
-    myP0(p), myP1(p), myEle(ele, ele), myLen(0)
+BoundingBox::BoundingBox(const QPointF &p, int ele, int srtm) :
+    myP0(p), myP1(p), myEle(ele, ele), mySrtm(srtm, srtm), myLen(0)
 {}
 
-BoundingBox::BoundingBox(const QPointF &p0, const QPointF &p1, const QPoint &ele, double len) :
-    myP0(p0), myP1(p1), myEle(ele), myLen(len)
+BoundingBox::BoundingBox(const QPointF &p0, const QPointF &p1, const QPoint &ele, const QPoint& srtm, double len) :
+    myP0(p0), myP1(p1), myEle(ele), mySrtm(srtm), myLen(len)
 {}
 
 QPoint GpxPoint::iscale(const QPointF &p) {
@@ -177,6 +177,8 @@ BoundingBox Gpx::boundingBox(const GpxPointList& points) {
     double y1 = 0;
     int ele0 = 0;
     int ele1 = 0;
+    int srtm0 = 0;
+    int srtm1 = 0;
     bool start = true;
     double len = 0.0;
     GpxPoint pOld(0, QPointF());
@@ -185,6 +187,7 @@ BoundingBox Gpx::boundingBox(const GpxPointList& points) {
             x1 = x0 = p.coord().x();
             y1 = y0 = p.coord().y();
             ele1 = ele0 = p.ele();
+            srtm1 = srtm0 = p.srtm();
             start = false;
         }
         else {
@@ -194,11 +197,13 @@ BoundingBox Gpx::boundingBox(const GpxPointList& points) {
             if (p.coord().y() > y1) y1 = p.coord().y();
             if (p.ele() < ele0) ele0 = p.ele();
             if (p.ele() > ele1) ele1 = p.ele();
+            if (p.srtm() < srtm0) srtm0 = p.srtm();
+            if (p.srtm() > srtm1) srtm1 = p.srtm();
             len += Model::geodist1(pOld.coord(), p.coord());
         }
         pOld = p;
     }
-    return BoundingBox(QPointF(x0, y0), QPointF(x1, y1), QPoint(ele0, ele1), len);
+    return BoundingBox(QPointF(x0, y0), QPointF(x1, y1), QPoint(ele0, ele1), QPoint(srtm0, srtm1), len);
 }
 
 bool Gpx::hasSym(const GpxPointList &points) {

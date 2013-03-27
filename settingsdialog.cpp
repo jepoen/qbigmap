@@ -53,22 +53,27 @@ DirTab::DirTab(Settings *settings, QWidget *parent) :
     control->addWidget(lTrackDir, 0, 0);
     control->addWidget(eTrackDir, 0, 1);
     control->addWidget(bTrackDir, 0, 2);
+    eUseSrtm = new QCheckBox(tr("&Use SRTM data"));
+    eUseSrtm->setChecked(mySettings->useSrtm());
+    control->addWidget(eUseSrtm, 1, 0, 1, 2);
     QLabel *lSrtmDir = new QLabel(tr("&SRTM data directory:"));
     eSrtmDir = new QLineEdit(mySettings->srtmDir());
+    eSrtmDir->setEnabled(mySettings->useSrtm());
     lSrtmDir->setBuddy(eSrtmDir);
     bSrtmDir = new QPushButton(tr("Select"));
-    control->addWidget(lSrtmDir, 1, 0);
-    control->addWidget(eSrtmDir, 1, 1);
-    control->addWidget(bSrtmDir, 1, 2);
+    control->addWidget(lSrtmDir, 2, 0);
+    control->addWidget(eSrtmDir, 2, 1);
+    control->addWidget(bSrtmDir, 2, 2);
     QLabel *lExportDir = new QLabel(tr("GPX e&xport directory:"));
     lExportDir->setToolTip(tr("Directory for simplified tracks and online maps"));
     eExportDir = new QLineEdit(mySettings->exportDir());
     lExportDir->setBuddy(eExportDir);
     bExportDir = new QPushButton(tr("Select"));
-    control->addWidget(lExportDir, 2, 0);
-    control->addWidget(eExportDir, 2, 1);
-    control->addWidget(bExportDir, 2, 2);
+    control->addWidget(lExportDir, 3, 0);
+    control->addWidget(eExportDir, 3, 1);
+    control->addWidget(bExportDir, 3, 2);
     setLayout(control);
+    connect(eUseSrtm, SIGNAL(clicked(bool)), eSrtmDir, SLOT(setEnabled(bool)));
     connect(bTrackDir, SIGNAL(clicked()), this, SLOT(selectTrackDir()));
     connect(bSrtmDir, SIGNAL(clicked()), this, SLOT(selectSrtmDir()));
     connect(bExportDir, SIGNAL(clicked()), this, SLOT(selectExportDir()));
@@ -97,6 +102,10 @@ void DirTab::selectExportDir() {
 
 const QString DirTab::trackDir() const {
     return eTrackDir->text();
+}
+
+bool DirTab::useSrtm() const {
+    return eUseSrtm->isChecked();
 }
 
 const QString DirTab::srtmDir() const {
@@ -365,6 +374,7 @@ void SettingsDialog::accept() {
     mySettings.setGpsDevice(gpsTab->gpsDevice());
     mySettings.setGpsInterface(gpsTab->gpsInterface());
     mySettings.setTrackDir(trackTab->trackDir());
+    mySettings.setUseSrtm(trackTab->useSrtm());
     mySettings.setSrtmDir(trackTab->srtmDir());
     mySettings.setExportDir(trackTab->exportDir());
     mySettings.setTileSize(printTab->tileSize());

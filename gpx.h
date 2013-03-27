@@ -13,17 +13,19 @@ private:
     QPointF myP0;
     QPointF myP1;
     QPoint myEle;
+    QPoint mySrtm;
     double myLen;
 public:
     BoundingBox();
-    BoundingBox(const QPointF& p, int ele);
-    BoundingBox(const QPointF &p0, const QPointF& p1, const QPoint& ele, double len);
+    BoundingBox(const QPointF& p, int ele, int srtm);
+    BoundingBox(const QPointF &p0, const QPointF& p1, const QPoint& ele, const QPoint& srtm, double len);
     const QPointF& p0() const { return myP0; }
     void setP0(const QPointF& p0) { myP0 = p0; }
     const QPointF& p1() const { return myP1; }
     void setP1(const QPointF& p1) { myP1 = p1; }
     const QPoint ele() const { return myEle; }
     void setEle(const QPoint& ele) { myEle = ele; }
+    const QPoint srtm() const { return mySrtm; }
     double len() const { return myLen; }
     QPointF center() const { return QPointF(0.5*(myP0.x()+myP1.x()), 0.5*(myP0.y()+myP1.y())); }
 };
@@ -53,6 +55,7 @@ public:
     void setCoord(const QPointF& pos) { myCoord = GpxPoint::iscale(pos); }
     const QDateTime& timestamp() const { return myTimeStamp; }
     double ele() const { return myEle; }
+    void setEle(int ele) { myEle = ele; }
     double srtm() const { return mySrtm; }
     void setSrtm(double srtm) { mySrtm = srtm; }
     const QString& sym() const { return mySym; }

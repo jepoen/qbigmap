@@ -247,6 +247,8 @@ void MainWindow::createActions() {
     connect(delRouteAction, SIGNAL(triggered()), this, SLOT(delRoute()));
     saveRouteProfileAction = new QAction("Save route profile...", this);
     connect(saveRouteProfileAction, SIGNAL(triggered()), this, SLOT(saveRouteProfile()));
+    routeAddSrtmEleAction = new QAction(tr("Add SRTM elevation"), this);
+    connect(routeAddSrtmEleAction, SIGNAL(triggered()), this, SLOT(routeAddSrtmEle()));
     openPhotoAction = new QAction(tr("Open photos..."), this);
     connect(openPhotoAction, SIGNAL(triggered()), this, SLOT(openPhotos()));
     showPhotoAction = new QAction(tr("Show photo list"), this);
@@ -421,6 +423,7 @@ void MainWindow::createMenuBar() {
     mGpx->addAction(editRoutePointAction);
     mGpx->addAction(insertRoutePointAction);
     mGpx->addAction(saveRouteAction);
+    mGpx->addAction(routeAddSrtmEleAction);
     mGpx->addAction(saveRouteProfileAction);
     mGpx->addAction(delRouteAction);
     QMenu *mView = menuBar()->addMenu(tr("&View"));
@@ -1188,6 +1191,10 @@ void MainWindow::saveRoute() {
         qDebug()<<settings.gpsbabel()<<params;
         run(settings.gpsbabel(), params);
     }
+}
+
+void MainWindow::routeAddSrtmEle() {
+    model->routeAddSrtmEle();
 }
 
 void MainWindow::saveRouteProfile() {

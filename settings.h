@@ -43,6 +43,7 @@ private:
     int myYext;
     int myTileSize;
     QString myTrackDir;
+    bool myUseSrtm;
     QString mySrtmDir;
     QString myExportDir;
     QList<Layer> myBaseLayers;
@@ -78,6 +79,8 @@ public:
     void setGpsInterface(const QString& interface) { myGpsInterface = interface; }
     const QString& trackDir() const { return myTrackDir; }
     void setTrackDir(const QString& dir) { myTrackDir = dir; }
+    bool useSrtm() const { return myUseSrtm; }
+    void setUseSrtm(bool val) { myUseSrtm = val; }
     const QString& srtmDir() const { return mySrtmDir; }
     void setSrtmDir(const QString& dir) { mySrtmDir = dir; }
     const QString& exportDir() const { return myExportDir; }

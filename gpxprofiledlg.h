@@ -27,6 +27,7 @@ private:
     QCheckBox *eText;
     QSpinBox *eTop;
     QSpinBox *eTextWidth;
+    int myVariant;
 
     void computePreferredSize();
 public:
@@ -36,6 +37,8 @@ public:
     int textWidth() const;
     int topOffset() const;
 private slots:
+    void setVariantEle(bool val);
+    void setVariantSrtm(bool val);
     void fixWidth(bool val);
     void computePixmap();
 };

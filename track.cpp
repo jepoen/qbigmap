@@ -184,6 +184,11 @@ void Track::setTrackPointPos(int pos, const QPointF &lonLat) {
     myChanged = true;
 }
 
+void Track::setSrtm(int pos, int ele) {
+    myTrackPoints[pos].setSrtm(ele);
+    myChanged = true;
+}
+
 void Track::delTrackPoint(int pos) {
     if (pos < 0 || pos >= myTrackPoints.size())
         return;

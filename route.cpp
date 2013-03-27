@@ -24,6 +24,11 @@ void Route::updateRoutePoint(int idx, const GpxPoint &point) {
     emit routePointMoved(idx);
 }
 
+void Route::updateSrtm(int idx, int ele) {
+    myPoints[idx].setSrtm(ele);
+    myPoints[idx].setEle(ele);
+}
+
 void Route::moveRoutePoint(int idx, const QPointF &pos, double srtm) {
     myPoints[idx].setCoord(pos);
     myPoints[idx].setSrtm(srtm);

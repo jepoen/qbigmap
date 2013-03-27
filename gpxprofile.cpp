@@ -4,7 +4,7 @@
 #include <QtGui>
 #include <QtDebug>
 
-void GpxProfile::paint(QPaintDevice *dev, int width, int height, int top, int textwidth) {
+void GpxProfile::paint(QPaintDevice *dev, int variant, int width, int height, int top, int textwidth) {
     QPainter painter(dev);
     painter.setFont(QFont("FreeSans", 9));
     int linespace = 11;
@@ -17,8 +17,14 @@ void GpxProfile::paint(QPaintDevice *dev, int width, int height, int top, int te
     qDebug()<<"offset "<<myOffset<<" width "<<width<<" heigth "<<height;
     qDebug()<<"p0 "<<p0;
     double scaleX = width/bb.len();
-    int ele0 = (bb.ele().x()/100)*100;
-    int ele1 = (bb.ele().y()/100+1)*100;
+    int ele0, ele1;
+    if (variant == ELE) {
+        ele0 = (bb.ele().x()/100)*100;
+        ele1 = (bb.ele().y()/100+1)*100;
+    } else {
+        ele0 = (bb.srtm().x()/100)*100;
+        ele1 = (bb.srtm().y()/100+1)*100;
+    }
     double scaleY = double(height)/(ele1-ele0);
     qDebug()<<"scaleY "<<scaleY;
     painter.setPen(QPen(QBrush(Qt::black), 1));
@@ -44,7 +50,8 @@ void GpxProfile::paint(QPaintDevice *dev, int width, int height, int top, int te
     foreach (const GpxPoint& p, myGpxPoints) {
         //qDebug()<<"ele "<<p.ele()<<" ele0 "<<ele0;
         double x = p0.x();
-        double y = p0.y()-(p.ele()-ele0)*scaleY;
+        int ele = (variant == ELE) ? p.ele() : p.srtm();
+        double y = p0.y()-(ele-ele0)*scaleY;
         if (isFirst) {
             path.moveTo(p0.x(), y);
             isFirst = false;

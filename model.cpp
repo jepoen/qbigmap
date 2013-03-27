@@ -14,6 +14,7 @@ Overlay::Overlay(const QString &key, int z):
 */
 Model::Model(const Settings &settings) :
     myLayer(settings.baseLayers()[0]) , myCenter(settings.center()),
+    myUseSrtm(settings.useSrtm()),
     mySrtmDir(settings.srtmDir()), myZoom(settings.zoom()), myWidth(settings.xExt()),
     myHeight(settings.yExt())
 {
@@ -263,6 +264,7 @@ void Model::trackSetNew(const QString &fileName, const QString& name, const GpxP
     //QPointF center(0.5*(bb.p0().x()+bb.p1().x()), 0.5*(bb.p0().y()+bb.p1().y()));
     //qDebug()<<"new center "<<center;
     // Set center to first track point
+    trackAddSrtmEle();
     setCenter(ptl.at(0).coord());
     emit trackChanged();
 }
@@ -321,6 +323,14 @@ void Model::uniqueTrack() {
     if (myTrack.removeDoubles() > 0) emit trackChanged();
 }
 
+void Model::trackAddSrtmEle() {
+    int size = myTrack.trackPoints().size();
+    for (int i = 0; i < size; i++) {
+        int srtm = srtmEle(myTrack.trackPoint(i).coord());
+        myTrack.setSrtm(i, srtm);
+    }
+}
+
 void Model::saveModifiedTrack(QIODevice *dev, bool addWaypoints, bool isSimple) {
     if (addWaypoints) trackPtr()->writeModifiedXml(dev, waypoints(), isSimple);
     else              trackPtr()->writeModifiedXml(dev, GpxPointList(), isSimple);
@@ -355,6 +365,18 @@ void Model::routeSetNew(const QString &fileName, const QString &name, const GpxP
     myRoute.setName(name);
     myRoute.setRoutePoints(points);
     setCenter(points.at(0).coord());
+    emit routeChanged();
+}
+
+void Model::routeAddSrtmEle() {
+    qDeleteAll(mySrtmData);
+    mySrtmData.clear();
+    int size = myRoute.points()->size();
+    for (int i = 0; i < size; i++) {
+        GpxPoint p = myRoute.points()->at(i);
+        int srtm = srtmEle(p.coord());
+        myRoute.updateSrtm(i, srtm);
+    }
     emit routeChanged();
 }
 
@@ -394,6 +416,7 @@ const SrtmEntry *Model::srtmEntry(int lon0, int lat0) {
 }
 
 int Model::srtmEle(const QPointF& coord) {
+    if (!myUseSrtm) return 0;
     int lon0 = int(floor(coord.x()));
     int lat0 = int(floor(coord.y()));
     const SrtmEntry* srtm = srtmEntry(lon0, lat0);

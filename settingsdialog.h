@@ -6,6 +6,7 @@
 #include <QItemDelegate>
 #include "settings.h"
 
+class QCheckBox;
 class QLineEdit;
 class QSpinBox;
 class QTableView;
@@ -47,6 +48,7 @@ private:
     Settings *mySettings;
     QLineEdit *eTrackDir;
     QPushButton *bTrackDir;
+    QCheckBox *eUseSrtm;
     QLineEdit *eSrtmDir;
     QPushButton *bSrtmDir;
     QLineEdit *eExportDir;
@@ -54,6 +56,7 @@ private:
 public:
     DirTab(Settings *settings, QWidget *parent = 0);
     const QString trackDir() const;
+    bool useSrtm() const;
     const QString srtmDir() const;
     const QString exportDir() const;
 

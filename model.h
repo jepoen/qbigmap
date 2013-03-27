@@ -34,6 +34,7 @@ class Model : public QObject
 private:
     Layer myLayer;
     QPointF myCenter;
+    bool myUseSrtm;
     QString mySrtmDir;
     int myX;
     int myY;
@@ -92,7 +93,8 @@ public:
     void delTrackPart(int i0, int i1);
     void delTrack();
     void changeTrackPoint(int pos, const QPointF& lonLat);
-    void uniqueTrack();    
+    void uniqueTrack();
+    void trackAddSrtmEle();
     void saveModifiedTrack(QIODevice *dev, bool addWaypoints, bool isSimple=false);
     const Route& route() const { return myRoute; }
     Route *routePtr() { return &myRoute; }
@@ -100,6 +102,7 @@ public:
     void routeSetNew(const QString& fileName, const QString& name, const GpxPointList& points);
     void changeRoutePoint(int pos, const QPointF& lonLat);
     void setRoutePoint(int idx, const GpxPoint& p);
+    void routeAddSrtmEle();
     void waypointsSetNew(const GpxPointList& points);
     void changeWaypoint(int pos, const QPointF& lonLat);
     const GpxPointList& waypoints() const { return myWaypoints; }
