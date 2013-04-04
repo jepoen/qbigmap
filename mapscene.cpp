@@ -358,7 +358,7 @@ void MapScene::getNextTile() {
         TileRequest req = requests[0];
         QString url = req.key();
         qDebug()<<url;
-        if (getter.getFile(QUrl(url), req)) {
+        if (getter.getFile(QUrl(url), req, progressDlg)) {
             return;
         }
         else {
@@ -386,7 +386,7 @@ void MapScene::tileLoaded(bool error) {
     qDebug()<<"tileLoaded "<<req.pos()<<error;
     if (requests.contains(req)) {
         requests.removeOne(req);
-        if (!error && getter.statusCode() == 200) {
+        if (!error) {
             QPoint p = req.pos();
             QPixmap *pixmap = new QPixmap();
             qDebug()<<"pixmap";

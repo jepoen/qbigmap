@@ -3,7 +3,7 @@
 
 #include <QtGui/QMainWindow>
 #include <QList>
-#include <QListView>
+#include <QTableView>
 #include "gpxlistmodel.h"
 #include "model.h"
 #include "httpget.h"
@@ -21,6 +21,7 @@ class QPrinter;
 class QPushButton;
 class QToolBar;
 class QWidget;
+class HelpWindow;
 class MapView;
 class MapScene;
 class ProfileScene;
@@ -50,7 +51,7 @@ private:
     QLabel *photoThumb;
     QPushButton *bPhotoOffset;
     QLabel *lPhotoOffset;
-    QListView *trackPoiListView;
+    QTableView *trackPoiListView;
     QLabel *lModelStatus;
     QLabel *lPos;
     QLabel *lTrackPos;
@@ -60,6 +61,7 @@ private:
     QToolBar *toolBar;
     QToolBar *trackToolBar;
     HttpGet *getter;
+    HelpWindow *myHelpWin;
     QAction *printAction;
     QAction *savePixmapAction;
     QAction *quitAction;
@@ -124,6 +126,7 @@ private:
     QAction *editLayersAction;
     QAction *editOverlaysAction;
     QAction *editSettingsAction;
+    QAction *helpAction;
     QPrinter *printer;
 
     void readSettings();
@@ -214,6 +217,7 @@ private slots:
     void editBaseLayers();
     void editOverlays();
     void editSettings();
+    void help();
 };
 
 #endif // MAINWINDOW_H

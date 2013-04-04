@@ -42,8 +42,14 @@ void ProfileScene::redrawTrack() {
     int trackLen = int(ceil(Model::geodist1(points, 0, points.size()-1)));
     myWidth = (trackLen+1)*myScKm;
     BoundingBox bb = track.boundingBox();
-    int ele0 = bb.ele().x();
-    int ele1 = bb.ele().y();
+    int ele0, ele1;
+    if (myVariant == ELE) {
+        ele0 = bb.ele().x();
+        ele1 = bb.ele().y();
+    } else {
+        ele0 = bb.srtm().x();
+        ele1 = bb.srtm().y();
+    }
     myEle0 = (ele0/100)*100;
     myEle1 = (ele1/100+1)*100;
     setSceneRect(0, 0, myWidth+myX0+10, myScEle*(myEle1-myEle0)+20);
@@ -79,14 +85,15 @@ void ProfileScene::redrawTrack() {
         } else {
             sumDist += Model::geodist1(pold.coord(), p.coord());
         }
-        QPointF pt(int(sumDist*myScKm)+myX0, myY0+myScEle*(myEle0-p.ele()));
-        if (!p.sym().isEmpty()) {
+        int ele = (myVariant == ELE) ? p.ele() : p.srtm();
+        QPointF pt(int(sumDist*myScKm)+myX0, myY0+myScEle*(myEle0-ele));
+        if (!p.sym().isEmpty() && p.showProfile()) {
             QGraphicsLineItem *lit = new QGraphicsLineItem(pt.x(), pt.y(), pt.x(), pt.y()-20);
             lit->setZValue(0);
             addItem(lit);
             QGraphicsPixmapItem *it = new QGraphicsPixmapItem(mySettings->mapIconList().icon(p.sym()).ico());
             it->setPos(pt.x(), pt.y()-20);
-            it->setOffset(-it->pixmap().width()/2, -it->pixmap().height()/2);
+            it->setOffset(-it->pixmap().width()/2, -it->pixmap().height());
             it->setZValue(10);
             addItem(it);
         }
@@ -109,6 +116,7 @@ void ProfileScene::changeTrackPos(int pos) {
     GpxPoint p = myModel->track().trackPoint(pos);
     double dist = myModel->track().dist(pos);
     int x = int(dist*myScKm)+myX0;
-    myTrackPosItem->setLine(x, myY0, x, myY0+myScEle*(myEle0-p.ele()));
+    int ele = (myVariant == ELE)? p.ele() : p.srtm();
+    myTrackPosItem->setLine(x, myY0, x, myY0+myScEle*(myEle0-ele));
 }
 

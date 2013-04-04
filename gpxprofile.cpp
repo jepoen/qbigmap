@@ -61,7 +61,7 @@ void GpxProfile::paint(QPaintDevice *dev, int variant, int width, int height, in
             //qDebug()<<"("<<x<<","<<y<<")";
             path.lineTo(x, y);
         }
-        if (!p.sym().isEmpty() && textwidth > 0) {
+        if (!p.sym().isEmpty() && p.showProfile() && textwidth > 0) {
             symCount++;
             const QPixmap pix = mySettings->mapIconList().icon(p.sym()).mapIco();
             int w = pix.width();

@@ -24,6 +24,7 @@ class ProfileScene : public QGraphicsScene
 private:
     Model *myModel;
     Settings *mySettings;
+    int myVariant;
     int myEle0;
     int myEle1;
     int myWidth;
@@ -34,11 +35,14 @@ private:
     QGraphicsLineItem *myTrackPosItem;
 
 public:
+    enum {ELE, SRTM};
     explicit ProfileScene(Model *model, Settings *settings, QObject *parent = 0);
 
 signals:
 
 public slots:
+    void setEle() { myVariant = ELE; redrawTrack(); }
+    void setSrtm() { myVariant = SRTM; redrawTrack(); }
     void redrawTrack();
 private slots:
     void changeTrackPos(int pos);

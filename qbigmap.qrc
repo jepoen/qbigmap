@@ -38,5 +38,10 @@
         <file>icons/star-s.png</file>
         <file>icons/flag-s.png</file>
         <file>icons/world.png</file>
+        <file>help/index.html</file>
+        <file>help/map.html</file>
+        <file>help/qbigmap.css</file>
+        <file>icons/place.png</file>
+        <file>icons/place-s.png</file>
     </qresource>
 </RCC>

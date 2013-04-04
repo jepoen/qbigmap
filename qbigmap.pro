@@ -41,7 +41,9 @@ SOURCES += main.cpp \
     trackexportdlg.cpp \
     photooffsetdlg.cpp \
     gpxprofile.cpp \
-    gpxprofiledlg.cpp
+    gpxprofiledlg.cpp \
+    helpwindow.cpp \
+    boolspinbox.cpp
 HEADERS += mainwindow.h \
     tile.h \
     httpget.h \
@@ -77,7 +79,9 @@ HEADERS += mainwindow.h \
     trackexportdlg.h \
     photooffsetdlg.h \
     gpxprofile.h \
-    gpxprofiledlg.h
+    gpxprofiledlg.h \
+    helpwindow.h \
+    boolspinbox.h
 RESOURCES += qbigmap.qrc
 TRANSLATIONS = qbigmap_de.ts
 LIBS += /usr/lib/libexiv2.a
@@ -118,7 +122,12 @@ OTHER_FILES += \
     icons/pilgrim-hostel-s.png \
     icons/pilgrim-hostel.png \
     icons/square.png \
-    icons/world.png
+    icons/world.png \
+    help/index.html \
+    help/map.html \
+    help/qbigmap.css \
+    icons/place-s.png \
+    icons/place.png
 
 
 

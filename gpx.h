@@ -41,12 +41,19 @@ private:
     QString myName;
     QString myDesc;
     QString myLink;
+    bool myShowMap;
+    bool myShowProfile;
 public:
     enum {TRK, RTE, WPT};
     explicit GpxPoint(int type, const QPointF& pos, const QDateTime& timestamp = QDateTime(), double ele = 0,
                       const QString& sym="", const QString& name="", const QString& desc="", const QString& link=""):
-        myType(type), myCoord(GpxPoint::iscale(pos)), myTimeStamp(timestamp), myEle(ele), mySrtm(0), mySym(sym), myName(name), myDesc(desc), myLink(link)
-    {}
+        myType(type), myCoord(GpxPoint::iscale(pos)), myTimeStamp(timestamp), myEle(ele), mySrtm(0), mySym(sym), myName(name), myDesc(desc), myLink(link),
+        myShowMap(false), myShowProfile(false)
+    {
+        if (type == TRK && !mySym.isEmpty()) {
+            myShowMap = myShowProfile = true;
+        }
+    }
     int type() const { return myType; }
     QString typeName() const;
     virtual ~GpxPoint() {}
@@ -62,6 +69,10 @@ public:
     const QString& name() const { return myName; }
     const QString& desc() const { return myDesc; }
     const QString& link() const { return myLink; }
+    bool showMap() const { return myShowMap; }
+    void setShowMap(bool val) { myShowMap = val; }
+    bool showProfile() const { return myShowProfile; }
+    void setShowProfile(bool val) { myShowProfile = val; }
     static QPoint iscale(const QPointF& p);
     static QPointF dscale(const QPoint& p);
 };

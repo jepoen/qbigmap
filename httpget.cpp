@@ -1,6 +1,7 @@
 #include <iostream>
-#include <QtCore>
+#include <QtGui>
 #include <QtDebug>
+#include <QtNetwork>
 #include "httpget.h"
 
 TileRequest::TileRequest(const QString &key, const QPoint &pos, int z) :
@@ -8,27 +9,21 @@ TileRequest::TileRequest(const QString &key, const QPoint &pos, int z) :
 {}
 
 HttpGet::HttpGet(QObject *parent) :
-        QObject(parent)
-{
-    myHttp = new QHttp();
-    myBuffer = NULL;
-    connect(myHttp, SIGNAL(requestFinished(int,bool)), this, SLOT(finished(int, bool)));
-    connect(myHttp, SIGNAL(stateChanged(int)), this, SLOT(changeState(int)));
-    connect(myHttp, SIGNAL(responseHeaderReceived(QHttpResponseHeader)), this, SLOT(getState(QHttpResponseHeader)));
-}
+        QObject(parent),
+        reply(0),
+        myBuffer(0)
+{}
 
 HttpGet::~HttpGet() {
     qDebug()<<"destructor "<<myRequest.key();
     delete myBuffer;
-    myHttp->abort();
-    delete myHttp;
+    reply->deleteLater();
     qDebug()<<"complete";
 }
 
-bool HttpGet::getFile(const QUrl &url, const TileRequest& request) {
+bool HttpGet::getFile(const QUrl &url, const TileRequest &request, QProgressDialog *dlg) {
     qDebug()<<"getFile ";
-    if (myBuffer != NULL)
-        delete myBuffer;
+    delete myBuffer;
     myBuffer = new QBuffer();
     myUrl = url;
     myRequest = request;
@@ -40,41 +35,46 @@ bool HttpGet::getFile(const QUrl &url, const TileRequest& request) {
         std::cerr<<"Error: Path is empty"<<std::endl;
         return false;
     }
-    myHttp->setHost(myUrl.host(), myUrl.port(80));
     myBuffer->open(QBuffer::ReadWrite);
+    reply = netManager.get(QNetworkRequest(url));
+    connect(reply, SIGNAL(finished()), this, SLOT(finished()));
+    connect(reply, SIGNAL(readyRead()), this, SLOT(readData()));
+    //connect(reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(changeState(qint64, qint64)));
+    connect(dlg, SIGNAL(canceled()), this, SLOT(abort()));
     reqAbort = false;
-    myReqId = myHttp->get(myUrl.path(), myBuffer);
-    //myHttp->close();
     return true;
 }
 
-void HttpGet::finished(int reqId, bool error) {
-    if (reqId != myReqId)
-        return;
-    qDebug()<<"done: "<<myRequest.key()<<" size: "<<myBuffer->data().size();
-    qDebug()<<"cancel: "<<reqAbort;
-    if (reqAbort || myStatusCode != 200)
+void HttpGet::finished() {
+    bool error;
+    if (reqAbort) {
+        if (myBuffer) {
+            myBuffer->close();
+            myBuffer->deleteLater();
+            myBuffer = 0;
+        }
+        error = true;
+        reply->deleteLater();
+        reply = 0;
+    } else {
+        myBuffer->close();
         error = false;
-    if (error) {
-        std::cerr<<qPrintable(myHttp->errorString())<<std::endl;
+        reply->deleteLater();
+        reply = 0;
     }
     emit done(error);
 }
 
-void HttpGet::changeState(int state) {
-    qDebug()<<"state: "<<state<<" "<<myRequest.key()<<" size: "<<myBuffer->data().size();
-    if (state == QHttp::Unconnected) {
-        emit finish();
-        //myBuffer.close();
-    }
+void HttpGet::readData() {
+    myBuffer->write(reply->readAll());
 }
 
-void HttpGet::getState(QHttpResponseHeader header) {
-    myStatusCode = header.statusCode();
+void HttpGet::changeState(qint64 bytesRead, qint64 bytesTotal) {
+    qDebug()<<bytesRead<<" from "<<bytesTotal;
 }
 
 void HttpGet::abort() {
     qDebug()<<"abort";
-    myHttp->abort();
+    reply->abort();
     reqAbort = true;
 }

@@ -259,7 +259,7 @@ void MapView::editTrackPoint(int idx) {
     const GpxPointList& points = model->track().trackPoints();
     double dist0 = Model::geodist1(points, 0, idx);
     double dist1 = Model::geodist1(points, idx, points.size()-1);
-    GpxPointDlg dlg(model->track().trackPoint(idx), mySettings->mapIconList());
+    GpxPointDlg dlg(model, model->track().trackPoint(idx), mySettings->mapIconList());
     dlg.setSrtmEle(model->srtmEle(points[idx].coord()));
     dlg.setDists(dist0, dist1);
     createTempPoint(points[idx].coord());
@@ -386,7 +386,7 @@ void MapView::editRoutePoint(const QPointF& pos) {
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
     const GpxPointList *points = model->route().points();
-    GpxPointDlg dlg(points->at(idx), mySettings->mapIconList());
+    GpxPointDlg dlg(model, points->at(idx), mySettings->mapIconList());
     double dist0 = Model::geodist1(*points, 0, idx);
     double dist1 = Model::geodist1(*points, idx, points->size()-1);
     //Test
@@ -469,7 +469,7 @@ void MapView::editWaypoint(const QPointF& pos) {
     if (idx < 0) return;
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
-    GpxPointDlg dlg(model->waypoints().at(idx), mySettings->mapIconList());
+    GpxPointDlg dlg(model, model->waypoints().at(idx), mySettings->mapIconList());
     //Test
     //double dist1 = Model::geodist0(*points, 0, idx);
     dlg.setSrtmEle(model->srtmEle(model->waypoints().at(idx).coord()));

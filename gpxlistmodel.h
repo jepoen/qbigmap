@@ -1,28 +1,45 @@
 #ifndef GPXLISTMODEL_H
 #define GPXLISTMODEL_H
 
-#include <QAbstractListModel>
+#include <QAbstractTableModel>
+#include <QItemDelegate>
 #include "gpx.h"
 #include "mapicon.h"
 
-class GpxListModel : public QAbstractListModel
+class Model;
+
+class GpxListModel : public QAbstractTableModel
 {
     Q_OBJECT
 private:
-    const GpxPointList *myPoints;
+    Model *myModel;
     QList<int> myPoiList;
     const MapIconList *myMapIcons;
     void createPoiList();
 public:
     enum {GpxIndexRole = Qt::UserRole+1};
-    explicit GpxListModel(const GpxPointList *points, const MapIconList *mapIcons, QObject *parent = 0);
+    explicit GpxListModel(Model *model, const MapIconList *mapIcons, QObject *parent = 0);
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     QVariant data(const QModelIndex &index, int role) const;
     int rowCount(const QModelIndex &parent) const;
+    int columnCount(const QModelIndex &/*parent*/) const { return 3; }
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    bool setData(const QModelIndex &index, const QVariant &value, int role);
 signals:
 
 public slots:
     void updatePointList();
+};
+
+class GpxListDelegate : public QItemDelegate {
+    Q_OBJECT
+public:
+    explicit GpxListDelegate(QObject *parent = 0);
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void setEditorData(QWidget *editor, const QModelIndex &index) const;
+    void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+private slots:
+    void commitAndClose();
 };
 
 #endif // GPXLISTMODEL_H

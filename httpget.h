@@ -5,8 +5,10 @@
 #include <QPoint>
 #include <QString>
 #include <QBuffer>
-#include <QHttp>
 #include <QUrl>
+#include <QNetworkAccessManager>
+
+class QProgressDialog;
 
 class TileRequest {
 private:
@@ -26,9 +28,10 @@ class HttpGet : public QObject
 {
     Q_OBJECT
 private:
+
     QUrl myUrl;
-    int myReqId;
-    QHttp *myHttp;
+    QNetworkAccessManager netManager;
+    QNetworkReply *reply;
     QBuffer *myBuffer;
     TileRequest myRequest;
     int myStatusCode;
@@ -36,7 +39,7 @@ private:
 public:
     HttpGet(QObject *parent = 0);
     virtual ~HttpGet();
-    bool getFile(const QUrl& url, const TileRequest& request);
+    bool getFile(const QUrl& url, const TileRequest& request, QProgressDialog *dlg);
     const QByteArray& getData() const { return myBuffer->data(); }
     void close() { delete myBuffer; myBuffer = NULL; }
     const TileRequest& request() { return myRequest; }
@@ -45,9 +48,9 @@ signals:
     void done(bool error);
     void finish();
 private slots:
-    void finished(int, bool);
-    void changeState(int);
-    void getState(QHttpResponseHeader header);
+    void finished();
+    void readData();
+    void changeState(qint64 bytesRead, qint64 bytesTotal);
 public slots:
     void abort();
 };

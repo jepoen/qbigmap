@@ -1,8 +1,10 @@
 #include <QtGui>
 #include "gpxpointdlg.h"
+#include "model.h"
 
-GpxPointDlg::GpxPointDlg(const GpxPoint &point, const MapIconList &icons, QWidget *parent) :
+GpxPointDlg::GpxPointDlg(Model *model, const GpxPoint &point, const MapIconList &icons, QWidget *parent) :
     QDialog(parent),
+    myModel(model),
     myPoint(point)
 {
     setWindowTitle(tr("Edit %1").arg(myPoint.typeName()));
@@ -110,6 +112,8 @@ void GpxPointDlg::setSrtmEle(int ele) {
 
 void GpxPointDlg::changePos(double /*val*/) {
     QPointF pos(eLon->value(), eLat->value());
+    myPoint.setSrtm(myModel->srtmEle(pos));
+    setSrtmEle(myPoint.srtm());
     emit posChanged(pos);
 }
 
@@ -137,6 +141,8 @@ GpxPoint GpxPointDlg::point() const {
     QPointF pos(eLon->value(), eLat->value());
     int symIdx = eSym->currentIndex();
     QString sym = eSym->itemText(symIdx);
-    return GpxPoint(myPoint.type(), pos, myPoint.timestamp(), eEle->text().toDouble(), sym, eName->text(), eDesc->text(), eLink->text());
+    GpxPoint p(myPoint.type(), pos, myPoint.timestamp(), eEle->text().toDouble(), sym, eName->text(), eDesc->text(), eLink->text());
+    p.setSrtm(myPoint.srtm());
+    return p;
 }
 

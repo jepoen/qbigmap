@@ -9,6 +9,7 @@ QString defaultIcons[][3] = {
     {"flag", ":/icons/flag-s.png", ":/icons/flag.png"},
     {"star", ":/icons/star-s.png", ":/icons/star.png"},
     {"square", ":/icons/square.png", ":/icons/square.png"},
+    {"place", ":/icons/place-s.png", ":/icons/place.png"},
     {"church", ":/icons/church-s.png", ":/icons/church.png"},
     {"hostel", ":/icons/hostel-s.png", ":/icons/hostel.png"},
     {"shell", ":/icons/shell-s.png", ":/icons/shell.png"},
@@ -80,13 +81,12 @@ void Settings::load() {
         settings->setArrayIndex(i);
         int idx = iconIndex(defaultIcons, settings->value("name").toString());
         if (idx >= 0) {
-            icons[idx] = MapIcon(settings->value("name").toString(), settings->value("icofile").toString(),
-                         defaultIcons[i][2], settings->value("mapicofile").toString());
+            icons[idx] = MapIcon(settings->value("name").toString(), defaultIcons[idx][1],
+                         defaultIcons[idx][2], settings->value("mapicofile").toString());
         } else {
             // added icons
             icons.push_back(MapIcon(settings->value("name").toString(), settings->value("icofile").toString(),
-                         defaultIcons[i][2], settings->value("mapicofile").toString()));
-
+                                    settings->value("mapicofile").toString(), settings->value("mapicofile").toString()));
         }
     }
     settings->endArray();

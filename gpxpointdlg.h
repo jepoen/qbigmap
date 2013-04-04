@@ -11,6 +11,7 @@ class QDateTimeEdit;
 class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
+class Model;
 
 class GpxPointDlg : public QDialog
 {
@@ -29,12 +30,13 @@ private:
     QLabel *eDist1;
     QLabel *eErr;
 
+    Model *myModel;
     GpxPoint myPoint;
     QStringList *mySymbols;
 
     void createSymList(QComboBox *box, const MapIconList& iconList);
 public:
-    explicit GpxPointDlg(const GpxPoint& point, const MapIconList& icons, QWidget *parent = 0);
+    explicit GpxPointDlg(Model *model, const GpxPoint& point, const MapIconList& icons, QWidget *parent = 0);
     void setDists(double dist0, double dist1);
     void setSrtmEle(int ele);
     GpxPoint point() const;

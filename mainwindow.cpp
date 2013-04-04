@@ -3,6 +3,7 @@
 #include "centerdialog.h"
 #include "gpxprofile.h"
 #include "gpxprofiledlg.h"
+#include "helpwindow.h"
 #include "mainwindow.h"
 #include "model.h"
 #include "mapscene.h"
@@ -32,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug()<<"1";
     readSettings();
     qDebug()<<"2";
-    myTrackPoiModel = new GpxListModel(&model->track().trackPoints(), &settings.mapIconList());
+    myTrackPoiModel = new GpxListModel(model, &settings.mapIconList());
     scene = new MapScene(model);
     scene->setSceneRect(0, 0, 256*model->width(), 256*model->height());
     view = new MapView(scene, &settings);
@@ -41,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     createToolBar();
     createStatusBar();
     printer = new QPrinter();
+    myHelpWin = new HelpWindow(this);
     QGridLayout *mainLayout = new QGridLayout();
     mainLayout->addWidget(view, 1, 1);
     QHBoxLayout *northLayout = new QHBoxLayout();
@@ -171,6 +173,7 @@ void MainWindow::createActions() {
     savePixmapAction = new QAction(tr("Save pixmap..."), this);
     connect(savePixmapAction, SIGNAL(triggered()), this, SLOT(savePixmap()));
     quitAction = new QAction(tr("Quit"), this);
+    connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
     loadGpxAction = new QAction(tr("Read GPX file..."), this);
     connect(loadGpxAction, SIGNAL(triggered()), this, SLOT(loadGpx()));
     saveGpxAction = new QAction(tr("Save GPX file ..."), this);
@@ -304,7 +307,9 @@ void MainWindow::createActions() {
     editLayersAction = new QAction(tr("Edit base layers..."), this);
     editOverlaysAction = new QAction(tr("Edit overlays..."), this);
     editSettingsAction = new QAction(tr("Edit settings..."), this);
-    connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
+    helpAction = new QAction(tr("Help"), this);
+    connect(helpAction, SIGNAL(triggered()), this, SLOT(help()));
+
     connect(deleteTrackAction, SIGNAL(triggered()), this, SLOT(deleteTrack()));
     connect(lastTrackPosAction, SIGNAL(triggered()), this, SLOT(lastTrackPos()));
     connect(redrawAction, SIGNAL(triggered()), scene, SLOT(redraw()));
@@ -451,6 +456,9 @@ void MainWindow::createMenuBar() {
     mSettings->addAction(editLayersAction);
     mSettings->addAction(editOverlaysAction);
     mSettings->addAction(editSettingsAction);
+
+    QMenu *mHelp = menuBar()->addMenu(tr("&?"));
+    mHelp->addAction(helpAction);
 }
 
 void MainWindow::createToolBar() {
@@ -491,8 +499,13 @@ void MainWindow::createStatusBar() {
 void MainWindow::createProfileWidget() {
     profileWidget = new QDockWidget(tr("Profile"));
     QWidget *content = new QWidget();
-    QVBoxLayout *layout = new QVBoxLayout();
-    QHBoxLayout *control = new QHBoxLayout();
+    QHBoxLayout *layout = new QHBoxLayout();
+    QVBoxLayout *control = new QVBoxLayout();
+    QRadioButton *bEle = new QRadioButton(tr("GPX Data"), profileWidget);
+    control->addWidget(bEle);
+    QRadioButton *bSrtm = new QRadioButton(tr("SRTM Data"), profileWidget);
+    control->addWidget(bSrtm);
+    control->addStretch();
     layout->addLayout(control);
     profileScene = new ProfileScene(model, &settings);
     profileView = new ProfileView(profileScene);
@@ -500,13 +513,26 @@ void MainWindow::createProfileWidget() {
     content->setLayout(layout);
     profileWidget->setWidget(content);
     profileWidget->hide();
+    connect(bEle, SIGNAL(clicked()), profileScene, SLOT(setEle()));
+    connect(bSrtm, SIGNAL(clicked()), profileScene, SLOT(setSrtm()));
+    bEle->click();
 }
 
 void MainWindow::createTrackPoiTable() {
     QVBoxLayout *control = new QVBoxLayout();
     trackPoiWidget->setLayout(control);
-    trackPoiListView = new QListView();
+    trackPoiListView = new QTableView();
     trackPoiListView->setModel(myTrackPoiModel);
+    trackPoiListView->setItemDelegate(new GpxListDelegate());
+    trackPoiListView->verticalHeader()->hide();
+    QHeaderView *headerView = new QHeaderView(Qt::Horizontal, trackPoiListView);
+    trackPoiListView->setHorizontalHeader(headerView);
+    headerView->setDefaultAlignment(Qt::AlignLeft);
+    headerView->setResizeMode(0, QHeaderView::Stretch);
+    headerView->setResizeMode(1, QHeaderView::Interactive);
+    headerView->resizeSection(1, 45);
+    headerView->setResizeMode(2, QHeaderView::Interactive);
+    headerView->resizeSection(2, 45);
     trackPoiWidget->setWidget(trackPoiListView);
     trackPoiWidget->hide();
 }
@@ -1393,3 +1419,7 @@ void MainWindow::selectTrackPoi(const QModelIndex &index) {
     model->setTrackPos(trackPos);
 }
 
+void MainWindow::help() {
+    myHelpWin->setUrl(":/help/index.html");
+    myHelpWin->show();
+}
