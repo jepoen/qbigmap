@@ -313,11 +313,12 @@ void MapView::insertTrackPoint(const QPointF &pos) {
         Model *model = mapScene->model();
         GpxPoint p0 = model->track().trackPoint(ipt.idx()-1);
         GpxPoint p1 = model->track().trackPoint(ipt.idx());
+        QPointF lonLat = model->lonLat(ipt.point());
         double t = ipt.t();
         double ti0 = p0.timestamp().toTime_t();
         double ti1 = p1.timestamp().toTime_t();
         int ti = int(round((1.0-t)*ti0+t*ti1));
-        GpxPoint p(GpxPoint::TRK, ipt.point(), QDateTime::fromTime_t(ti), (1.0-t)*p0.ele()+t*p1.ele());
+        GpxPoint p(GpxPoint::TRK, lonLat, QDateTime::fromTime_t(ti), (1.0-t)*p0.ele()+t*p1.ele());
         model->insertTrackPoint(ipt.idx(), p);
     }
 }

@@ -1,3 +1,15 @@
 div.nav {
   background-color: #cccccc;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+span.button {
+  border-style: solid;
+  border-color: #000000;
+  font-weight: bold;
+  padding-left: 2;
+  padding-bottom: 2;
+  background-color: #3f3f3f;
+  color: #ffffff;
 }

@@ -8,6 +8,7 @@ class MapScene;
 class Model;
 class QSpinBox;
 class QGraphicsLineItem;
+class QGraphicsPathItem;
 
 class DelTrkPartDlg : public QDialog
 {
@@ -18,7 +19,8 @@ private:
     Track *myTrack;
     QSpinBox *eFrom;
     QSpinBox *eTo;
-    QGraphicsLineItem *myItem;
+    QGraphicsPathItem *myOldItem;
+    QGraphicsLineItem *myNewItem;
 
     void updateItem(int i0, int i1);
 public:

@@ -1,3 +1,4 @@
+#include <QMainWindow>
 #include <QSettings>
 #include <QStringList>
 #include <QtDebug>
@@ -31,7 +32,7 @@ int Settings::iconIndex(const QString icons[][3], const QString &key) {
     return -1;
 }
 
-void Settings::load() {
+void Settings::load(QMainWindow *win) {
     QSettings *settings = new QSettings("osm", "QBigMap");
     //qDebug()<<"settings size"<<settings->allKeys().size();
     if (settings->allKeys().size() == 0) {
@@ -91,9 +92,11 @@ void Settings::load() {
     }
     settings->endArray();
     myMapIcons.setIcons(icons);
+    win->move(settings->value("mainPos", QPoint(50, 50)).toPoint());
+    win->resize(settings->value("mainSize", QSize(800, 600)).toSize());
 }
 
-void Settings::save() {
+void Settings::save(QMainWindow *win) {
     QSettings settings("osm", "QBigMap");
     settings.beginWriteArray("baseLayers");
     for (int i = 0; i < myBaseLayers.size(); i++) {
@@ -134,4 +137,6 @@ void Settings::save() {
     settings.setValue("outTrackWidth", myOutTrackWidth);
     settings.setValue("outRouteColor", myOutRouteColor.rgba());
     settings.setValue("outRouteWidth", myOutRouteWidth);
+    settings.setValue("mainPos", win->pos());
+    settings.setValue("mainSize", win->size());
 }

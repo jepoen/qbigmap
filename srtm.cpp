@@ -1,3 +1,4 @@
+#include <cassert>
 #include <QtGui>
 #include <QtDebug>
 #include <QtNetwork>
@@ -47,13 +48,16 @@ int SrtmEntry::offEle(double offLon, double offLat) const {
     if (myData == 0) return 0;
     if (offLon < 0 || offLon >= 1.0 || offLat < 0 || offLat >= 1.0) return 0;
     int iLon0 = int(offLon*1200);
+    assert(iLon0 < 1200);
     int iLon1 = iLon0+1;
     double dLon = offLon*1200.0-iLon0;
     int iLat0 = int(offLat*1200);
+    assert(iLat0 < 1200);
     double dLat = offLat*1200-iLat0;
-    iLat0 = 1199-iLat0;
+    iLat0 = 1200-iLat0;
     int iLat1 = iLat0-1;
     qDebug()<<"offEle iLon0 "<<iLon0<<" iLat0 "<<iLat0;
+    qDebug()<<"offEle iLon1 "<<iLon1<<" iLat1 "<<iLat1;
     double v0 = (1.0-dLon)*myData[iLat0*1201+iLon0]+dLon*myData[iLat0*1201+iLon1];
     double v1 = (1.0-dLon)*myData[iLat1*1201+iLon0]+dLon*myData[iLat1*1201+iLon1];
     return int(round((1.0-dLat)*v0+dLat*v1));

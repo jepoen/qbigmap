@@ -7,7 +7,7 @@ GpxProfileDlg::GpxProfileDlg(const GpxPointList &gpxPoints, Settings *settings, 
     QDialog(parent),
     myGpxPoints(gpxPoints),
     myProfile(gpxPoints, settings),
-    myBorder(60), myScaleX(10), myScaleY(0.3)
+    myBorder(60), myScaleX(10), myScaleY(0.4)
 {
     QVBoxLayout *mainLayout = new QVBoxLayout();
     eProfile = new QLabel();
@@ -73,11 +73,12 @@ GpxProfileDlg::GpxProfileDlg(const GpxPointList &gpxPoints, Settings *settings, 
 void GpxProfileDlg::computePreferredSize() {
     BoundingBox bb = Gpx::boundingBox(myGpxPoints);
     int width = myBorder+int(bb.len()*myScaleX);
-    int height = myBorder+int((bb.ele().y()-bb.ele().x())*myScaleY);
+    int height = 40+int((bb.ele().y()-bb.ele().x())*myScaleY);
     qDebug()<<"ele "<<bb.ele()<<" dist "<<bb.len()<<" w "<<width<<" h "<<height;
     if (Gpx::hasSym(myGpxPoints)) {
         eText->setChecked(true);
         width += eTextWidth->value();
+        height += topOffset();
         eTextWidth->setEnabled(true);
         eTop->setEnabled(true);
     } else {

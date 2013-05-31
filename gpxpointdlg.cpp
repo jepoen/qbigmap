@@ -46,6 +46,12 @@ GpxPointDlg::GpxPointDlg(Model *model, const GpxPoint &point, const MapIconList 
     lSym->setBuddy(eSym);
     control->addWidget(lSym, 3, 0);
     control->addWidget(eSym, 3, 1);
+    eShowMap = new QCheckBox(tr("Show in &Map"));
+    eShowMap->setChecked(myPoint.showMap());
+    control->addWidget(eShowMap, 3, 2);
+    eShowProfile = new QCheckBox(tr("Show in &Profile"));
+    eShowProfile->setChecked(myPoint.showProfile());
+    control->addWidget(eShowProfile, 3, 3);
     QLabel *lName = new QLabel(tr("&Name:"));
     eName = new QLineEdit();
     eName->setMinimumSize(100, 0);
@@ -83,6 +89,7 @@ GpxPointDlg::GpxPointDlg(Model *model, const GpxPoint &point, const MapIconList 
     setLayout(mainLayout);
     connect(eLon, SIGNAL(valueChanged(double)), this, SLOT(changePos(double)));
     connect(eLat, SIGNAL(valueChanged(double)), this, SLOT(changePos(double)));
+    connect(eSym, SIGNAL(currentIndexChanged(int)), this, SLOT(symChanged()));
     connect(box, SIGNAL(accepted()), this, SLOT(check()));
     connect(box, SIGNAL(rejected()), this, SLOT(reject()));
     eSym->setFocus();
@@ -140,9 +147,25 @@ void GpxPointDlg::check() {
 GpxPoint GpxPointDlg::point() const {
     QPointF pos(eLon->value(), eLat->value());
     int symIdx = eSym->currentIndex();
+    if (symIdx == 0) {
+        eShowMap->setChecked(false);
+        eShowProfile->setChecked(false);
+    }
     QString sym = eSym->itemText(symIdx);
     GpxPoint p(myPoint.type(), pos, myPoint.timestamp(), eEle->text().toDouble(), sym, eName->text(), eDesc->text(), eLink->text());
     p.setSrtm(myPoint.srtm());
+    p.setShowMap(eShowMap->isChecked());
+    p.setShowProfile(eShowProfile->isChecked());
     return p;
 }
 
+void GpxPointDlg::symChanged() {
+    int symIdx = eSym->currentIndex();
+    if (symIdx == 0) {
+        eShowMap->setChecked(false);
+        eShowProfile->setChecked(false);
+    } else {
+        eShowMap->setChecked(true);
+        eShowProfile->setChecked(true);
+    }
+}

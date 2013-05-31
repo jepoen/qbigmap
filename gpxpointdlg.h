@@ -6,6 +6,7 @@
 #include "mapicon.h"
 #include "gpx.h"
 
+class QCheckBox;
 class QComboBox;
 class QDateTimeEdit;
 class QDoubleSpinBox;
@@ -23,6 +24,8 @@ private:
     QLineEdit *eEle;
     QLabel *eSrtmEle;
     QComboBox *eSym;
+    QCheckBox *eShowMap;
+    QCheckBox *eShowProfile;
     QLineEdit *eName;
     QLineEdit *eDesc;
     QLineEdit *eLink;
@@ -46,6 +49,7 @@ signals:
 public slots:
 private slots:
     void changePos(double val);
+    void symChanged();
     void check();
 };
 

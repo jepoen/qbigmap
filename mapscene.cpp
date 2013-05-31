@@ -9,6 +9,7 @@ TrackItem::TrackItem(const QPolygonF &points, QGraphicsItem *parent) :
         QGraphicsItem(parent), myPoints(points), myColor(qRgba(0, 255, 255, 20))
 {
     setFlags(ItemSendsGeometryChanges|ItemSendsScenePositionChanges);
+    setZValue(5);
 }
 
 QRectF TrackItem::boundingRect() const {
@@ -246,6 +247,7 @@ PhotoItem::PhotoItem(const QPointF &point, QGraphicsItem *parent) :
     setZValue(10);
     myPath = createPath();
 }
+
 QPainterPath PhotoItem::createPath() {
     QPainterPath path;
     path.addRect(myPoint.x()-10, myPoint.y()-5, 20, 10);
@@ -551,6 +553,8 @@ void MapScene::redrawTileBounds() {
 
 void MapScene::changeTrackPos(int pos) {
     if (myModel->track().isEmpty()) return;
+    if (pos < 0) pos = 0;
+    if (pos >= myModel->track().trackPoints().size()) pos = myModel->track().trackPoints().size()-1;
     GpxPoint p = myModel->track().trackPoint(pos);
     QPointF pt = myModel->lonLat2Scene(p.coord());
     if (myTrackPosItem == 0) {

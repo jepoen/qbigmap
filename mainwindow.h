@@ -35,8 +35,8 @@ class MainWindow : public QMainWindow
 private:
     enum {PHOTO_FILENAME = Qt::UserRole, PHOTO_ORIGTIME = Qt::UserRole+1, PHOTO_TIMESTAMP = Qt::UserRole+2,
           PHOTO_TRACKIDX = Qt::UserRole+3, PHOTO_COORD = Qt::UserRole+4};
-    Settings settings;
     Model *model;
+    Settings settings;
     GpxListModel *myTrackPoiModel;
     QString myPhotoDir;
     int myPhotoOffset;
@@ -123,6 +123,7 @@ private:
     QAction *moveSouthAction;
     QAction *moveWestAction;
     QAction *setCenterAction;
+    QAction *searchPlaceAction;
     QAction *editLayersAction;
     QAction *editOverlaysAction;
     QAction *editSettingsAction;
@@ -154,6 +155,9 @@ private:
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
+protected:
+    void closeEvent(QCloseEvent *evt);
+
 signals:
     void photoDirChanged(const QString& dir);
 
@@ -208,6 +212,7 @@ private slots:
     void moveSouth();
     void moveWest();
     void setCenter();
+    void searchPlace();
     void showImage(HttpGet *getter);
     void changeBaseLayer();
     void changeOverlays();

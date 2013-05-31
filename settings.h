@@ -7,6 +7,8 @@
 #include <QPoint>
 #include "mapicon.h"
 
+class QMainWindow;
+
 class Layer {
 private:
     QString myName;
@@ -97,8 +99,8 @@ public:
     void setMapIcons(const QList<MapIcon>& mapIcons) { myMapIcons = mapIcons; }
     void setMapIcon(int idx, const QString& fileName) { myMapIcons.setMapIco(idx, fileName); }
     void resetMapIcon(int idx) {myMapIcons.setMapIco(idx, myMapIcons.icons()[idx].mapDefaultIco()); }
-    void load();
-    void save();
+    void load(QMainWindow *win);
+    void save(QMainWindow *win);
 };
 
 #endif // SETTINGS_H

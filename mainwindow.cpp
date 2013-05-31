@@ -16,6 +16,7 @@
 #include "photo.h"
 #include "photodlg.h"
 #include "photooffsetdlg.h"
+#include "placedialog.h"
 #include "saveroutedlg.h"
 #include "settingsdialog.h"
 #include "track.h"
@@ -134,7 +135,7 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::readSettings() {
-    settings.load();
+    settings.load(this);
     model = new Model(settings);
 }
 
@@ -248,7 +249,7 @@ void MainWindow::createActions() {
     connect(saveRouteAction, SIGNAL(triggered()), this, SLOT(saveRoute()));
     delRouteAction = new QAction(tr("Delete complete route"), this);
     connect(delRouteAction, SIGNAL(triggered()), this, SLOT(delRoute()));
-    saveRouteProfileAction = new QAction("Save route profile...", this);
+    saveRouteProfileAction = new QAction(tr("Save route profile..."), this);
     connect(saveRouteProfileAction, SIGNAL(triggered()), this, SLOT(saveRouteProfile()));
     routeAddSrtmEleAction = new QAction(tr("Add SRTM elevation"), this);
     connect(routeAddSrtmEleAction, SIGNAL(triggered()), this, SLOT(routeAddSrtmEle()));
@@ -304,6 +305,8 @@ void MainWindow::createActions() {
     moveWestAction = new QAction(tr("Move to west"), this);
     moveWestAction->setIcon(QIcon(":/icons/arrow_left.png"));
     setCenterAction = new QAction(tr("Set map center"), this);
+    searchPlaceAction = new QAction(tr("Search place..."), this);
+    connect(searchPlaceAction, SIGNAL(triggered()), this, SLOT(searchPlace()));
     editLayersAction = new QAction(tr("Edit base layers..."), this);
     editOverlaysAction = new QAction(tr("Edit overlays..."), this);
     editSettingsAction = new QAction(tr("Edit settings..."), this);
@@ -400,6 +403,7 @@ void MainWindow::createMenuBar() {
     mFile->addAction(printAction);
     mFile->addAction(savePixmapAction);
     mFile->addAction(setCenterAction);
+    mFile->addAction(searchPlaceAction);
     mFile->addAction((quitAction));
     QMenu *mTrack = menuBar()->addMenu(tr("&Track"));
     mTrack->addAction(trackFromGpsAction);
@@ -529,9 +533,9 @@ void MainWindow::createTrackPoiTable() {
     trackPoiListView->setHorizontalHeader(headerView);
     headerView->setDefaultAlignment(Qt::AlignLeft);
     headerView->setResizeMode(0, QHeaderView::Stretch);
-    headerView->setResizeMode(1, QHeaderView::Interactive);
+    headerView->setResizeMode(1, QHeaderView::Fixed);
     headerView->resizeSection(1, 45);
-    headerView->setResizeMode(2, QHeaderView::Interactive);
+    headerView->setResizeMode(2, QHeaderView::Fixed);
     headerView->resizeSection(2, 45);
     trackPoiWidget->setWidget(trackPoiListView);
     trackPoiWidget->hide();
@@ -891,8 +895,15 @@ void MainWindow::setCenter() {
             settings.setZoom(model->zoom());
             settings.setXExt(model->width());
             settings.setYExt(model->height());
-            settings.save();
+            settings.save(this);
         }
+    }
+}
+
+void MainWindow::searchPlace() {
+    PlaceDialog dlg;
+    if (dlg.exec() == QDialog::Accepted) {
+        model->setCenter(dlg.lonLat());
     }
 }
 
@@ -910,7 +921,7 @@ void MainWindow::editBaseLayers() {
     if (dlg.exec() == QDialog::Accepted) {
         qDebug()<<dlg.layers().size();
         settings.setBaseLayers(dlg.layers());
-        settings.save();
+        settings.save(this);
         createBaselayerActions();
         model->setLayer(settings.baseLayers()[0]);
     }
@@ -921,7 +932,7 @@ void MainWindow::editOverlays() {
     if (dlg.exec() == QDialog::Accepted) {
         qDebug()<<dlg.layers().size();
         settings.setOverlays(dlg.layers());
-        settings.save();
+        settings.save(this);
         createOverlayActions();
         //model->setLayer(&baseLayers[0]);
     }
@@ -932,7 +943,7 @@ void MainWindow::editSettings() {
     SettingsDialog dlg(settings, this);
     if (dlg.exec() == QDialog::Accepted) {
         settings = dlg.settings();
-        settings.save();
+        settings.save(this);
         model->updateSettings(settings);
     }
 }
@@ -1053,18 +1064,6 @@ GpxPointList MainWindow::selectTrackSegments(const Gpx& gpx) {
                 res.append(p);
             }
         }
-        /*
-        QPointF center(0.5*(bb.p0().x()+bb.p1().x()), 0.5*(bb.p0().y()+bb.p1().y()));
-        qDebug()<<"new center "<<center;
-        model->setCenter(center);
-        model->setTrack(track);
-        model->setTrackPos(0);
-        int pos = track->fileName().lastIndexOf("/");
-        profileView->setVisible(true);
-        trackToolBar->setVisible(true);
-        enableTrackActions(true);
-        setWindowTitle(tr("qbigmap - %1").arg(track->fileName().mid(pos+1)));
-        */
     }
     return res;
 }
@@ -1277,11 +1276,13 @@ void MainWindow::openPhotos() {
     if (photos.size() == 0) return;
     qSort(photos);
     foreach(Photo photo, photos) {
-        QListWidgetItem *it = new QListWidgetItem(photo.timestamp().toLocalTime().toString("hh:mm:ss ")+photo.baseFileName());
-        qDebug()<<"Add to List: "<<photo.filename();
+        QDateTime timestamp = photo.timestamp().addSecs(myPhotoOffset);
+        QListWidgetItem *it = new QListWidgetItem(timestamp.toLocalTime().toString("hh:mm:ss ")+photo.baseFileName());
+        qDebug()<<"Add to List: "<<photo.filename()<<" "<<photo.timestamp();
         it->setToolTip(photo.filename());
         it->setData(PHOTO_FILENAME, photo.filename());
         it->setData(PHOTO_ORIGTIME, photo.timestamp());
+        it->setData(PHOTO_TIMESTAMP, timestamp);
         it->setData(PHOTO_COORD, QVariant());
         if (photo.hasCoord()) {
             it->setData(PHOTO_COORD, photo.coord());
@@ -1293,38 +1294,7 @@ void MainWindow::openPhotos() {
     photoWidget->setVisible(true);
     enablePhotoActions(true);
     photoList->setCurrentRow(0);
-//    if (model->track() != 0) connectPhotos();
 }
-
-//void MainWindow::connectPhotos() {
-//    Track *track = model->track();
-//    int cnt = photoList->count();
-//    for (int i = 0; i < cnt; i++) {
-//        QListWidgetItem *it = photoList->item(i);
-//        QDateTime timestamp = it->data(PHOTO_TIMESTAMP).toDateTime();
-//        it->setData(PHOTO_TRACKIDX, -1);
-//        it->setBackgroundColor(Qt::yellow);
-//        if (track != 0) {
-//            int pos = track->nearest(timestamp);
-//            if (abs(track->extTrackPoint(pos).timestamp().secsTo(timestamp)) < 300) {
-//                it->setData(Qt::UserRole+2, pos);
-//                it->setBackgroundColor(Qt::green);
-//            }
-//        }
-//    }
-//}
-
-//void MainWindow::hidePhotos() {
-//    photoWidget->setVisible(false);
-//    photoList->clear();
-//}
-
-//void MainWindow::showPhoto(QListWidgetItem *item) {
-//    QString filename = item->data(Qt::UserRole).toString();
-//    qDebug()<<filename;
-//    PhotoDlg dlg(filename);
-//    dlg.exec();
-//}
 
 void MainWindow::showPhotoData(QListWidgetItem *item) {
     if (item == 0) return;
@@ -1345,6 +1315,7 @@ void MainWindow::showPhotoData(QListWidgetItem *item) {
 
 void MainWindow::selectPhotoPos(QListWidgetItem *item) {
     if (item == 0) return;
+    qDebug()<<"selectPhotoPos "<<item;
     showPhotoData(item);
     if (model->isEmptyTrack()) return;
     QDateTime timestamp = item->data(PHOTO_TIMESTAMP).toDateTime();
@@ -1397,6 +1368,7 @@ void MainWindow::geoTagPhotos() {
         const QPointF &coord = model->track().trackPoint(pos).coord();
         QString fileName = it->data(PHOTO_FILENAME).toString();
         Photo photo(fileName);
+        qDebug()<<"photo coord: "<<coord;
         photo.setGeoPos(coord);
     }
 }
@@ -1420,6 +1392,12 @@ void MainWindow::selectTrackPoi(const QModelIndex &index) {
 }
 
 void MainWindow::help() {
-    myHelpWin->setUrl(":/help/index.html");
+    QString lang = QLocale::system().name().left(2);
+    qDebug()<<"Language: "<<lang;
+    myHelpWin->setUrl(QString(":/help/%1/index.html").arg(lang));
     myHelpWin->show();
+}
+
+void MainWindow::closeEvent(QCloseEvent *evt) {
+    settings.save(this);
 }

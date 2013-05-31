@@ -43,7 +43,8 @@ SOURCES += main.cpp \
     gpxprofile.cpp \
     gpxprofiledlg.cpp \
     helpwindow.cpp \
-    boolspinbox.cpp
+    boolspinbox.cpp \
+    placedialog.cpp
 HEADERS += mainwindow.h \
     tile.h \
     httpget.h \
@@ -81,7 +82,8 @@ HEADERS += mainwindow.h \
     gpxprofile.h \
     gpxprofiledlg.h \
     helpwindow.h \
-    boolspinbox.h
+    boolspinbox.h \
+    placedialog.h
 RESOURCES += qbigmap.qrc
 TRANSLATIONS = qbigmap_de.ts
 LIBS += /usr/lib/libexiv2.a
@@ -127,7 +129,13 @@ OTHER_FILES += \
     help/map.html \
     help/qbigmap.css \
     icons/place-s.png \
-    icons/place.png
+    icons/place.png \
+    help/track.html \
+    icons/house.png \
+    help/de/track.html \
+    help/de/map.html \
+    help/de/index.html \
+    help/en/index.html
 
 
 

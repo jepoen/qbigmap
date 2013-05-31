@@ -28,9 +28,12 @@ Model::Model(const Settings &settings) :
 }
 
 void Model::updateSettings(const Settings &settings) {
+    myUseSrtm = settings.useSrtm();
     mySrtmDir = settings.srtmDir();
     qDeleteAll(mySrtmData);
     mySrtmData.clear();
+    trackAddSrtmEle();
+    emit trackChanged();
 }
 
 void Model::setCenter(const QPointF &center) {
@@ -295,17 +298,14 @@ void Model::insertTrackPoint(int pos, const GpxPoint& point) {
 void Model::delTrackPoint(int pos) {
     if (myTrack.isEmpty()) return;
     myTrack.delTrackPoint(pos);
-    emit trackChanged();
     myTrack.setPos(pos);
-    emit trackPosChanged(myTrack.pos());
+    emit trackChanged();
 }
 
 void Model::delTrackPart(int i0, int i1) {
     if (myTrack.isEmpty()) return;
     myTrack.delTrackPart(i0, i1);
     emit trackChanged();
-    myTrack.setPos(i0);
-    emit trackPosChanged(i0);
 }
 
 void Model::delTrack() {

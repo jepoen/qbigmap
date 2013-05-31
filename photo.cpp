@@ -22,11 +22,11 @@ ExifGps::ExifGps(const QPointF &coord): myCoord(coord) {
     int degLon = int(myCoord.x());
     int minLon = int((myCoord.x()-degLon)*60);
     double secLon = ((myCoord.x()-degLon)*60-minLon)*60;
-    myLonStr = QString("%1/1 %2/1 %3/100").arg(degLon).arg(minLon).arg(locale.toString(secLon, 'f', 2));
+    myLonStr = QString("%1/1 %2/1 %3/100").arg(degLon).arg(minLon).arg(int(secLon*100));
     int degLat = int(myCoord.y());
     int minLat = int((myCoord.y()-degLat)*60);
     double secLat = ((myCoord.y()-degLat)*60-minLat)*60;
-    myLatStr = QString("%1/1 %2/1 %3/100").arg(degLat).arg(minLat).arg(locale.toString(secLat, 'f', 2));
+    myLatStr = QString("%1/1 %2/1 %3/100").arg(degLat).arg(minLat).arg(int(secLat*100));
     qDebug()<<myCoord<<" "<<myLonRef<<myLonStr<<" "<<myLatRef<<myLatStr;
 }
 
@@ -37,9 +37,9 @@ ExifGps::ExifGps(const QString &lonRef, const QString &lon, const QString &latRe
     double deg, min, sec;
     int decD, decM, decS;
     sscanf(lon.toStdString().c_str(), "%lf/%d %lf/%d %lf/%d", &deg, &decD, &min, &decM, &sec, &decS);
-    myCoord.setX(deg+min/60+sec/3600);
+    if (decD > 0 && decM > 0 && decS > 0) myCoord.setX(deg/decD+min/decM/60+sec/decS/3600);
     sscanf(lat.toStdString().c_str(), "%lf/%d %lf/%d %lf/%d", &deg, &decD, &min, &decM, &sec, &decS);
-    myCoord.setY(deg+min/60+sec/3600);
+    if (decD > 0 && decM > 0 && decS > 0) myCoord.setY(deg/decD+min/decM/60+sec/decS/3600);
 }
 
 Photo::Photo(const QString &fileName) :

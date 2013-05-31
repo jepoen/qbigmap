@@ -1,5 +1,6 @@
 #include <QtDebug>
 #include <QIcon>
+#include <QPainter>
 #include <QPixmap>
 #include "boolspinbox.h"
 #include "gpxlistmodel.h"
@@ -49,6 +50,10 @@ QVariant GpxListModel::data(const QModelIndex &index, int role) const {
         switch (index.column()) {
         case 0:
             return points[idx].name();
+        case 1:
+            return points[idx].showMap();
+        case 2:
+            return points[idx].showProfile();
         default:
             return QVariant();
         }
@@ -57,10 +62,6 @@ QVariant GpxListModel::data(const QModelIndex &index, int role) const {
         switch (index.column()) {
         case 0:
             return myMapIcons->icon(key).ico();
-        case 1:
-            return points[idx].showMap() ? QIcon(QPixmap(":/icons/add.png")) : QIcon(QPixmap(":/icons/delete.png"));
-        case 2:
-            return points[idx].showProfile() ? QIcon(":/icons/add.png") : QIcon(":/icons/delete.png");
         }
     } else if (role == GpxIndexRole) {
         return idx;
@@ -119,6 +120,27 @@ bool GpxListModel::setData(const QModelIndex &index, const QVariant &value, int 
 GpxListDelegate::GpxListDelegate(QObject *parent) :
     QItemDelegate(parent)
 {}
+
+QSize GpxListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const {
+    if (index.column() == 0) return QItemDelegate::sizeHint(option, index);
+    else return QSize(16, 16);
+}
+
+void GpxListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+    QPixmap pix;
+    switch (index.column()) {
+    case 1:
+    case 2:
+        if (option.state & QStyle::State_Selected) {
+            painter->fillRect(option.rect, option.palette.highlight());
+        }
+        pix = index.data().toBool() ? QPixmap(":/icons/add.png") : QPixmap(":/icons/delete.png");
+        painter->drawPixmap(option.rect.x()+option.rect.width()/2-8, option.rect.y()+option.rect.height()/2-8, 16, 16, pix);
+        return;
+    default:
+        QItemDelegate::paint(painter, option, index);
+    }
+}
 
 QWidget* GpxListDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const {
     if (index.column() == 1 || index.column() == 2) {

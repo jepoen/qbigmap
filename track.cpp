@@ -202,10 +202,12 @@ void Track::delTrackPoint(int pos) {
 
 void Track::delTrackPart(int i0, int i1) {
     if (i0 >= i1 || i0 < 0 || i1 < 0 || i0 >= myTrackPoints.size() || i1 >= myTrackPoints.size()) return;
-    i0++;
-    int count = i1-i0;
+    int count = i1-i0+1;
+    // don't delete complete track!
+    if (count >= myTrackPoints.size()-1) return;
+    qDebug()<<"delTrackPart i0 "<<i0<<" i1 "<<i1<<" count "<<count;
     for (int i = 0; i < count; i++) myTrackPoints.removeAt(i0);
-    setPos(i1);
+    setPos(i0);
     myChanged = true;
 }
 
