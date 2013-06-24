@@ -67,6 +67,7 @@ public:
     bool isInMap(const QPointF& lonLat) const;
     void zoomIn(const QPointF& center);
     void zoomOut(const QPointF& center);
+    void setSize(const BoundingBox& bb);
     void changeSize(int nord, int east, int south, int west);
     void changeOverlays(const QList<Layer>& overlays);
     QList<Layer>* overlays() { return &myOverlays; }

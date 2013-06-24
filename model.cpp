@@ -82,6 +82,16 @@ bool Model::isInMap(const QPointF &lonLat) const {
     return p.x() >= myX && p.x() < myX+myWidth && p.y() >= myY && p.y() < myY+myHeight;
 }
 
+void Model::setSize(const BoundingBox& bbox) {
+    QPoint p0 = Model::lonLat2Tile(bbox.p0(), myZoom);
+    QPoint p1 = Model::lonLat2Tile(bbox.p1(), myZoom);
+    myX = p0.x();
+    myY = p1.y();
+    myWidth = p1.x()-p0.x()+1;
+    myHeight = p0.y()-p1.y()+1;
+    emit mapChanged();
+}
+
 void Model::changeSize(int north, int east, int south, int west) {
     if (myWidth+west+east < 2 || myHeight+north+south < 2)
         return;
@@ -101,11 +111,6 @@ void Model::changeOverlays(const QList<Layer>&  overlays) {
 }
 
 QPixmap *Model::getPixmap(const QString &key) {
-    if (myPixmaps.size() > 2000) {
-        for (int i = 0; i < 1000; i++) {
-            myPixmaps.removeFirst();
-        }
-    }
     foreach(PixmapEntry e, myPixmaps) {
         if (e.key() == key)
             return e.pixmap();
@@ -114,6 +119,11 @@ QPixmap *Model::getPixmap(const QString &key) {
 }
 
 void Model::savePixmap(const QString &key, QPixmap *pixmap) {
+    if (myPixmaps.size() > 2000) {
+        for (int i = 0; i < 500; i++) {
+            myPixmaps.removeFirst();
+        }
+    }
     myPixmaps.append(PixmapEntry(key, pixmap));
 }
 

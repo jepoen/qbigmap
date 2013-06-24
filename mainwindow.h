@@ -70,6 +70,7 @@ private:
     QAction *trackFromGpsAction;
     QAction *loadTrackAction;
     QAction *saveTrackAction;
+    QAction *mapToTrackAction;
     QAction *moveTrackPosAction;
     QAction *deleteTrackAction;
     QAction *delTrackPartAction;
@@ -168,6 +169,7 @@ private slots:
     void readTrackFromGps();
     void saveTrack();
     void deleteTrack();
+    void mapToTrack();
     GpxPointList selectTrackSegments(const Gpx& gpx);
     void incTrackPos();
     void dIncTrackPos();

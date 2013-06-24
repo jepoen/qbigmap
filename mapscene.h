@@ -2,6 +2,7 @@
 #define MAPSCENE_H
 
 #include <QList>
+#include <QMap>
 #include <QString>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
@@ -134,11 +135,12 @@ private:
     QList<QGraphicsItem*> gridGroup;
     QList<QGraphicsItem*> trackGroup;
     QList<QGraphicsItem*> tileBoundGroup;
+    QMap<QString, QGraphicsPixmapItem*> myPixmaps;
     HttpGet getter;
     QList<TileRequest> requests;
     QProgressDialog *progressDlg;
-    QPixmap *getPixmap(const QString& key);
-    void addPixmap(QPixmap *pixmap, int ix, int iy, int z);
+
+    void addPixmap(const QString &key, QPixmap *pixmap, int ix, int iy, int z);
     void getNextTile();
     void redrawLayer(const Layer& layer, int z);
 public:
@@ -158,6 +160,7 @@ public:
     void hideTrack(bool showTrackLine);
     void showTrack();
     bool isShowTrack() const { return myTrackItem != NULL; }
+    QGraphicsPixmapItem *getPixmap(const QString& key);
 
 private slots:
     void tileLoaded(bool error);

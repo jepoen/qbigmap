@@ -309,7 +309,7 @@ void MapScene::redrawLayer(const Layer& layer, int z) {
                      .replace(QString("$x"), QString::number(cx));
             QPixmap *px = myModel->getPixmap(key);
             if (px != NULL) {
-                addPixmap(px, ix*256, iy*256, z);
+                addPixmap(key, px, ix*256, iy*256, z);
                 continue;
             }
             requests.append(TileRequest(key, QPoint(ix*256, iy*256), z));
@@ -326,6 +326,7 @@ void MapScene::redraw() {
     myRoutePointItems.clear();
     myTrackPointItems.clear();
     myWaypointItems.clear();
+    myPixmaps.clear();
     myTrackItem = NULL;
     myTrackPosItem = NULL;
     myRouteItem = NULL;
@@ -347,12 +348,18 @@ void MapScene::redraw() {
     getNextTile();
 }
 
-void MapScene::addPixmap(QPixmap *pixmap, int ix, int iy, int z) {
+QGraphicsPixmapItem *MapScene::getPixmap(const QString &key) {
+    if (myPixmaps.contains(key)) return myPixmaps.value(key);
+    return 0;
+}
+
+void MapScene::addPixmap(const QString&key, QPixmap *pixmap, int ix, int iy, int z) {
     if (pixmap->isNull()) return;
     QGraphicsPixmapItem *it = new QGraphicsPixmapItem(*pixmap);
     it->setOffset(ix, iy);
     it->setZValue(z);
     addItem(it);
+    myPixmaps.insert(key, it);
 }
 
 void MapScene::getNextTile() {
@@ -397,7 +404,7 @@ void MapScene::tileLoaded(bool error) {
             qDebug()<<"...loaded"<<res;
             if (res) {
                 myModel->savePixmap(req.key(), pixmap);
-                addPixmap(pixmap, p.x(), p.y(), req.z());
+                addPixmap(req.key(), pixmap, p.x(), p.y(), req.z());
             }
             else {
                 delete pixmap;

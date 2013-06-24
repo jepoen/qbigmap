@@ -184,6 +184,8 @@ void MainWindow::createActions() {
     connect(loadTrackAction, SIGNAL(triggered()), this, SLOT(loadGpx()));
     saveTrackAction = new QAction(QIcon(":/icons/disk.png"), tr("Save..."), this);
     connect(saveTrackAction, SIGNAL(triggered()), this, SLOT(saveTrack()));
+    mapToTrackAction = new QAction(tr("Extend Map to track"), this);
+    connect(mapToTrackAction, SIGNAL(triggered()), this, SLOT(mapToTrack()));
     moveTrackPosAction = new QAction(tr("Select Track Position"), functionActionGroup);
     moveTrackPosAction->setCheckable(true);
     connect(moveTrackPosAction, SIGNAL(triggered()), view, SLOT(setMoveTrackPosFunction()));
@@ -336,6 +338,7 @@ void MainWindow::createActions() {
 
 void MainWindow::enableTrackActions(bool enable) {
     saveTrackAction->setEnabled(enable);
+    mapToTrackAction->setEnabled(enable);
     saveTrackProfileAction->setEnabled(enable);
     moveTrackPosAction->setEnabled(enable);
     firstTrackPosAction->setEnabled(enable);
@@ -408,6 +411,7 @@ void MainWindow::createMenuBar() {
     QMenu *mTrack = menuBar()->addMenu(tr("&Track"));
     mTrack->addAction(trackFromGpsAction);
     mTrack->addAction(loadTrackAction);
+    mTrack->addAction(mapToTrackAction);
     mTrack->addAction(saveTrackAction);
     mTrack->addAction(saveTrackProfileAction);
     mTrack->addAction(trackSimplifyAction);
@@ -572,12 +576,14 @@ void MainWindow::paintTiles(QPainter *painter, bool showOverlays) {
                      .replace(QString("$y"), QString::number(model->y()+iy))
                      .replace(QString("$x"), QString::number(model->x()+ix));
             qDebug()<<"key: "<<key;
-            QPixmap *px = model->getPixmap(key);
-            if (px == NULL) {
+            //QPixmap *px = model->getPixmap(key);
+            const QGraphicsPixmapItem *it = scene->getPixmap(key);
+            if (it == NULL) {
                 qDebug()<<"key "<<key<<" not found";
                 continue;
             }
-            painter->drawPixmap(QRect(ix*256, iy*256, 256, 256), *px);
+            QPixmap px = it->pixmap();
+            painter->drawPixmap(QRect(ix*256, iy*256, 256, 256), px);
             if (!showOverlays)
                 continue;
             foreach(Layer ly, *overlays) {
@@ -586,12 +592,13 @@ void MainWindow::paintTiles(QPainter *painter, bool showOverlays) {
                          .replace(QString("$y"), QString::number(model->y()+iy))
                          .replace(QString("$x"), QString::number(model->x()+ix));
                 qDebug()<<"key: "<<key;
-                QPixmap *px = model->getPixmap(key);
-                if (px == NULL) {
+                const QGraphicsPixmapItem *it = scene->getPixmap(key);
+                if (it == NULL) {
                     qDebug()<<"key "<<key<<" not found";
                     continue;
                 }
-                painter->drawPixmap(QRect(ix*256, iy*256, 256, 256), *px);
+                QPixmap px = it->pixmap();
+                painter->drawPixmap(QRect(ix*256, iy*256, 256, 256), px);
             }
         }
     }
@@ -731,6 +738,7 @@ QPixmap* MainWindow::createPixmap() {
     }
     QPixmap *pixmap = new QPixmap(w, h);
     QPainter painter(pixmap);
+    painter.fillRect(QRect(0, 0, w, h), QBrush(Qt::white));
     painter.translate(-x0, -y0);
     paintTiles(&painter, showOverlays);
     if (showGrid) {
@@ -788,7 +796,9 @@ void MainWindow::output(QPrinter *device) {
         return;
     }
     QPainter painter(device);
+    painter.setFont(QFont("SansSerif", 12));
     QRectF target(0, 0, dw*tw, dh*th);
+    painter.fillRect(target, QBrush(Qt::white));
     for (int ix = 0; ix < pagesx; ix++) {
         for (int iy = 0; iy < pagesy; iy++) {
             qDebug()<<"Page "<<ix<<","<<iy;
@@ -796,6 +806,8 @@ void MainWindow::output(QPrinter *device) {
                 device->newPage();
             }
             painter.drawPixmap(target, *pixmap, QRectF(ix*dw, iy*dh, dw, dh));
+            painter.drawText(QRectF(0, th*dh+20, 5*dpix, 0.2*dpiy),
+                             tr("Page %1%2").arg(char('A'+iy)).arg(ix+1));
             painter.drawText(QRectF(0, device->height()-0.2*dpiy, 5*dpix, 0.2*dpiy),
                                  tr("Data by www.openstreetmap.org"));
         }
@@ -1021,6 +1033,11 @@ void MainWindow::loadGpx() {
         model->routeSetNew(fileName, gpx.routeName(), gpx.routePoints());
     }
     view->centerView();
+}
+
+void MainWindow::mapToTrack() {
+    model->setSize(model->track().boundingBox());
+    model->setTrackPos(model->trackPos());
 }
 
 void MainWindow::saveTrack() {
