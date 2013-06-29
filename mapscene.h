@@ -108,12 +108,13 @@ class PhotoItem: public QGraphicsItem {
 private:
     QPointF myPoint;
     QPainterPath myPath;
-
+    QRectF myBoundingRect;
     QPainterPath createPath();
 public:
     enum {Type = UserType + 7};
     explicit PhotoItem(const QPointF& point, QGraphicsItem *parent = 0);
-    QRectF boundingRect() const;
+    QRectF boundingRect() const { return myBoundingRect; }
+    QPainterPath shape() const { return myPath; }
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
     void setPoint(const QPointF& point);
 };
@@ -129,6 +130,8 @@ private:
     RouteItem *myRouteItem;
     QList<RoutePointItem*> myRoutePointItems;
     QList<WaypointItem*> myWaypointItems;
+    QList<QPointF> myPhotoCoord; // only one entry!
+    PhotoItem *myPhotoItem;
     bool myShowGrid;
     bool myShowTileBounds;
     bool myShowTrackBb;
@@ -161,6 +164,8 @@ public:
     void showTrack();
     bool isShowTrack() const { return myTrackItem != NULL; }
     QGraphicsPixmapItem *getPixmap(const QString& key);
+    void showPhotoItem(const QPointF& pos);
+    void hidePhotoItem();
 
 private slots:
     void tileLoaded(bool error);
@@ -174,6 +179,7 @@ public slots:
     void redrawRoute();
     void changeRoutePos(int);
     void redrawWaypoints();
+    void redrawPhoto();
 };
 
 #endif // MAPSCENE_H

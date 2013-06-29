@@ -246,6 +246,7 @@ PhotoItem::PhotoItem(const QPointF &point, QGraphicsItem *parent) :
 {
     setZValue(10);
     myPath = createPath();
+    myBoundingRect = myPath.boundingRect().adjusted(1, 1, 1, 1);
 }
 
 QPainterPath PhotoItem::createPath() {
@@ -256,10 +257,6 @@ QPainterPath PhotoItem::createPath() {
     path.moveTo(myPoint.x()-10, myPoint.y()+5);
     path.lineTo(myPoint.x()+10, myPoint.y()-5);
     return path;
-}
-
-QRectF PhotoItem::boundingRect() const {
-    return QRectF(myPoint.x()-11, myPoint.y()-6, 22, 12);
 }
 
 void PhotoItem::paint(QPainter *painter, const QStyleOptionGraphicsItem */*option*/, QWidget */*widget*/) {
@@ -275,9 +272,10 @@ void PhotoItem::setPoint(const QPointF &point) {
 MapScene::MapScene(Model *model, QObject *parent) :
         QGraphicsScene(parent),
         myModel(model),
-        myTrackItem(NULL),
-        myTrackPosItem(NULL),
-        myRouteItem(NULL),
+        myTrackItem(0),
+        myTrackPosItem(0),
+        myRouteItem(0),
+        myPhotoItem(0),
         myShowGrid(true),
         myShowTileBounds(false),
         myShowTrackBb(false)
@@ -330,6 +328,7 @@ void MapScene::redraw() {
     myTrackItem = NULL;
     myTrackPosItem = NULL;
     myRouteItem = NULL;
+    myPhotoItem = 0;
     int w = myModel->width();
     int h = myModel->height();
     progressDlg = new QProgressDialog(tr("Download tiles"), tr("&Cancel"), 0, w*h);
@@ -387,6 +386,7 @@ void MapScene::getNextTile() {
     redrawTileBounds();
     redrawRoute();
     redrawWaypoints();
+    redrawPhoto();
     update();
 }
 
@@ -591,6 +591,17 @@ void MapScene::showTrack() {
     }
 }
 
+void MapScene::showPhotoItem(const QPointF &pos) {
+    myPhotoCoord.clear();
+    myPhotoCoord.push_back(pos);
+    redrawPhoto();
+}
+
+void MapScene::hidePhotoItem() {
+    myPhotoCoord.clear();
+    redrawPhoto();
+}
+
 void MapScene::redrawRoute() {
     QPolygonF points;
     qDeleteAll(myRoutePointItems);
@@ -648,4 +659,13 @@ void MapScene::redrawWaypoints() {
         addItem(it);
         myWaypointItems.append(it);
     }
+}
+
+void MapScene::redrawPhoto() {
+    delete myPhotoItem;
+    myPhotoItem = 0;
+    if (myPhotoCoord.size() == 0) return;
+    QPointF pt = myModel->lonLat2Scene(myPhotoCoord[0]);
+    myPhotoItem = new PhotoItem(pt);
+    addItem(myPhotoItem);
 }

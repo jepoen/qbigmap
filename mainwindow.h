@@ -190,6 +190,7 @@ private slots:
     void showPhotoWidget();
     void enableShowPhoto(bool);
     //void hidePhotos();
+    void selectPhotoPos(const QModelIndex& index);
     void selectPhotoPos(QListWidgetItem* item);
     void showPhotoData(QListWidgetItem *item);
     void showTrackPois();

@@ -122,6 +122,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(view, SIGNAL(mouseGeoPos(QPointF)), this, SLOT(showGeoPos(QPointF)));
     connect(photoList, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)), this, SLOT(showPhotoData(QListWidgetItem*)));
     connect(photoList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(showPhotoData(QListWidgetItem*)));
+    connect(photoList, SIGNAL(activated(QModelIndex)), this, SLOT(selectPhotoPos(QModelIndex)));
     connect(photoList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(selectPhotoPos(QListWidgetItem*)));
     connect(bPhotoOffset, SIGNAL(clicked()), this, SLOT(setPhotoOffset()));
     connect(trackPoiListView, SIGNAL(activated(QModelIndex)), this, SLOT(selectTrackPoi(QModelIndex)));
@@ -1321,9 +1322,10 @@ void MainWindow::showPhotoData(QListWidgetItem *item) {
     Photo photo(filename);
     QPixmap thumb = photo.pixmap();
     photoThumb->setPixmap(thumb);
+    scene->hidePhotoItem();
     if (item->data(PHOTO_COORD).isValid()) {
-        // TODO
         qDebug()<<"Photo coord: "<<item->data(PHOTO_COORD).toPointF();
+        scene->showPhotoItem(item->data(PHOTO_COORD).toPointF());
     }
     //photoThumb->setText(timestamp.toString());
 //    int idx = item->data(PHOTO_TRACKIDX).toInt();
@@ -1339,6 +1341,10 @@ void MainWindow::selectPhotoPos(QListWidgetItem *item) {
     int pos = model->track().nearest(timestamp);
     int diff = model->track().trackPoint(pos).timestamp().secsTo(timestamp);
     if (abs(diff) < 300) model->setTrackPos(pos);
+}
+
+void MainWindow::selectPhotoPos(const QModelIndex& index) {
+    selectPhotoPos(photoList->item(index.row()));
 }
 
 void MainWindow::setPhotoOffset() {
@@ -1387,6 +1393,9 @@ void MainWindow::geoTagPhotos() {
         Photo photo(fileName);
         qDebug()<<"photo coord: "<<coord;
         photo.setGeoPos(coord);
+        it->setData(PHOTO_COORD, photo.coord());
+        it->setIcon(QIcon(":/icons/world.png"));
+        it->setToolTip(QString("%1 (geotagged)").arg(photo.filename()));
     }
 }
 
