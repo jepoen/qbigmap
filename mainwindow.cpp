@@ -256,6 +256,8 @@ void MainWindow::createActions() {
     connect(saveRouteProfileAction, SIGNAL(triggered()), this, SLOT(saveRouteProfile()));
     routeAddSrtmEleAction = new QAction(tr("Add SRTM elevation"), this);
     connect(routeAddSrtmEleAction, SIGNAL(triggered()), this, SLOT(routeAddSrtmEle()));
+    mapToRouteAction = new QAction(tr("Extend Map to Route"), this);
+    connect(mapToRouteAction, SIGNAL(triggered()), this, SLOT(mapToRoute()));
     openPhotoAction = new QAction(tr("Open photos..."), this);
     connect(openPhotoAction, SIGNAL(triggered()), this, SLOT(openPhotos()));
     showPhotoAction = new QAction(tr("Show photo list"), this);
@@ -430,6 +432,7 @@ void MainWindow::createMenuBar() {
     mTrack->addAction(editTrackPointAction);
     mTrack->addAction(deleteTrackPosAction);
     QMenu *mGpx = menuBar()->addMenu(tr("&Route/Waypoint"));
+    mGpx->addAction(mapToRouteAction);
     mGpx->addAction(newWaypointAction);
     mGpx->addAction(newRoutePointAction);
     mGpx->addAction(moveGpxPointAction);
@@ -1222,6 +1225,7 @@ void MainWindow::saveRoute() {
     GpxPointList *wpts = 0;
     if (dlg.isWaywaypoints()) wpts = model->wptPtr();
     model->routePtr()->setName(name);
+    model->route().setFileName(filename);
     qDebug()<<"waypoints: "<<dlg.isWaywaypoints()<<" ptr: "<<wpts;
     model->routePtr()->writeXml(&file, wpts);
     file.close();
@@ -1249,6 +1253,11 @@ void MainWindow::saveRouteProfile() {
     GpxProfileDlg dlg(*model->route().points(), &settings);
     if (dlg.exec() != QDialog::Accepted) return;
     dlg.pixmap()->save(fileName);
+}
+
+void MainWindow::mapToRoute() {
+    if (model->route().isEmpty()) return;
+    model->setSize(model->route().boundingBox());
 }
 
 void MainWindow::run(const QString& path, const QStringList& params) {

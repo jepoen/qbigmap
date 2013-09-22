@@ -96,6 +96,7 @@ private:
     QAction *delRouteAction;
     QAction *routeAddSrtmEleAction;
     QAction *saveRouteProfileAction;
+    QAction *mapToRouteAction;
     QAction *openPhotoAction;
     QAction *showPhotoAction;
     QAction *fixPhotoTimestampAction;
@@ -186,6 +187,7 @@ private slots:
     void delRoute();
     void saveRouteProfile();
     void routeAddSrtmEle();
+    void mapToRoute();
     void openPhotos();
     void showPhotoWidget();
     void enableShowPhoto(bool);

@@ -124,6 +124,8 @@ void Photo::setGeoPos(const QPointF &pos) {
     exifData["Exif.GPSInfo.GPSLongitude"] = gps.lonStr().toStdString();
     image->setExifData(exifData);
     image->writeMetadata();
+    myHasCoord = true;
+    myCoord = gps.coord();
 }
 
 bool operator<(const Photo& a, const Photo& b) {

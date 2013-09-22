@@ -25,6 +25,7 @@ public:
     const QString name() const { return myName; }
     void setName(const QString& name) { myName = name; }
     bool isEmpty() const { return myPoints.size() == 0; }
+    BoundingBox boundingBox() const { return Gpx::boundingBox(myPoints); }
     void setRoutePoints(const GpxPointList& points) { myPoints = points; }
     void newRoutePoint(const GpxPoint& point);
     void delRoutePoint(int idx);
