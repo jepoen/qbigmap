@@ -46,6 +46,10 @@ Gpx::Gpx(const QString &fileName) :
     readXml(fileName);
 }
 
+bool Gpx::isNull() const {
+    return myRoutePoints.size() == 0 && myWayPoints.size() == 0 && myTrackSegments.size() == 0;
+}
+
 void Gpx::readXml(const QString& fileName) {
     QString errorStr;
     int errorLine, errorCol;

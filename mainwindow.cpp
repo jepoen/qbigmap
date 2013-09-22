@@ -113,9 +113,6 @@ MainWindow::MainWindow(QWidget *parent)
     createOverlayActions();
     enableTrackActions(false);
     enablePhotoActions(false);
-    // should draw the scene
-    changeOverlays();
-    toggleGrid();
     connect(model, SIGNAL(mapChanged()), this, SLOT(updateModelStatus()));
     connect(model, SIGNAL(trackPosChanged(int)), this, SLOT(changeTrackPos(int)));
     connect(model, SIGNAL(trackPosChanged(int)), view, SLOT(changeTrackPos(int)));
@@ -127,6 +124,17 @@ MainWindow::MainWindow(QWidget *parent)
     connect(bPhotoOffset, SIGNAL(clicked()), this, SLOT(setPhotoOffset()));
     connect(trackPoiListView, SIGNAL(activated(QModelIndex)), this, SLOT(selectTrackPoi(QModelIndex)));
     connect(model, SIGNAL(trackChanged()), myTrackPoiModel, SLOT(updatePointList()));
+    show();
+    bool hasGpx = false;
+    QStringList args = QCoreApplication::arguments();
+    if (args.size() > 1) {
+        hasGpx = loadGpxFile(args[args.size()-1]);
+    }
+    if (!hasGpx) {
+        // should draw the scene
+        changeOverlays();
+    }
+    toggleGrid();
     updateModelStatus();
 }
 
@@ -1012,9 +1020,14 @@ void MainWindow::loadGpx() {
     QString dir = settings.trackDir();
     QString fileName = QFileDialog::getOpenFileName(this, tr("Load GPX file"), dir,
                                                tr("GPX file (*.gpx)"));
-    if (fileName.isEmpty())
-        return;
+    if (!fileName.isEmpty()) {
+        if (loadGpxFile(fileName)) view->centerView();
+    }
+}
+
+bool MainWindow::loadGpxFile(const QString& fileName) {
     Gpx gpx(fileName);
+    if (gpx.isNull()) return false;
     if (gpx.trackSegments().size() > 0) {
         GpxPointList ptl = selectTrackSegments(gpx);
         if (ptl.size() > 0) {
@@ -1036,7 +1049,7 @@ void MainWindow::loadGpx() {
     if (gpx.routePoints().size() > 0) {
         model->routeSetNew(fileName, gpx.routeName(), gpx.routePoints());
     }
-    view->centerView();
+    return true;
 }
 
 void MainWindow::mapToTrack() {
@@ -1225,7 +1238,7 @@ void MainWindow::saveRoute() {
     GpxPointList *wpts = 0;
     if (dlg.isWaywaypoints()) wpts = model->wptPtr();
     model->routePtr()->setName(name);
-    model->route().setFileName(filename);
+    model->routePtr()->setFileName(filename);
     qDebug()<<"waypoints: "<<dlg.isWaywaypoints()<<" ptr: "<<wpts;
     model->routePtr()->writeXml(&file, wpts);
     file.close();

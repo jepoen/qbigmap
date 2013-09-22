@@ -110,6 +110,7 @@ private:
     GpxPointList xmlParseTrackSeg(const QDomElement& el);
 public:
     Gpx(const QString& fileName);
+    bool isNull() const;
     const QString& trackName() const { return myTrackName; }
     const TrackSegList& trackSegments() const { return myTrackSegments; }
     GpxPointList trackPoints() const;

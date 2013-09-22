@@ -144,6 +144,7 @@ private:
     void createStatusBar();
     void createProfileWidget();
     void createTrackPoiTable();
+    bool loadGpxFile(const QString& fileName);
     void output(QPrinter *device);
     void paintTiles(QPainter *painter, bool showOverlays);
     void paintTrack(QPainter *painter, bool showSym);
