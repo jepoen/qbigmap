@@ -28,7 +28,8 @@ private:
 public:
     static const QString baseUrl;
     SrtmEntry(int lon, int lat, const QString& srtmDir):
-        myLon(lon), myLat(lat), myData(0), myFile(0)
+        myLon(lon), myLat(lat), myData(0), myFile(0),
+        progressDlg(0)
     {
         readFile(srtmDir);
     }

@@ -135,6 +135,7 @@ private:
     void readSettings();
     void createPhotoWidget();
     void createActions();
+    void updateTitle();
     void enableTrackActions(bool enable);
     void enablePhotoActions(bool enable);
     void createBaselayerActions();

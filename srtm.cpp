@@ -78,6 +78,10 @@ QString SrtmEntry::subdir() const {
 void SrtmEntry::download() {
     QString url = QString("%1%2.zip").arg(baseUrl).arg(subdir());
     qDebug()<<url;
+    if (progressDlg != 0) {
+        qDebug()<<"SrtmEntry::download() conflict";
+        exit(1);
+    }
     progressDlg = new QProgressDialog();
     progressDlg->setLabelText(tr("Download %1").arg(url));
     myReply = netManager.get(QNetworkRequest(QUrl(url)));
@@ -89,6 +93,7 @@ void SrtmEntry::download() {
     connect(myReply, SIGNAL(readyRead()), this, SLOT(httpReadyRead()));
     connect(myReply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(updateProgress(qint64, qint64)));
     connect(this, SIGNAL(finished()), &pause, SLOT(quit()));
+    progressDlg->show();
     pause.exec();
     qDebug()<<"download complete";
 }

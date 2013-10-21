@@ -128,7 +128,8 @@ MainWindow::MainWindow(QWidget *parent)
     bool hasGpx = false;
     QStringList args = QCoreApplication::arguments();
     if (args.size() > 1) {
-        hasGpx = loadGpxFile(args[args.size()-1]);
+        QFileInfo fi(args[args.size()-1]);
+        hasGpx = loadGpxFile(fi.absoluteFilePath());
     }
     if (!hasGpx) {
         // should draw the scene
@@ -557,6 +558,16 @@ void MainWindow::createTrackPoiTable() {
     trackPoiWidget->hide();
 }
 
+void MainWindow::updateTitle() {
+    if (!model->track().fileName().isEmpty()) {
+        setWindowTitle(tr("Track %1 (QBigMap)").arg(QFileInfo(model->track().fileName()).fileName()));
+    } else if (!model->route().fileName().isEmpty()) {
+        setWindowTitle(tr("Route %1 (QBigMap)").arg(QFileInfo(model->route().fileName()).fileName()));
+    } else {
+        setWindowTitle(QString("QBigMap"));
+    }
+}
+
 void MainWindow::showImage(HttpGet *getter) {
     qDebug()<<"showImage";
     QPixmap pixmap;
@@ -934,6 +945,7 @@ void MainWindow::searchPlace() {
 void MainWindow::updateModelStatus() {
     lModelStatus->setText(tr("width: %1 height: %2 zoom: %3")
                           .arg(model->width()).arg(model->height()).arg(model->zoom()));
+    updateTitle();
 }
 
 void MainWindow::showGeoPos(const QPointF &pos) {
@@ -1022,6 +1034,7 @@ void MainWindow::loadGpx() {
                                                tr("GPX file (*.gpx)"));
     if (!fileName.isEmpty()) {
         if (loadGpxFile(fileName)) view->centerView();
+        updateTitle();
     }
 }
 
@@ -1042,12 +1055,16 @@ bool MainWindow::loadGpxFile(const QString& fileName) {
             model->setTrackPos(0);
             profileWidget->show();
         }
+        if (gpx.routePoints().size() > 0) {
+            QMessageBox::warning(this, tr("Duplicate entry"),
+                                 tr("File contains track and route.\nRoute will be ignored."),
+                                 QMessageBox::Ok);
+        }
+    } else if (gpx.routePoints().size() > 0) {
+        model->routeSetNew(fileName, gpx.routeName(), gpx.routePoints());
     }
     if (gpx.wayPoints().size() > 0) {
         model->waypointsSetNew(gpx.wayPoints());
-    }
-    if (gpx.routePoints().size() > 0) {
-        model->routeSetNew(fileName, gpx.routeName(), gpx.routePoints());
     }
     return true;
 }
@@ -1081,6 +1098,7 @@ void MainWindow::saveTrack() {
         qDebug()<<settings.gpsbabel()<<params;
         run(settings.gpsbabel(), params);
     }
+    updateTitle();
 }
 
 GpxPointList MainWindow::selectTrackSegments(const Gpx& gpx) {
@@ -1251,6 +1269,7 @@ void MainWindow::saveRoute() {
         qDebug()<<settings.gpsbabel()<<params;
         run(settings.gpsbabel(), params);
     }
+    updateTitle();
 }
 
 void MainWindow::routeAddSrtmEle() {
