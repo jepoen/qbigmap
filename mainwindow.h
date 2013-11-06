@@ -197,7 +197,7 @@ private slots:
     void selectPhotoPos(const QModelIndex& index);
     void selectPhotoPos(QListWidgetItem* item);
     void showPhotoData(QListWidgetItem *item);
-    void showTrackPois();
+    void showTrackPois(bool val);
     void showTrackProfile();
     void showPhotoDir(const QString& dir);
     void setPhotoOffset();

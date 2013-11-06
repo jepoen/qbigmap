@@ -123,6 +123,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(photoList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(selectPhotoPos(QListWidgetItem*)));
     connect(bPhotoOffset, SIGNAL(clicked()), this, SLOT(setPhotoOffset()));
     connect(trackPoiListView, SIGNAL(activated(QModelIndex)), this, SLOT(selectTrackPoi(QModelIndex)));
+    connect(trackPoiWidget, SIGNAL(visibilityChanged(bool)), showTrackPoiAction, SLOT(setChecked(bool)));
     connect(model, SIGNAL(trackChanged()), myTrackPoiModel, SLOT(updatePointList()));
     show();
     bool hasGpx = false;
@@ -200,6 +201,7 @@ void MainWindow::createActions() {
     moveTrackPosAction->setCheckable(true);
     connect(moveTrackPosAction, SIGNAL(triggered()), view, SLOT(setMoveTrackPosFunction()));
     deleteTrackAction = new QAction(tr("Delete track"), this);
+    connect(deleteTrackAction, SIGNAL(triggered()), this, SLOT(deleteTrack()));
     firstTrackPosAction = new QAction(QIcon(":/icons/resultset_first.png"), tr("First Track position"), this);
     connect(firstTrackPosAction, SIGNAL(triggered()), this, SLOT(firstTrackPos()));
     lastTrackPosAction = new QAction(QIcon(":/icons/resultset_last.png"), tr("Last Track position"), this);
@@ -279,7 +281,8 @@ void MainWindow::createActions() {
     //hidePhotoAction = new QAction(tr("Hide photos"), this);
     //connect(hidePhotoAction, SIGNAL(triggered()), this, SLOT(hidePhotos()));
     showTrackPoiAction = new QAction(tr("Track POIs"), this);
-    connect(showTrackPoiAction, SIGNAL(triggered()), this, SLOT(showTrackPois()));
+    showTrackPoiAction->setCheckable(true);
+    connect(showTrackPoiAction, SIGNAL(triggered(bool)), this, SLOT(showTrackPois(bool)));
     showTrackProfileAction = new QAction(tr("Track Profile"), this);
     connect(showTrackProfileAction, SIGNAL(triggered()), this, SLOT(showTrackProfile()));
     typeActionGroup = new QActionGroup(this);
@@ -327,7 +330,6 @@ void MainWindow::createActions() {
     helpAction = new QAction(tr("Help"), this);
     connect(helpAction, SIGNAL(triggered()), this, SLOT(help()));
 
-    connect(deleteTrackAction, SIGNAL(triggered()), this, SLOT(deleteTrack()));
     connect(lastTrackPosAction, SIGNAL(triggered()), this, SLOT(lastTrackPos()));
     connect(redrawAction, SIGNAL(triggered()), scene, SLOT(redraw()));
     connect(addNorthAction, SIGNAL(triggered()), this, SLOT(addNorth()));
@@ -1048,7 +1050,8 @@ bool MainWindow::loadGpxFile(const QString& fileName) {
             // TODO: SIGNAL->SLOT
             qDebug()<<"updatePointList track";
             myTrackPoiModel->updatePointList();
-            if (myTrackPoiModel->rowCount(QModelIndex()) > 0) showTrackPois();
+            qDebug()<<"POIS: "<<myTrackPoiModel->rowCount(QModelIndex());
+            if (myTrackPoiModel->rowCount(QModelIndex()) > 0) showTrackPois(true);
             enableTrackActions(true);
             profileView->setVisible(true);
             trackToolBar->setVisible(true);
@@ -1129,7 +1132,9 @@ void MainWindow::deleteTrack() {
         model->delTrack();
         trackToolBar->setVisible(false);
         profileWidget->hide();
+        showTrackPois(false);
         enableTrackActions(false);
+        updateTitle();
     }
 }
 
@@ -1180,19 +1185,24 @@ void MainWindow::simplifyTrack() {
     TrackSimplifyDlg dlg(scene);
     if (dlg.exec() != QDialog::Accepted) return;
     if (dlg.action() == TrackSimplifyDlg::REPLACE) {
-        model->trackSetNew(dlg.fileName(), model->track().name()+" (S)", dlg.simpleTrack()->trackPoints());
+        saveTrack();
+        qDebug()<<"simplify 1";
+        model->trackSetNew(model->track().simpleFileName(), model->track().name()+" (S)", dlg.simpleTrackPoints());
+        qDebug()<<"simplify 2";
+        saveTrack();
     } else if (dlg.action() == TrackSimplifyDlg::EXPORT) {
-        QFileInfo fi(dlg.fileName());
-        TrackExportDlg expdlg(settings.exportDir()+"/"+fi.fileName(), this);
+        QFileInfo fi(model->track().simpleFileName());
+        TrackExportDlg expdlg(settings.exportDir(), fi.fileName(), this);
         if (model->waypoints().size() > 0) expdlg.setWpts(true);
         if (expdlg.exec() == QDialog::Accepted) {
+            Track simpleTrack(dlg.simpleTrackPoints());
             QFile file(expdlg.fileName());
             if (!file.open(QFile::WriteOnly|QFile::Text)) return;
-            if (expdlg.hasWpts()) dlg.simpleTrack()->writeModifiedXml(&file, model->waypoints(), expdlg.isSimple());
-            else                  dlg.simpleTrack()->writeModifiedXml(&file, GpxPointList(), expdlg.isSimple());
+            if (expdlg.hasWpts()) simpleTrack.writeModifiedXml(&file, model->waypoints(), expdlg.isSimple());
+            else                  simpleTrack.writeModifiedXml(&file, GpxPointList(), expdlg.isSimple());
             file.close();
             if (expdlg.isOsm()) {
-                QPointF center = dlg.simpleTrack()->boundingBox().center();
+                QPointF center = simpleTrack.boundingBox().center();
                 OsmMap map(center, model->zoom());
                 map.writeTrackFile(expdlg.osmFileName(), expdlg.fileName(), expdlg.title(), settings.mapIconList());
             }
@@ -1235,6 +1245,7 @@ void MainWindow::delRoute() {
                               tr("Delete this route (%1 points)?").arg(routeSize),
                               QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
         model->routePtr()->delRoute();
+        updateTitle();
     }
 }
 
@@ -1445,8 +1456,9 @@ void MainWindow::showPhotoDir(const QString &dir) {
     lPhotoDir->setText(dir);
 }
 
-void MainWindow::showTrackPois() {
-    trackPoiWidget->show();
+void MainWindow::showTrackPois(bool val) {
+    if (val) trackPoiWidget->show();
+    else     trackPoiWidget->hide();
 }
 
 void MainWindow::showTrackProfile() {
@@ -1467,4 +1479,5 @@ void MainWindow::help() {
 
 void MainWindow::closeEvent(QCloseEvent *evt) {
     settings.save(this);
+    evt->accept();
 }

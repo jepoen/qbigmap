@@ -232,3 +232,13 @@ void Track::clear() {
     myPos = -1;
     mySumDist = mySumDur = 0;
 }
+
+QString Track::simpleFileName() const {
+    int pos = myFileName.lastIndexOf(".");
+    if (pos >= 0) {
+        return myFileName.left(pos)+"_s.gpx";
+    }
+    else {
+        return myFileName+"_s.gpx";
+    }
+}

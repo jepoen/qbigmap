@@ -3,6 +3,7 @@
 
 #include <QDialog>
 
+class QAction;
 class QCheckBox;
 class QLabel;
 class QLineEdit;
@@ -12,18 +13,22 @@ class TrackExportDlg : public QDialog
 {
     Q_OBJECT
 private:
+    QAction *exportDirAction;
+    QLabel *eExportDir;
     QLabel *eTrkFile;
     QCheckBox *eHasWpts;
     QCheckBox *eOsm;
     QCheckBox *eSimple;
     QLineEdit *eTitle;
     QLabel *eOsmFile;
+    QString myExportDir;
     QString myTrackFileName;
 
 public:
-    explicit TrackExportDlg(const QString& trackFileName, QWidget *parent = 0);
+    explicit TrackExportDlg(const QString& exportDir, const QString& trackFileName, QWidget *parent = 0);
     QString title() const;
     QString fileName() const;
+    QString exportDir() const { return myExportDir; }
     QString osmFileName() const;
     bool isOsm() const;
     bool isSimple() const;
@@ -32,7 +37,7 @@ public:
 signals:
 
 private slots:
-    void selFileName();
+    void selExportDir();
 
 public slots:
     

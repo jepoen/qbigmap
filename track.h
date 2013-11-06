@@ -32,6 +32,7 @@ public:
     void setName(const QString& name) { myName = name; }
     const QString& fileName() const {return myFileName;}
     void setFileName(const QString& filename) { myFileName = filename; }
+    QString simpleFileName() const;
     bool isEmpty() const { return myTrackPoints.size() == 0; }
     void setPoints(const GpxPointList& points);
     const bool& changed() const { return myChanged; }

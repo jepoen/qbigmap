@@ -45,6 +45,7 @@ void Route::insertRoutePoint(int idx, const GpxPoint &point) {
 void Route::delRoute() {
     myPoints.clear();
     myDirty = false;
+    myFileName.clear();
     emit routeChanged();
 }
 

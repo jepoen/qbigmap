@@ -1,15 +1,21 @@
 #include <QtGui>
 #include "trackexportdlg.h"
 
-TrackExportDlg::TrackExportDlg(const QString &trackFileName, QWidget *parent) :
-    QDialog(parent), myTrackFileName(QFileInfo(trackFileName).absoluteFilePath())
+TrackExportDlg::TrackExportDlg(const QString &exportDir, const QString &trackFileName, QWidget *parent) :
+    QDialog(parent), myExportDir(exportDir), myTrackFileName(trackFileName)
 {
     QVBoxLayout *mainLayout = new QVBoxLayout();
     QGridLayout *ctrl = new QGridLayout();
-    QLabel *lTrkFile = new QLabel(tr("Track File:"));
-    ctrl->addWidget(lTrkFile, 0, 0);
-    eTrkFile = new QLabel(myTrackFileName);
-    ctrl->addWidget(eTrkFile, 0, 1);
+    QLabel *lExportDir = new QLabel(tr("E&xport Directory:"));
+    ctrl->addWidget(lExportDir, 0, 0);
+    eExportDir = new QLabel(myExportDir);
+    ctrl->addWidget(eExportDir, 0, 1);
+    exportDirAction = new QAction(QIcon(":/icons/disk.png"), tr("Select Export Directory"), this);
+    connect(exportDirAction, SIGNAL(triggered()), this, SLOT(selExportDir()));
+    QToolButton *bExportDir = new QToolButton();
+    bExportDir->setDefaultAction(exportDirAction);
+    lExportDir->setBuddy(bExportDir);
+    ctrl->addWidget(bExportDir, 0, 2);
     eHasWpts = new QCheckBox("Add &waypoints");
     ctrl->addWidget(eHasWpts, 1, 0, 1, 2);
     eOsm = new QCheckBox(tr("&OpenStreetMap export"));
@@ -56,19 +62,23 @@ QString TrackExportDlg::title() const {
 }
 
 QString TrackExportDlg::fileName() const {
-    return myTrackFileName;
+    QFileInfo fi(myTrackFileName);
+    return myExportDir+"/"+fi.fileName();
 }
 
 QString TrackExportDlg::osmFileName() const {
     QFileInfo fi(myTrackFileName);
-    return fi.absoluteDir().absoluteFilePath(QFileInfo(fi).baseName()+"_osm.html");
+    return myExportDir+"/"+fi.baseName()+"_osm.html";
 }
 
-void TrackExportDlg::selFileName() {
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Simple Track File"), myTrackFileName,
-                                                    tr("GPX Files (*.gpx)"));
+void TrackExportDlg::selExportDir() {
+    QString fileName = QFileDialog::getExistingDirectory(this,
+                                                         tr("HTML export Directory"),
+                                                         myExportDir);
     if (!fileName.isEmpty()) {
         //eFileName->setText(fileName);
+        myExportDir = fileName;
+        eExportDir->setText(myExportDir);
         eOsmFile->setText(osmFileName());
     }
     this->update();

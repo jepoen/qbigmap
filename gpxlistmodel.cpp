@@ -79,7 +79,8 @@ QVariant GpxListModel::data(const QModelIndex &index, int role) const {
 }
 
 int GpxListModel::rowCount(const QModelIndex &parent) const {
-    return myModel->track().trackPoints().size();
+//    return myModel->track().trackPoints().size();
+    return myPoiList.size();
 }
 
 void GpxListModel::updatePointList() {
