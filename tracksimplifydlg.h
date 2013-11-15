@@ -34,7 +34,6 @@ private:
     void initLine();
     QString getSimpleFileName(const QString& s);
     void redrawTrack();
-    void finish();
 
 public:
     enum {CANCEL, EXPORT, REPLACE};
@@ -48,6 +47,7 @@ private slots:
     void exportTrk();
     void replaceTrk();
     void cancel();
+    void finish();
 };
 
 #endif // TRACKSIMPLIFYDLG_H

@@ -1077,8 +1077,8 @@ void MainWindow::mapToTrack() {
     model->setTrackPos(model->trackPos());
 }
 
-void MainWindow::saveTrack() {
-    SaveRouteDlg dlg(SaveRouteDlg::TRACK, model->track().fileName(), model->track().name());
+void MainWindow::saveTrack(const QString& text) {
+    SaveRouteDlg dlg(SaveRouteDlg::TRACK, model->track().fileName(), model->track().name(), text, this);
     dlg.setWaypoints(model->waypoints().size() > 0);
     if (dlg.exec() != QDialog::Accepted) {
         return;
@@ -1185,11 +1185,11 @@ void MainWindow::simplifyTrack() {
     TrackSimplifyDlg dlg(scene);
     if (dlg.exec() != QDialog::Accepted) return;
     if (dlg.action() == TrackSimplifyDlg::REPLACE) {
-        saveTrack();
+        saveTrack(tr("Save original track"));
         qDebug()<<"simplify 1";
         model->trackSetNew(model->track().simpleFileName(), model->track().name()+" (S)", dlg.simpleTrackPoints());
         qDebug()<<"simplify 2";
-        saveTrack();
+        saveTrack("Save simplified track");
     } else if (dlg.action() == TrackSimplifyDlg::EXPORT) {
         QFileInfo fi(model->track().simpleFileName());
         TrackExportDlg expdlg(settings.exportDir(), fi.fileName(), this);
@@ -1250,7 +1250,8 @@ void MainWindow::delRoute() {
 }
 
 void MainWindow::saveRoute() {
-    SaveRouteDlg dlg(SaveRouteDlg::ROUTE, model->route().fileName(), model->route().name());
+    SaveRouteDlg dlg(SaveRouteDlg::ROUTE, model->route().fileName(), model->route().name(),
+                     tr("Save current route"), this);
     dlg.setWaypoints(model->waypoints().size() > 0);
     if (dlg.exec() != QDialog::Accepted) {
         return;

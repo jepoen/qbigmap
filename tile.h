@@ -2,8 +2,6 @@
 #define TILE_H
 #include <QString>
 
-const QString MAPYCZ = "http://mapserver.mapy.cz";
-
 class Tile
 {
 private:

@@ -19,7 +19,7 @@ private:
     QCheckBox *eUpload;
 public:
     enum {ROUTE, TRACK};
-    explicit SaveRouteDlg(int typ, const QString& fileName, const QString& name, QWidget *parent = 0);
+    explicit SaveRouteDlg(int typ, const QString& fileName, const QString& name, const QString& text, QWidget *parent = 0);
     const QString name() const;
     const QString fileName() const;
     bool isWaywaypoints() const;

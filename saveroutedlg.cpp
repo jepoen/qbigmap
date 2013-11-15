@@ -1,13 +1,16 @@
 #include <QtGui>
 #include "saveroutedlg.h"
 
-SaveRouteDlg::SaveRouteDlg(int typ, const QString& fileName, const QString &name, QWidget *parent) :
+SaveRouteDlg::SaveRouteDlg(int typ, const QString& fileName, const QString &name, const QString &text, QWidget *parent) :
     QDialog(parent), myTyp(typ)
 {
     QString titles[] = { tr("Save route"), tr("Save track") };
     QString names[]  = { tr("&Route name:"), tr("&Track name") };
     setWindowTitle(titles[typ]);
     QVBoxLayout *mainLayout = new QVBoxLayout();
+    QLabel *lText = new QLabel(QString("<b>%1</b>").arg(text));
+    lText->setAlignment(Qt::AlignCenter);
+    mainLayout->addWidget(lText);
     QGridLayout *controlLayout = new QGridLayout();
     QLabel *lName = new QLabel(names[typ]);
     controlLayout->addWidget(lName, 0, 0);

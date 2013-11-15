@@ -38,6 +38,7 @@ TrackSimplifyDlg::TrackSimplifyDlg(MapScene *scene, QWidget *parent) :
     setLayout(mainLayout);
     connect(eFailure, SIGNAL(valueChanged(int)), this, SLOT(simplify(int)));
     connect(box, SIGNAL(rejected()), this, SLOT(cancel()));
+    connect(this, SIGNAL(finished(int)), this, SLOT(finish()));
     initLine();
     simplify(0);
 }
@@ -79,17 +80,16 @@ void TrackSimplifyDlg::simplify(int val) {
 void TrackSimplifyDlg::finish() {
     delete myTrackItem;
     myTrackItem = 0;
-    emit accept();
 }
 
 void TrackSimplifyDlg::exportTrk() {
     myAction = EXPORT;
-    finish();
+    emit accept();
 }
 
 void TrackSimplifyDlg::replaceTrk() {
     myAction = REPLACE;
-    finish();
+    emit accept();
 }
 
 void TrackSimplifyDlg::redrawTrack() {
