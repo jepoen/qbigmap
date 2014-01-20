@@ -36,7 +36,10 @@ bool HttpGet::getFile(const QUrl &url, const TileRequest &request, QProgressDial
         return false;
     }
     myBuffer->open(QBuffer::ReadWrite);
-    reply = netManager.get(QNetworkRequest(url));
+    QNetworkRequest req(url);
+    //req.setRawHeader("Accept", "*/*");
+    req.setRawHeader("User-Agent", "qbigmap/1.0");
+    reply = netManager.get(req);
     connect(reply, SIGNAL(finished()), this, SLOT(finished()));
     connect(reply, SIGNAL(readyRead()), this, SLOT(readData()));
     //connect(reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(changeState(qint64, qint64)));

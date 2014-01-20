@@ -551,13 +551,19 @@ void MainWindow::createTrackPoiTable() {
     QHeaderView *headerView = new QHeaderView(Qt::Horizontal, trackPoiListView);
     trackPoiListView->setHorizontalHeader(headerView);
     headerView->setDefaultAlignment(Qt::AlignLeft);
-    headerView->setResizeMode(0, QHeaderView::Stretch);
-    headerView->setResizeMode(1, QHeaderView::Fixed);
+    headerView->setStretchLastSection(true);
+    //headerView->setResizeMode(0, QHeaderView::Stretch);
+    //headerView->setResizeMode(1, QHeaderView::Fixed);
     headerView->resizeSection(1, 45);
-    headerView->setResizeMode(2, QHeaderView::Fixed);
-    headerView->resizeSection(2, 45);
+    //headerView->setResizeMode(2, QHeaderView::Fixed);
+    //headerView->resizeSection(2, 45);
     trackPoiWidget->setWidget(trackPoiListView);
     trackPoiWidget->hide();
+    connect(myTrackPoiModel, SIGNAL(layoutChanged()), this, SLOT(resizePoiTab()));
+}
+
+void MainWindow::resizePoiTab() {
+    trackPoiListView->resizeColumnToContents(0);
 }
 
 void MainWindow::updateTitle() {
@@ -1189,7 +1195,7 @@ void MainWindow::simplifyTrack() {
         qDebug()<<"simplify 1";
         model->trackSetNew(model->track().simpleFileName(), model->track().name()+" (S)", dlg.simpleTrackPoints());
         qDebug()<<"simplify 2";
-        saveTrack("Save simplified track");
+        saveTrack(tr("Save simplified track"));
     } else if (dlg.action() == TrackSimplifyDlg::EXPORT) {
         QFileInfo fi(model->track().simpleFileName());
         TrackExportDlg expdlg(settings.exportDir(), fi.fileName(), this);

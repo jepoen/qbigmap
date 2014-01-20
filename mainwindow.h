@@ -230,6 +230,7 @@ private slots:
     void editOverlays();
     void editSettings();
     void help();
+    void resizePoiTab();
 };
 
 #endif // MAINWINDOW_H

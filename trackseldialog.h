@@ -23,12 +23,15 @@ public:
 
 class TrackSelDialog : public QDialog
 {
+    Q_OBJECT
 private:
     TrackSelModel model;
     QTableView *eSegments;
 public:
     TrackSelDialog(QList<TrackSegInfo> segments, QWidget *parent = 0);
     QList<int> selectedRows();
+private slots:
+    void resizeTable();
 };
 
 #endif // TRACKSELDIALOG_H

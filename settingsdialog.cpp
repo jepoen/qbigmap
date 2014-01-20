@@ -338,9 +338,17 @@ IconTab::IconTab(Settings *settings, QWidget *parent) :
     tab = new QTableView();
     tab->setModel(&myModel);
     tab->verticalHeader()->hide();
+    tab->horizontalHeader()->setStretchLastSection(true);
     connect(tab, SIGNAL(clicked(QModelIndex)), this, SLOT(edit(QModelIndex)));
+    resizeTab();
+    connect(&myModel, SIGNAL(layoutChanged()), this, SLOT(resizeTab()));
     control->addWidget(tab, 0, 0);
     setLayout(control);
+}
+
+void IconTab::resizeTab() {
+    tab->resizeColumnToContents(0);
+    tab->resizeColumnToContents(1);
 }
 
 SettingsDialog::SettingsDialog(const Settings& settings, QWidget *parent) :

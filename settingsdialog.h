@@ -117,6 +117,7 @@ public:
     IconTab(Settings *settings, QWidget *parent = 0);
 private slots:
     void edit(const QModelIndex& index);
+    void resizeTab();
 };
 
 class SettingsDialog : public QDialog

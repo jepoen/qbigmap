@@ -93,16 +93,17 @@ TrackSelDialog::TrackSelDialog(QList<TrackSegInfo> segments, QWidget *parent) :
     eSegments->setModel(&model);
     eSegments->setSelectionMode(QAbstractItemView::MultiSelection);
     eSegments->setSelectionBehavior(QAbstractItemView::SelectRows);
-    eSegments->setMinimumSize(model.size());
-    eSegments->resizeColumnsToContents();
-    eSegments->resizeColumnsToContents();
-    eSegments->horizontalHeader()->stretchLastSection();
+    //eSegments->resizeColumnsToContents();
+    eSegments->horizontalHeader()->setStretchLastSection(true);
     eSegments->selectAll();
     mainLayout->addWidget(eSegments);
     QDialogButtonBox *box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
     mainLayout->addWidget(box);
     setLayout(mainLayout);
     //resize(model.size()+QSize(10, 60));
+    eSegments->setMinimumSize(model.size());
+    resizeTable();
+    connect(&model, SIGNAL(layoutChanged()), this, SLOT(resizeTable()));
     connect(box, SIGNAL(accepted()), this, SLOT(accept()));
     connect(box, SIGNAL(rejected()), this, SLOT(reject()));
 }
@@ -116,4 +117,8 @@ QList<int> TrackSelDialog::selectedRows() {
         }
     }
     return rows;
+}
+
+void TrackSelDialog::resizeTable() {
+    eSegments->resizeColumnsToContents();
 }
