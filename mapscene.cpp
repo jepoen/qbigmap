@@ -289,7 +289,7 @@ MapScene::MapScene(Model *model, QObject *parent) :
     connect(&getter, SIGNAL(done(bool)), this, SLOT(tileLoaded(bool)));
 }
 
-void MapScene::redrawLayer(const Layer& layer, int z) {
+void MapScene::redrawLayer(const Layer& layer, int z, const QMap<QString, QPixmap> &oldPixmaps) {
     int x = myModel->x();
     int y = myModel->y();
     int w = myModel->width();
@@ -305,8 +305,12 @@ void MapScene::redrawLayer(const Layer& layer, int z) {
             key = key.replace(QString("$z"), QString::number(myModel->zoom()))
                      .replace(QString("$y"), QString::number(cy))
                      .replace(QString("$x"), QString::number(cx));
-            QPixmap *px = myModel->getPixmap(key);
-            if (px != NULL) {
+            if (oldPixmaps.contains(key)) {
+                addPixmap(key, oldPixmaps.value(key), ix*256, iy*256, z);
+                continue;
+            }
+            QPixmap px = myModel->getPixmap(key);
+            if (!px.isNull()) {
                 addPixmap(key, px, ix*256, iy*256, z);
                 continue;
             }
@@ -324,6 +328,7 @@ void MapScene::redraw() {
     myRoutePointItems.clear();
     myTrackPointItems.clear();
     myWaypointItems.clear();
+    QMap<QString, QPixmap> oldPixmaps = myPixmaps;
     myPixmaps.clear();
     myTrackItem = NULL;
     myTrackPosItem = NULL;
@@ -336,29 +341,29 @@ void MapScene::redraw() {
     connect(progressDlg, SIGNAL(destroyed()), this, SLOT(cancelRequests()));
     progressDlg->setModal(true);
     progressDlg->show();
-    redrawLayer(myModel->layer(), 0);
+    redrawLayer(myModel->layer(), 0, oldPixmaps);
     QList<Layer> *ovls = myModel->overlays();
     for (int i = 0; i < ovls->size(); i++) {
         Layer ovl = ovls->at(i);
-        redrawLayer(ovl, i+1);
+        redrawLayer(ovl, i+1, oldPixmaps);
     }
     setSceneRect(0, 0, w*256, h*256);
     progressDlg->setMaximum(requests.size());
     getNextTile();
 }
 
-QGraphicsPixmapItem *MapScene::getPixmap(const QString &key) {
+QPixmap MapScene::getPixmap(const QString &key) const {
     if (myPixmaps.contains(key)) return myPixmaps.value(key);
-    return 0;
+    return QPixmap();
 }
 
-void MapScene::addPixmap(const QString&key, QPixmap *pixmap, int ix, int iy, int z) {
-    if (pixmap->isNull()) return;
-    QGraphicsPixmapItem *it = new QGraphicsPixmapItem(*pixmap);
+void MapScene::addPixmap(const QString&key, const QPixmap& pixmap, int ix, int iy, int z) {
+    if (pixmap.isNull()) return;
+    QGraphicsPixmapItem *it = new QGraphicsPixmapItem(pixmap);
     it->setOffset(ix, iy);
     it->setZValue(z);
     addItem(it);
-    myPixmaps.insert(key, it);
+    myPixmaps.insert(key, pixmap);
 }
 
 void MapScene::getNextTile() {
@@ -373,10 +378,10 @@ void MapScene::getNextTile() {
             requests.removeAt(0);
         }
     }
-    qDebug()<<"Cache entries:";
-    foreach(PixmapEntry pe, myModel->pixmaps()) {
-        qDebug()<<pe.key();
-    }
+//    qDebug()<<"Cache entries:";
+//    foreach(PixmapEntry pe, myModel->pixmaps()) {
+//        qDebug()<<pe.key();
+//    }
 
     progressDlg->hide();
     delete progressDlg;
@@ -397,17 +402,14 @@ void MapScene::tileLoaded(bool error) {
         requests.removeOne(req);
         if (!error) {
             QPoint p = req.pos();
-            QPixmap *pixmap = new QPixmap();
+            QPixmap pixmap;
             qDebug()<<"pixmap";
             //getter->close();
-            bool res = pixmap->loadFromData(getter.getData(), 0, Qt::AutoColor|Qt::NoOpaqueDetection);
+            bool res = pixmap.loadFromData(getter.getData(), 0, Qt::AutoColor|Qt::NoOpaqueDetection);
             qDebug()<<"...loaded"<<res;
             if (res) {
                 myModel->savePixmap(req.key(), pixmap);
                 addPixmap(req.key(), pixmap, p.x(), p.y(), req.z());
-            }
-            else {
-                delete pixmap;
             }
         }
     }

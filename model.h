@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QList>
+#include <QMap>
 #include <QPointF>
 #include <QString>
 #include "gpx.h"
@@ -15,19 +16,6 @@ class QPixmap;
 class QImage;
 class Route;
 
-class PixmapEntry
-{
-private:
-    QString myKey;
-    QPixmap *myPixmap;
-public:
-    PixmapEntry(const QString& key, QPixmap *pixmap) :
-            myKey(key), myPixmap(pixmap)
-    {}
-    const QString& key() { return myKey; }
-    QPixmap *pixmap() { return myPixmap; }
-};
-
 class Model : public QObject
 {
     Q_OBJECT
@@ -36,13 +24,16 @@ private:
     QPointF myCenter;
     bool myUseSrtm;
     QString mySrtmDir;
+    QString myCacheDir;
     int myX;
     int myY;
     int myZoom;
     int myWidth;
     int myHeight;
     QList<Layer> myOverlays;
-    QList<PixmapEntry> myPixmaps;
+    //QList<PixmapEntry> myPixmaps;
+    QMap<QString, QString> myTileCache;
+    int myTileCacheNr;
     QList<SrtmEntry*> mySrtmData;
     Track myTrack;
     GpxPointList myWaypoints;
@@ -71,9 +62,9 @@ public:
     void changeSize(int nord, int east, int south, int west);
     void changeOverlays(const QList<Layer>& overlays);
     QList<Layer>* overlays() { return &myOverlays; }
-    QList<PixmapEntry> pixmaps() { return myPixmaps; }
-    void savePixmap(const QString& key, QPixmap *pixmap);
-    QPixmap *getPixmap(const QString &key);
+    void savePixmap(const QString& key, QPixmap pixmap);
+    void clearCache();
+    QPixmap getPixmap(const QString &key);
     const SrtmEntry* srtmEntry(int lon0, int lat0);
     int srtmEle(const QPointF& coord);
     QPointF lonLat(const QPointF& mousePos);

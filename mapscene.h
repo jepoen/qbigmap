@@ -138,14 +138,14 @@ private:
     QList<QGraphicsItem*> gridGroup;
     QList<QGraphicsItem*> trackGroup;
     QList<QGraphicsItem*> tileBoundGroup;
-    QMap<QString, QGraphicsPixmapItem*> myPixmaps;
+    QMap<QString, QPixmap> myPixmaps;
     HttpGet getter;
     QList<TileRequest> requests;
     QProgressDialog *progressDlg;
 
-    void addPixmap(const QString &key, QPixmap *pixmap, int ix, int iy, int z);
+    void addPixmap(const QString &key, const QPixmap &pixmap, int ix, int iy, int z);
     void getNextTile();
-    void redrawLayer(const Layer& layer, int z);
+    void redrawLayer(const Layer& layer, int z, const QMap<QString, QPixmap> &oldPixmaps);
 public:
     MapScene(Model *model, QObject *parent = 0);
     Model *model() { return myModel; }
@@ -163,7 +163,7 @@ public:
     void hideTrack(bool showTrackLine);
     void showTrack();
     bool isShowTrack() const { return myTrackItem != NULL; }
-    QGraphicsPixmapItem *getPixmap(const QString& key);
+    QPixmap getPixmap(const QString& key) const;
     void showPhotoItem(const QPointF& pos);
     void hidePhotoItem();
 

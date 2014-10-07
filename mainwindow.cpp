@@ -11,6 +11,7 @@
 #include "profilescene.h"
 #include "profileview.h"
 #include "layersdialog.h"
+#include "mapprintdlg.h"
 #include "outputseldlg.h"
 #include "osmmap.h"
 #include "photo.h"
@@ -38,11 +39,11 @@ MainWindow::MainWindow(QWidget *parent)
     scene = new MapScene(model);
     scene->setSceneRect(0, 0, 256*model->width(), 256*model->height());
     view = new MapView(scene, &settings);
+    myOutputFormat = QPrinter::NativeFormat;
     createActions();
     createMenuBar();
     createToolBar();
     createStatusBar();
-    printer = new QPrinter();
     myHelpWin = new HelpWindow(this);
     QGridLayout *mainLayout = new QGridLayout();
     mainLayout->addWidget(view, 1, 1);
@@ -589,9 +590,13 @@ void MainWindow::showImage(HttpGet *getter) {
 }
 
 void MainWindow::print() {
-    QPrintDialog dlg(printer, this);
-    if (dlg.exec()) {
-        output(printer);
+    QPrinter printer(myPrinterInfo, QPrinter::HighResolution);
+    printer.setOutputFormat(myOutputFormat);
+    QPrintDialog dlg(&printer, this);
+    if (dlg.exec() == QDialog::Accepted) {
+        output(&printer);
+        myPrinterInfo = QPrinterInfo(printer);
+        myOutputFormat = printer.outputFormat();
     }
 }
 
@@ -608,12 +613,11 @@ void MainWindow::paintTiles(QPainter *painter, bool showOverlays) {
                      .replace(QString("$x"), QString::number(model->x()+ix));
             qDebug()<<"key: "<<key;
             //QPixmap *px = model->getPixmap(key);
-            const QGraphicsPixmapItem *it = scene->getPixmap(key);
-            if (it == NULL) {
+            QPixmap px = scene->getPixmap(key);
+            if (px.isNull()) {
                 qDebug()<<"key "<<key<<" not found";
                 continue;
             }
-            QPixmap px = it->pixmap();
             painter->drawPixmap(QRect(ix*256, iy*256, 256, 256), px);
             if (!showOverlays)
                 continue;
@@ -623,12 +627,11 @@ void MainWindow::paintTiles(QPainter *painter, bool showOverlays) {
                          .replace(QString("$y"), QString::number(model->y()+iy))
                          .replace(QString("$x"), QString::number(model->x()+ix));
                 qDebug()<<"key: "<<key;
-                const QGraphicsPixmapItem *it = scene->getPixmap(key);
-                if (it == NULL) {
+                px = scene->getPixmap(key);
+                if (px.isNull()) {
                     qDebug()<<"key "<<key<<" not found";
                     continue;
                 }
-                QPixmap px = it->pixmap();
                 painter->drawPixmap(QRect(ix*256, iy*256, 256, 256), px);
             }
         }
@@ -800,9 +803,14 @@ void MainWindow::savePixmap() {
 }
 
 void MainWindow::output(QPrinter *device) {
+    device->setFullPage(true);
     QPixmap *pixmap = createPixmap();
     if (pixmap == 0)
         return;
+    MapPrintDlg dlg(device, &settings, pixmap->size(), this);
+    if (dlg.exec() != QDialog::Accepted) {
+        return;
+    }
     int w = pixmap->width();
     int h = pixmap->height();
     double tilesize = settings.tileSize(); // mm
@@ -810,42 +818,48 @@ void MainWindow::output(QPrinter *device) {
     int dpix = device->logicalDpiX();
     int dpiy = device->logicalDpiY();
     qDebug()<<"width: "<<device->width()<<" "<<dpix;
-    double tw = tilesize/25.4*dpix/256;
-    double th = tilesize/25.4*dpiy/256;
-    int maxw = (int)(device->width()/tw);
-    int maxh = (int)(device->height()/th);
-    int pagesx = w/maxw +1;
-    int pagesy = h/maxh+1;
-    int dw = pagesx == 1 ? w : w/pagesx+1;
-    int dh = pagesy == 1 ? h : h/pagesy+1;
-    qDebug()<<"pagesx: "<<pagesx<<" pagesy: "<<pagesy;
-    if (QMessageBox::question(this,
-            tr("Map print information"),
-            tr("Tile size: %1 mm\n%2x%3 pages.").arg(tilesize).arg(pagesx).arg(pagesy),
-            QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::Ok) != QMessageBox::Ok) {
-        delete pixmap;
-        return;
-    }
+    // tile size in target coords
+    double tw = tilesize/25.4*dpix;
+    double th = tilesize/25.4*dpiy;
+    // scale factor pixmap->device
+    double sw = tw/256;
+    double sh = tw/256;
+    qDebug()<<"tw: "<<tw<<" th: "<<th;
     QPainter painter(device);
     painter.setFont(QFont("SansSerif", 12));
-    QRectF target(0, 0, dw*tw, dh*th);
-    painter.fillRect(target, QBrush(Qt::white));
-    for (int ix = 0; ix < pagesx; ix++) {
-        for (int iy = 0; iy < pagesy; iy++) {
+    //painter.fillRect(target, QBrush(Qt::white));
+    QSize pages = dlg.pages();
+    QSize tiles = dlg.tilesPerPage();
+    QPointF bd = dlg.devBorder();
+    QPointF margins = dlg.devMargin();
+    int restW = w/256;
+    for (int ix = 0; ix < pages.width(); ix++) {
+        int restH = h/256;
+        for (int iy = 0; iy < pages.height(); iy++) {
+            painter.setPen(QPen());
+            QRectF target(margins.x()-ix*tw*tiles.width(), margins.y()-iy*th*tiles.height(), sw*w, sh*h);
+            qDebug()<<"target "<<target;
             qDebug()<<"Page "<<ix<<","<<iy;
             if (ix+iy > 0) {
                 device->newPage();
             }
-            painter.drawPixmap(target, *pixmap, QRectF(ix*dw, iy*dh, dw, dh));
-            painter.drawText(QRectF(0, th*dh+20, 5*dpix, 0.2*dpiy),
+            painter.setClipRect(bd.x(), bd.y(), device->width()-2*bd.x(), device->height()-2*bd.y());
+            painter.drawPixmap(target, *pixmap, QRectF(0, 0, w, h));
+            if (pages.width() > 1 || pages.height() > 1) {
+                painter.drawText(QRectF(margins.x(), margins.y()-0.3*dpiy, 5*dpix, 0.2*dpiy),
                              tr("Page %1%2").arg(char('A'+iy)).arg(ix+1));
-            painter.drawText(QRectF(0, device->height()-0.2*dpiy, 5*dpix, 0.2*dpiy),
-                                 tr("Data by www.openstreetmap.org"));
+            }
+            int regW = restW >= tiles.width()? tiles.width() : restW;
+            int regH = restH >= tiles.height()? tiles.height() : restH;
+            QPen pen(QColor(0, 0, 0, 30));
+            pen.setWidth(0.05*dpix);
+            painter.setPen(pen);
+            painter.drawRect(QRectF(margins.x(), margins.y(), regW*tw, regH*th));
+            restH -= tiles.height();
         }
+        restW -= tiles.width();
     }
     delete pixmap;
-    painter.drawText(QRectF(0, device->height()-0.2*dpiy, 5*dpix, 0.2*dpiy),
-                     tr("Data by www.openstreetmap.org"));
     painter.end();
 }
 
@@ -1486,5 +1500,6 @@ void MainWindow::help() {
 
 void MainWindow::closeEvent(QCloseEvent *evt) {
     settings.save(this);
+    model->clearCache();
     evt->accept();
 }

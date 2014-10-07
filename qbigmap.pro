@@ -7,7 +7,6 @@ TARGET = qbigmap
 TEMPLATE = app
 SOURCES += main.cpp \
     mainwindow.cpp \
-    tile.cpp \
     httpget.cpp \
     model.cpp \
     mapscene.cpp \
@@ -44,9 +43,9 @@ SOURCES += main.cpp \
     gpxprofiledlg.cpp \
     helpwindow.cpp \
     boolspinbox.cpp \
-    placedialog.cpp
+    placedialog.cpp \
+    mapprintdlg.cpp
 HEADERS += mainwindow.h \
-    tile.h \
     httpget.h \
     model.h \
     mapscene.h \
@@ -83,7 +82,8 @@ HEADERS += mainwindow.h \
     gpxprofiledlg.h \
     helpwindow.h \
     boolspinbox.h \
-    placedialog.h
+    placedialog.h \
+    mapprintdlg.h
 RESOURCES += qbigmap.qrc
 TRANSLATIONS = qbigmap_de.ts
 LIBS += /usr/lib/libexiv2.a

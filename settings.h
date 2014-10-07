@@ -44,9 +44,11 @@ private:
     int myXext;
     int myYext;
     int myTileSize;
+    int myPrintBorder;
     QString myTrackDir;
     bool myUseSrtm;
     QString mySrtmDir;
+    QString myCacheDir;
     QString myExportDir;
     QList<Layer> myBaseLayers;
     QList<Layer> myOverlays;
@@ -57,6 +59,7 @@ private:
     MapIconList myMapIcons;
 
     int iconIndex(const QString icons[][3], const QString& key);
+    QString replaceHome(const QString& dir) const;
 public:
     Settings();
     int zoom() const { return myZoom; }
@@ -69,6 +72,8 @@ public:
     void setYExt(int yExt) { myYext = yExt; }
     int tileSize() const { return myTileSize; }
     void setTileSize(int size) { myTileSize = size; }
+    int printBorder() const { return myPrintBorder; }
+    void setPrintBorder(int bd) { myPrintBorder = bd; }
     const QList<Layer>& baseLayers() const { return myBaseLayers; }
     void setBaseLayers(const QList<Layer>& layers) { myBaseLayers = layers; }
     const QList<Layer>& overlays() const { return myOverlays; }
@@ -85,6 +90,8 @@ public:
     void setUseSrtm(bool val) { myUseSrtm = val; }
     const QString& srtmDir() const { return mySrtmDir; }
     void setSrtmDir(const QString& dir) { mySrtmDir = dir; }
+    const QString& cacheDir() const { return myCacheDir; }
+    void setCacheDir(const QString& dir) { myCacheDir = dir; }
     const QString& exportDir() const { return myExportDir; }
     void setExportDir(const QString& dir) { myExportDir = dir; }
     const QColor& outTrackColor() const { return myOutTrackColor; }

@@ -72,11 +72,20 @@ DirTab::DirTab(Settings *settings, QWidget *parent) :
     control->addWidget(lExportDir, 3, 0);
     control->addWidget(eExportDir, 3, 1);
     control->addWidget(bExportDir, 3, 2);
+    QLabel *lCacheDir = new QLabel(tr("Tile Cache directory:"));
+    lCacheDir->setToolTip(tr("Directory for caching downloaded map tiles"));
+    eCacheDir = new QLineEdit(mySettings->cacheDir());
+    lCacheDir->setBuddy(eCacheDir);
+    bCacheDir = new QPushButton(tr("Select"));
+    control->addWidget(lCacheDir, 4, 0);
+    control->addWidget(eCacheDir, 4, 1);
+    control->addWidget(bCacheDir, 4, 2);
     setLayout(control);
     connect(eUseSrtm, SIGNAL(clicked(bool)), eSrtmDir, SLOT(setEnabled(bool)));
     connect(bTrackDir, SIGNAL(clicked()), this, SLOT(selectTrackDir()));
     connect(bSrtmDir, SIGNAL(clicked()), this, SLOT(selectSrtmDir()));
     connect(bExportDir, SIGNAL(clicked()), this, SLOT(selectExportDir()));
+    connect(bCacheDir, SIGNAL(clicked()), this, SLOT(selectCacheDir()));
 }
 
 void DirTab::selectTrackDir() {
@@ -100,6 +109,13 @@ void DirTab::selectExportDir() {
     }
 }
 
+void DirTab::selectCacheDir() {
+    QString dirName = QFileDialog::getExistingDirectory(this, tr("Select Cache dir"), mySettings->cacheDir());
+    if (!dirName.isEmpty()) {
+        eCacheDir->setText(dirName);
+    }
+}
+
 const QString DirTab::trackDir() const {
     return eTrackDir->text();
 }
@@ -116,6 +132,10 @@ const QString DirTab::exportDir() const {
     return eExportDir->text();
 }
 
+const QString DirTab::cacheDir() const {
+    return eCacheDir->text();
+}
+
 PrintTab::PrintTab(Settings *settings, QWidget *parent) :
         QWidget(parent), mySettings(settings)
 {
@@ -127,32 +147,39 @@ PrintTab::PrintTab(Settings *settings, QWidget *parent) :
     bTileSize->setValue(mySettings->tileSize());
     lTileSize->setBuddy(bTileSize);
     control->addWidget(bTileSize, 0, 1);
+    QLabel *lPrintBorder = new QLabel(tr("&Print border (mm):"));
+    bPrintBorder = new QSpinBox();
+    bPrintBorder->setRange(0, 50);
+    bPrintBorder->setValue(mySettings->printBorder());
+    lPrintBorder->setBuddy(bPrintBorder);
+    control->addWidget(lPrintBorder, 1, 0);
+    control->addWidget(bPrintBorder, 1, 1);
     QLabel *lTrackWidth = new QLabel(tr("Track &width (pt):"));
-    control->addWidget(lTrackWidth, 1, 0);
+    control->addWidget(lTrackWidth, 2, 0);
     bTrackWidth = new QSpinBox();
     bTrackWidth->setRange(0, 20);
     bTrackWidth->setValue(mySettings->outTrackWidth());
     lTrackWidth->setBuddy(bTrackWidth);
-    control->addWidget(bTrackWidth, 1, 1);
+    control->addWidget(bTrackWidth, 2, 1);
     QLabel *lTrackColor = new QLabel(tr("Track &color:"));
-    control->addWidget(lTrackColor, 2, 0);
+    control->addWidget(lTrackColor, 3, 0);
     myTrackColor = mySettings->outTrackColor();
     bTrackColor = new QPushButton(SettingsDialog::colorIcon(myTrackColor), tr("Select"));
     lTrackColor->setBuddy(bTrackColor);
-    control->addWidget(bTrackColor, 2, 1);
-    QLabel *lRouteWidth = new QLabel(tr("Route width (pt):"));
-    control->addWidget(lRouteWidth, 3, 0);
+    control->addWidget(bTrackColor, 3, 1);
+    QLabel *lRouteWidth = new QLabel(tr("&Route width (pt):"));
+    control->addWidget(lRouteWidth, 4, 0);
     bRouteWidth = new QSpinBox();
     bRouteWidth->setRange(0, 20);
     bRouteWidth->setValue(mySettings->outRouteWidth());
     lRouteWidth->setBuddy(bRouteWidth);
-    control->addWidget(bRouteWidth, 3, 1);
-    QLabel *lRouteColor = new QLabel(tr("Track &color:"));
-    control->addWidget(lRouteColor, 4, 0);
+    control->addWidget(bRouteWidth, 4, 1);
+    QLabel *lRouteColor = new QLabel(tr("Route c&olor:"));
+    control->addWidget(lRouteColor, 5, 0);
     myRouteColor = mySettings->outRouteColor();
     bRouteColor = new QPushButton(SettingsDialog::colorIcon(myRouteColor), tr("Select"));
     lRouteColor->setBuddy(bRouteColor);
-    control->addWidget(bRouteColor, 4, 1);
+    control->addWidget(bRouteColor, 5, 1);
     setLayout(control);
     connect(bTrackColor, SIGNAL(clicked()), this, SLOT(selTrackColor()));
     connect(bRouteColor, SIGNAL(clicked()), this, SLOT(selRouteColor()));
@@ -160,6 +187,10 @@ PrintTab::PrintTab(Settings *settings, QWidget *parent) :
 
 int PrintTab::tileSize() const {
     return bTileSize->value();
+}
+
+int PrintTab::printBorder() const {
+    return bPrintBorder->value();
 }
 
 int PrintTab::trackWidth() const {
@@ -385,7 +416,9 @@ void SettingsDialog::accept() {
     mySettings.setUseSrtm(trackTab->useSrtm());
     mySettings.setSrtmDir(trackTab->srtmDir());
     mySettings.setExportDir(trackTab->exportDir());
+    mySettings.setCacheDir(trackTab->cacheDir());
     mySettings.setTileSize(printTab->tileSize());
+    mySettings.setPrintBorder(printTab->printBorder());
     mySettings.setOutTrackWidth(printTab->trackWidth());
     mySettings.setOutTrackColor(printTab->trackColor());
     mySettings.setOutRouteWidth(printTab->routeWidth());

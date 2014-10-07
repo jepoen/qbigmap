@@ -1,3 +1,4 @@
+#include <QDir>
 #include <QMainWindow>
 #include <QSettings>
 #include <QStringList>
@@ -45,12 +46,14 @@ void Settings::load(QMainWindow *win) {
     myYext = settings->value("yext", "4").toInt();
     myZoom = settings->value("zoom", 6).toInt();
     myTileSize = settings->value("tilesize", 45).toInt();
+    myPrintBorder = settings->value("printborder", 5).toInt();
     myGpsbabel = settings->value("gpsbabel", "gpsbabel").toString();
     myGpsDevice = settings->value("gpsDevice", "garmin").toString();
     myGpsInterface = settings->value("gpsInterface", "usb:").toString();
     myTrackDir = settings->value("trackdir", ".").toString();
     myUseSrtm = settings->value("usesrtm", "false").toBool();
     mySrtmDir = settings->value("srtmdir", ".").toString();
+    myCacheDir = settings->value("cachedir", "/tmp").toString();
     myExportDir = settings->value("exportdir", ".").toString();
     myOutTrackColor = QColor::fromRgba(settings->value("outTrackColor", QString("%1").arg(0xff7f007f)).toInt());
     myOutTrackWidth = settings->value("outTrackWidth", "2").toInt();
@@ -91,9 +94,20 @@ void Settings::load(QMainWindow *win) {
         }
     }
     settings->endArray();
+    myTrackDir = replaceHome(myTrackDir);
+    mySrtmDir = replaceHome(mySrtmDir);
+    myExportDir = replaceHome(myExportDir);
     myMapIcons.setIcons(icons);
     win->move(settings->value("mainPos", QPoint(50, 50)).toPoint());
     win->resize(settings->value("mainSize", QSize(800, 600)).toSize());
+}
+
+QString Settings::replaceHome(const QString &dir) const {
+    if (dir[0] == '~') {
+        return QDir::homePath()+dir.mid(1);
+    } else {
+        return dir;
+    }
 }
 
 void Settings::save(QMainWindow *win) {
@@ -126,12 +140,14 @@ void Settings::save(QMainWindow *win) {
     settings.setValue("xext", myXext);
     settings.setValue("yext", myYext);
     settings.setValue("tilesize", myTileSize);
+    settings.setValue("printborder", myPrintBorder);
     settings.setValue("gpsbabel", myGpsbabel);
     settings.setValue("gpsDevice", myGpsDevice);
     settings.setValue("gpsInterface", myGpsInterface);
     settings.setValue("trackdir", myTrackDir);
     settings.setValue("usesrtm", myUseSrtm);
     settings.setValue("srtmdir", mySrtmDir);
+    settings.setValue("cachedir", myCacheDir);
     settings.setValue("exportdir", myExportDir);
     settings.setValue("outTrackColor", myOutTrackColor.rgba());
     settings.setValue("outTrackWidth", myOutTrackWidth);

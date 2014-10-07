@@ -1,4 +1,5 @@
 #include <cmath>
+#include <QDir>
 #include <QtDebug>
 #include "model.h"
 #include "route.h"
@@ -16,7 +17,9 @@ Model::Model(const Settings &settings) :
     myLayer(settings.baseLayers()[0]) , myCenter(settings.center()),
     myUseSrtm(settings.useSrtm()),
     mySrtmDir(settings.srtmDir()), myZoom(settings.zoom()), myWidth(settings.xExt()),
-    myHeight(settings.yExt())
+    myCacheDir(settings.cacheDir()),
+    myHeight(settings.yExt()),
+    myTileCacheNr(0)
 {
     qDebug()<<"lonlat: "<<myCenter;
     QPoint iCenter = Model::lonLat2Tile(myCenter, myZoom);
@@ -25,11 +28,26 @@ Model::Model(const Settings &settings) :
     myY = iCenter.y()-myHeight/2;
     connect(&myRoute, SIGNAL(routeChanged()), this, SLOT(updateRoute()));
     connect(&myRoute, SIGNAL(routePointMoved(int)), this, SLOT(moveRoutePoint(int)));
+    clearCache();
+}
+
+void Model::clearCache() {
+    myTileCache.clear();
+    myTileCacheNr = 0;
+    QDir cacheDir(myCacheDir);
+    QStringList filters;
+    filters<<"qbm-tile-*.png";
+    foreach (const QString& fileName, cacheDir.entryList(filters)) {
+        qDebug()<<"delete "<<fileName;
+        cacheDir.remove(fileName);
+    }
 }
 
 void Model::updateSettings(const Settings &settings) {
+    clearCache();
     myUseSrtm = settings.useSrtm();
     mySrtmDir = settings.srtmDir();
+    myCacheDir = settings.cacheDir();
     qDeleteAll(mySrtmData);
     mySrtmData.clear();
     trackAddSrtmEle();
@@ -110,21 +128,24 @@ void Model::changeOverlays(const QList<Layer>&  overlays) {
     emit mapChanged();
 }
 
-QPixmap *Model::getPixmap(const QString &key) {
-    foreach(PixmapEntry e, myPixmaps) {
-        if (e.key() == key)
-            return e.pixmap();
+QPixmap Model::getPixmap(const QString &key) {
+    if (myTileCache.contains(key)) {
+        qDebug()<<"Cached found "<<key<<": "<<myTileCache[key];
+        QPixmap pixmap(myTileCache[key]);
+        return pixmap;
+    } else {
+        return QPixmap();
     }
-    return NULL;
 }
 
-void Model::savePixmap(const QString &key, QPixmap *pixmap) {
-    if (myPixmaps.size() > 2000) {
-        for (int i = 0; i < 500; i++) {
-            myPixmaps.removeFirst();
-        }
+void Model::savePixmap(const QString &key, QPixmap pixmap) {
+    myTileCacheNr++;
+    QString fileName = QString("qbm-tile-%1.png").arg(myTileCacheNr, 7, 10, QLatin1Char('0'));
+    fileName = QDir(myCacheDir).absoluteFilePath(fileName);
+    qDebug()<<"Save Cache "<<fileName;
+    if (pixmap.save(fileName)) {
+        myTileCache.insert(key, fileName);
     }
-    myPixmaps.append(PixmapEntry(key, pixmap));
 }
 
 void Model::setTrack(const Track& track) {

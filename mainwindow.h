@@ -3,6 +3,7 @@
 
 #include <QtGui/QMainWindow>
 #include <QList>
+#include <QPrinterInfo>
 #include <QTableView>
 #include "gpxlistmodel.h"
 #include "model.h"
@@ -130,7 +131,9 @@ private:
     QAction *editOverlaysAction;
     QAction *editSettingsAction;
     QAction *helpAction;
-    QPrinter *printer;
+
+    QPrinterInfo myPrinterInfo;
+    QPrinter::OutputFormat myOutputFormat;
 
     void readSettings();
     void createPhotoWidget();

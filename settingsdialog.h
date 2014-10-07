@@ -53,17 +53,21 @@ private:
     QPushButton *bSrtmDir;
     QLineEdit *eExportDir;
     QPushButton *bExportDir;
+    QLineEdit *eCacheDir;
+    QPushButton *bCacheDir;
 public:
     DirTab(Settings *settings, QWidget *parent = 0);
     const QString trackDir() const;
     bool useSrtm() const;
     const QString srtmDir() const;
     const QString exportDir() const;
+    const QString cacheDir() const;
 
 private slots:
     void selectTrackDir();
     void selectSrtmDir();
     void selectExportDir();
+    void selectCacheDir();
 };
 
 class PrintTab: public QWidget
@@ -72,6 +76,7 @@ class PrintTab: public QWidget
 private:
     Settings *mySettings;
     QSpinBox *bTileSize;
+    QSpinBox *bPrintBorder;
     QSpinBox *bTrackWidth;
     QPushButton *bTrackColor;
     QSpinBox *bRouteWidth;
@@ -82,6 +87,7 @@ private:
 public:
     PrintTab(Settings *settings, QWidget *parent = 0);
     int tileSize() const;
+    int printBorder() const;
     int trackWidth() const;
     QColor trackColor() const;
     int routeWidth() const;
