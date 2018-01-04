@@ -88,6 +88,7 @@ public:
     const QString& cmt() const { return myCmt; }
     const QString& desc() const { return myDesc; }
     const QList<GpxLink>& links() const { return myLinks; }
+    void swapLinks(int pos1, int pos2);
     void addLink(const GpxLink& link) { myLinks.append(link); }
     void delLink(int pos) { if (pos >= 0 && pos < myLinks.size()) myLinks.removeAt(pos); }
     void setLink(int pos, const GpxLink& link) { if (pos >= 0 && pos < myLinks.size()) myLinks[pos] = link; }

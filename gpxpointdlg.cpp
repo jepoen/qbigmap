@@ -93,6 +93,14 @@ GpxPointDlg::GpxPointDlg(Model *model, const GpxPoint &point, const MapIconList 
     bDelLink->setIcon(QIcon(":/icons/delete.png"));
     linkControlLayout->addWidget(bDelLink);
     connect(bDelLink, SIGNAL(clicked(bool)), this, SLOT(delLink()));
+    QToolButton *bUpLink = new QToolButton();
+    bUpLink->setIcon(QIcon(":/icons/arrow_up.png"));
+    linkControlLayout->addWidget(bUpLink);
+    connect(bUpLink, SIGNAL(clicked(bool)), this, SLOT(upLink()));
+    QToolButton *bDownLink = new QToolButton();
+    bDownLink->setIcon(QIcon(":/icons/arrow_down.png"));
+    linkControlLayout->addWidget(bDownLink);
+    connect(bDownLink, SIGNAL(clicked(bool)), this, SLOT(downLink()));
     control->addWidget(lLink, 7, 0);
     control->addWidget(eLink, 7, 1, 1, 3);
     control->addLayout(linkControlLayout, 7, 4);
@@ -199,6 +207,23 @@ void GpxPointDlg::delLink() {
     }
 }
 
+void GpxPointDlg::downLink() {
+    int pos = eLink->currentIndex().row();
+    if (pos < 0 || pos >= eLink->count()-1) return;
+    myPoint.swapLinks(pos, pos+1);
+    QListWidgetItem *item = eLink->takeItem(pos);
+    eLink->insertItem(pos+1, item);
+    eLink->setCurrentRow(pos+1);
+}
+
+void GpxPointDlg::upLink() {
+    int pos = eLink->currentIndex().row();
+    if (pos < 1) return;
+    myPoint.swapLinks(pos-1, pos);
+    QListWidgetItem *item = eLink->takeItem(pos-1);
+    eLink->insertItem(pos, item);
+    eLink->setCurrentRow(pos-1);
+}
 
 void GpxPointDlg::check() {
     if (!eEle->hasAcceptableInput()) {

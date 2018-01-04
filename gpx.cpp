@@ -20,6 +20,14 @@ BoundingBox::BoundingBox(const QPointF &p0, const QPointF &p1, const QPoint &ele
     myP0(p0), myP1(p1), myEle(ele), mySrtm(srtm), myLen(len)
 {}
 
+void GpxPoint::swapLinks(int pos1, int pos2) {
+    if (pos1 < 0 || pos1 >= myLinks.size()) return;
+    if (pos2 < 0 || pos2 >= myLinks.size()) return;
+    GpxLink h = myLinks[pos1];
+    myLinks[pos1] = myLinks[pos2];
+    myLinks[pos2] = h;
+}
+
 QPoint GpxPoint::iscale(const QPointF &p) {
     return QPoint(int(round(p.x()*ISCALE)), int(round(p.y()*ISCALE)));
 }

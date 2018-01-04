@@ -56,6 +56,8 @@ private slots:
     void addLink();
     void editLink();
     void delLink();
+    void upLink();
+    void downLink();
     void changePos(double val);
     void symChanged();
     void check();
