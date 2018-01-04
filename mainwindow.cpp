@@ -1,5 +1,7 @@
-#include <QtGui>
 #include <QtDebug>
+#include <QtWidgets>
+#include <QPrintDialog>
+#include <QtWidgets/QProgressDialog>
 #include "centerdialog.h"
 #include "gpxprofile.h"
 #include "gpxprofiledlg.h"
@@ -12,6 +14,7 @@
 #include "profileview.h"
 #include "layersdialog.h"
 #include "mapprintdlg.h"
+#include "managewaypointdlg.h"
 #include "outputseldlg.h"
 #include "osmmap.h"
 #include "photo.h"
@@ -260,6 +263,8 @@ void MainWindow::createActions() {
     insertRoutePointAction = new QAction(tr("Insert route point"), functionActionGroup);
     insertRoutePointAction->setCheckable(true);
     connect(insertRoutePointAction, SIGNAL(triggered()), view, SLOT(setInsertRoutePointFunction()));
+    listWayPointsAction = new QAction(tr("Manage way points ..."), this);
+    connect(listWayPointsAction, SIGNAL(triggered()), this, SLOT(manageWayPoints()));
     saveRouteAction = new QAction(tr("Save Route ..."), this);
     connect(saveRouteAction, SIGNAL(triggered()), this, SLOT(saveRoute()));
     delRouteAction = new QAction(tr("Delete complete route"), this);
@@ -451,6 +456,7 @@ void MainWindow::createMenuBar() {
     mGpx->addAction(delRoutePointAction);
     mGpx->addAction(editRoutePointAction);
     mGpx->addAction(insertRoutePointAction);
+    mGpx->addAction(listWayPointsAction);
     mGpx->addAction(saveRouteAction);
     mGpx->addAction(routeAddSrtmEleAction);
     mGpx->addAction(saveRouteProfileAction);
@@ -826,27 +832,45 @@ void MainWindow::output(QPrinter *device) {
     double sh = tw/256;
     qDebug()<<"tw: "<<tw<<" th: "<<th;
     QPainter painter(device);
-    painter.setFont(QFont("SansSerif", 12));
+    painter.setFont(QFont("SansSerif", 18));
     //painter.fillRect(target, QBrush(Qt::white));
     QSize pages = dlg.pages();
     QSize tiles = dlg.tilesPerPage();
-    QPointF bd = dlg.devBorder();
+    //QPointF bd = dlg.devBorder();
     QPointF margins = dlg.devMargin();
     int restW = w/256;
     for (int ix = 0; ix < pages.width(); ix++) {
         int restH = h/256;
         for (int iy = 0; iy < pages.height(); iy++) {
             painter.setPen(QPen());
-            QRectF target(margins.x()-ix*tw*tiles.width(), margins.y()-iy*th*tiles.height(), sw*w, sh*h);
-            qDebug()<<"target "<<target;
+            int px = ix*tiles.width()-1;
+            int pw = tiles.width()+2;
+            double dx = 0.5*(device->width()-(tiles.width()+2)*tw);
+            if (ix == 0) {
+                px = 0;
+                dx += tw;
+            }
+            int py = iy*tiles.height()-1;
+            int ph = tiles.height()+2;
+            double dy = 0.5*(device->height()-(tiles.height()+2)*th);
+            if (iy == 0) {
+                py = 0;
+                dy += th;
+            }
+            QPixmap page = pixmap->copy(px*256, py*256, pw*256, ph*256);
+            double dw = page.width()*sw;
+            double dh = page.height()*sh;
+            qDebug()<<"page image size "<<page.width()<<page.height();
             qDebug()<<"Page "<<ix<<","<<iy;
+            qDebug()<<"Page rectangle "<<dx<<dy<<dw<<dh;
             if (ix+iy > 0) {
                 device->newPage();
             }
-            painter.setClipRect(bd.x(), bd.y(), device->width()-2*bd.x(), device->height()-2*bd.y());
-            painter.drawPixmap(target, *pixmap, QRectF(0, 0, w, h));
+            //painter.setClipRect(bd.x(), bd.y(), device->width()-2*bd.x(), device->height()-2*bd.y());
+            painter.drawPixmap(dx, dy, dw, dh, page);
             if (pages.width() > 1 || pages.height() > 1) {
-                painter.drawText(QRectF(margins.x(), margins.y()-0.3*dpiy, 5*dpix, 0.2*dpiy),
+                painter.setPen(Qt::blue);
+                painter.drawText(QRectF(margins.x(), margins.y()-0.4*dpiy, 5*dpix, 0.3*dpiy),
                              tr("Page %1%2").arg(char('A'+iy)).arg(ix+1));
             }
             int regW = restW >= tiles.width()? tiles.width() : restW;
@@ -1039,6 +1063,7 @@ void MainWindow::readTrackFromGps() {
     GpxPointList ptl = selectTrackSegments(gpx);
     if (ptl.size() > 0) {
         model->trackSetNew(filename, gpx.trackName(), ptl);
+        settings.addUnknownIcons(gpx.symList());
         enableTrackActions(true);
         profileView->setVisible(true);
         trackToolBar->setVisible(true);
@@ -1066,6 +1091,7 @@ bool MainWindow::loadGpxFile(const QString& fileName) {
     if (gpx.trackSegments().size() > 0) {
         GpxPointList ptl = selectTrackSegments(gpx);
         if (ptl.size() > 0) {
+            settings.addUnknownIcons(gpx.symList());
             model->trackSetNew(fileName, gpx.trackName(), ptl);
             // TODO: SIGNAL->SLOT
             qDebug()<<"updatePointList track";
@@ -1279,6 +1305,7 @@ void MainWindow::saveRoute() {
     QString filename = dlg.fileName();
     QString name = dlg.name();
     bool isUpload = dlg.isUpload();
+    bool asTrack = dlg.isAsTrack();
     QFile file(filename);
     if (!file.open(QFile::WriteOnly|QFile::Text)) {
         QMessageBox::warning(this, tr("Save Route %1").arg(name),
@@ -1290,12 +1317,14 @@ void MainWindow::saveRoute() {
     model->routePtr()->setName(name);
     model->routePtr()->setFileName(filename);
     qDebug()<<"waypoints: "<<dlg.isWaywaypoints()<<" ptr: "<<wpts;
-    model->routePtr()->writeXml(&file, wpts);
+    model->routePtr()->writeXml(&file, wpts, asTrack);
     file.close();
     if (isUpload) {
         QStringList params;
-        params<<"-r"
-              <<"-i"<<"gpx"<<"-f"<<filename
+        if (asTrack) params<<"-t";
+        else params<<"-r";
+        if (dlg.isWaywaypoints()) params<<"-w";
+        params<<"-i"<<"gpx"<<"-f"<<filename
               <<"-o"<<settings.gpsDevice()
               <<"-F"<<settings.gpsInterface();
         qDebug()<<settings.gpsbabel()<<params;
@@ -1480,6 +1509,13 @@ void MainWindow::showPhotoDir(const QString &dir) {
 void MainWindow::showTrackPois(bool val) {
     if (val) trackPoiWidget->show();
     else     trackPoiWidget->hide();
+}
+
+void MainWindow::manageWayPoints() {
+    ManageWayPointDlg *dlg = new ManageWayPointDlg(model, &settings.mapIconList(), view);
+    if (dlg->exec() == QDialog::Accepted) {
+        model->waypointsSetNew(dlg->waypoints());
+    }
 }
 
 void MainWindow::showTrackProfile() {

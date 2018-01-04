@@ -36,7 +36,7 @@ public:
     bool isEmpty() const { return myTrackPoints.size() == 0; }
     void setPoints(const GpxPointList& points);
     const bool& changed() const { return myChanged; }
-    void writeOrigXml(QIODevice *dev);
+    void writeOrigXml(QIODevice *);
     void writeModifiedXml(QIODevice *dev, const GpxPointList& waypoints, bool isSimple=false) const;
     BoundingBox boundingBox() const;
     const GpxPointList& trackPoints() const { return myTrackPoints;}

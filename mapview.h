@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <QGraphicsView>
+#include <QPointF>
+#include <QPrinter>
 #include "settings.h"
 
 class TrackPointItem;
@@ -19,6 +21,7 @@ private:
     std::auto_ptr<ViewFunction> function;
     int mouseX0;
     int mouseY0;
+    QPointF myPos;
     QGraphicsItem *tempItem;
     QAction *selectTrackPointAction;
     QAction *insertTrackPointAction;

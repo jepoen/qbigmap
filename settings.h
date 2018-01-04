@@ -103,9 +103,13 @@ public:
     int outRouteWidth() const { return myOutRouteWidth; }
     void setOutRouteWidth(int val) { myOutRouteWidth = val; }
     const MapIconList& mapIconList() const { return myMapIcons; }
+    void setMapIconList(const MapIconList& icons) { myMapIcons = icons; }
+    void addMapIcon(const MapIcon& ico) { myMapIcons.append(ico); }
+    void deleteMapIcon(int idx) { myMapIcons.remove(idx); }
     void setMapIcons(const QList<MapIcon>& mapIcons) { myMapIcons = mapIcons; }
-    void setMapIcon(int idx, const QString& fileName) { myMapIcons.setMapIco(idx, fileName); }
+    void setMapIcon(int idx, const MapIcon& ico) { myMapIcons.setIco(idx, ico); }
     void resetMapIcon(int idx) {myMapIcons.setMapIco(idx, myMapIcons.icons()[idx].mapDefaultIco()); }
+    void addUnknownIcons(const QStringList& keys);
     void load(QMainWindow *win);
     void save(QMainWindow *win);
 };

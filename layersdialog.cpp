@@ -1,4 +1,4 @@
-#include <QtGui>
+#include <QtWidgets>
 #include "layersdialog.h"
 
 LayersDialog::LayersDialog(const QList<Layer>& layers, QWidget *parent) :

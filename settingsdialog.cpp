@@ -1,6 +1,7 @@
-#include <QtGui>
+#include <QtWidgets>
 #include <QtDebug>
 #include "settingsdialog.h"
+#include "mapiconeditdlg.h"
 
 GpsTab::GpsTab(Settings *settings, QWidget *parent) :
         QWidget(parent), mySettings(settings)
@@ -277,6 +278,20 @@ int IconTableModel::columnCount(const QModelIndex &/*parent*/) const {
     return 4;
 }
 
+bool IconTableModel::insertRow(int row, const QModelIndex &parent) {
+    beginInsertRows(parent, row, row);
+    myIcons.insert(row, MapIcon());
+    endInsertRows();
+    return true;
+}
+
+bool IconTableModel::removeRow(int row, const QModelIndex &parent) {
+    beginRemoveRows(parent, row, row);
+    myIcons.remove(row);
+    endInsertRows();
+    return true;
+}
+
 QVariant IconTableModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid()) return QVariant();
     int idx = index.row();
@@ -286,7 +301,8 @@ QVariant IconTableModel::data(const QModelIndex &index, int role) const {
         case 0:
             return ico.name();
         case 1:
-            return ico.mapIcoFile();
+            //return ico.mapIcoFile();
+            return QString();
         }
     } else if (role == Qt::DecorationRole) {
         switch(index.column()) {
@@ -301,10 +317,12 @@ QVariant IconTableModel::data(const QModelIndex &index, int role) const {
         }
     } else if (role == Qt::ToolTipRole) {
         switch(index.column()) {
+        case 1:
+            return ico.mapIcoFile();
         case 2:
-            return tr("Select Icon file for Map drawing");
+            return tr("Edit Icon");
         case 3:
-            return tr("Reset to internal icon file");
+            return tr("Delete Icon");
         default:
             return "";
         }
@@ -312,14 +330,16 @@ QVariant IconTableModel::data(const QModelIndex &index, int role) const {
     return QVariant();
 }
 
-bool IconTableModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+bool IconTableModel::setData(const QModelIndex &index, const QVariant& /*value*/, int role) {
     if (role == Qt::EditRole) {
+        /*
         if (value == QVariant()) { // reset
             qDebug()<<"setData reset "<<myIcons.icons().at(index.row()).icoFile();
             myIcons.setMapIco(index.row(), myIcons.icons().at(index.row()).mapDefaultIco());
         } else {
             myIcons.setMapIco(index.row(), value.toString());
         }
+        */
         QModelIndex newIndex(createIndex(index.row(), 1));
         emit dataChanged(newIndex, newIndex);
         return true;
@@ -338,7 +358,7 @@ QVariant IconTableModel::headerData(int section, Qt::Orientation orientation, in
         case 2:
             return tr("Edit");
         case 3:
-            return tr("Reset");
+            return tr("Delete");
         }
     }
     return QVariant();
@@ -349,16 +369,41 @@ Qt::ItemFlags IconTableModel::flags(const QModelIndex &index) const {
     return QAbstractTableModel::flags(index);
 }
 
+void IconTab::add() {
+    MapIconEditDlg dlg(this);
+    if (dlg.exec() == QDialog::Accepted) {
+        MapIcon ico = dlg.getIcon();
+        int len = myModel.iconListSize();
+        myModel.insertRow(len);
+        myModel.setIcon(len, ico);
+        QModelIndex index = myModel.index(len, 0, QModelIndex());
+        myModel.setData(index, ico.icoFile(), Qt::EditRole);
+        //layerTab->setCurrentIndex(index);
+    }
+}
+
 void IconTab::edit(const QModelIndex &index) {
     if (index.column() == 2) {
-        QString file = QFileDialog::getOpenFileName();
-        if (file.isEmpty()) return;
-
-        mySettings->setMapIcon(index.row(), file);
-        myModel.setData(index, file, Qt::EditRole);
+        MapIconEditDlg dlg(this);
+        int idx = index.row();
+        const MapIcon& ico = myModel.iconAt(idx);
+        qDebug()<<"Icon:"<<ico.name();
+        dlg.setIcon(ico);
+        if (dlg.exec() == QDialog::Accepted) {
+            MapIcon ico = dlg.getIcon();
+            myModel.setIcon(idx, ico);
+        }
     } else if (index.column() == 3) {
-        mySettings->resetMapIcon(index.row());
-        myModel.setData(index, QVariant(), Qt::EditRole);
+        MapIcon ico = myModel.iconAt(index.row());
+        if (QMessageBox::question(this, tr("Delete Icon"), tr("Delete icon %1").arg(ico.name()), QMessageBox::Yes|QMessageBox::No, QMessageBox::NoButton)
+                == QMessageBox::Yes) {
+            myModel.removeRow(index.row());
+            if (index.row() >= mySettings->mapIconList().size()) {
+                QModelIndex idx = myModel.index(myModel.iconListSize()-1, 0, QModelIndex());
+                myModel.setData(idx, QVariant(), Qt::EditRole);
+            }
+        }
+        //myModel.setData(index, QVariant(), Qt::EditRole);
     }
 }
 
@@ -366,6 +411,8 @@ IconTab::IconTab(Settings *settings, QWidget *parent) :
     QWidget(parent), mySettings(settings), myModel(mySettings->mapIconList())
 {
     QGridLayout *control = new QGridLayout();
+    myNewIco = new QPushButton(QIcon(":/icons/add.png"), tr("Add"));
+    connect(myNewIco, SIGNAL(pressed()), this, SLOT(add()));
     tab = new QTableView();
     tab->setModel(&myModel);
     tab->verticalHeader()->hide();
@@ -373,7 +420,8 @@ IconTab::IconTab(Settings *settings, QWidget *parent) :
     connect(tab, SIGNAL(clicked(QModelIndex)), this, SLOT(edit(QModelIndex)));
     resizeTab();
     connect(&myModel, SIGNAL(layoutChanged()), this, SLOT(resizeTab()));
-    control->addWidget(tab, 0, 0);
+    control->addWidget(myNewIco, 0, 0);
+    control->addWidget(tab, 1, 0);
     setLayout(control);
 }
 
@@ -423,6 +471,7 @@ void SettingsDialog::accept() {
     mySettings.setOutTrackColor(printTab->trackColor());
     mySettings.setOutRouteWidth(printTab->routeWidth());
     mySettings.setOutRouteColor(printTab->routeColor());
+    mySettings.setMapIconList(iconTab->mapIconList());
     QDialog::accept();
 }
 

@@ -13,7 +13,7 @@ class CenterItem : public QGraphicsItem
 public:
     CenterItem(QGraphicsItem *parent = 0);
     QRectF boundingRect() const;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *);
 };
 
 class CenterDialog : public QDialog

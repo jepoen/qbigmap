@@ -12,6 +12,8 @@ class QDateTimeEdit;
 class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
+class QListWidget;
+class QPlainTextEdit;
 class Model;
 
 class GpxPointDlg : public QDialog
@@ -27,8 +29,10 @@ private:
     QCheckBox *eShowMap;
     QCheckBox *eShowProfile;
     QLineEdit *eName;
-    QLineEdit *eDesc;
-    QLineEdit *eLink;
+    QPlainTextEdit *eCmt;
+    QPlainTextEdit *eDesc;
+    QListWidget *eLink;
+    QLineEdit *eGpxType;
     QLabel *eDist0;
     QLabel *eDist1;
     QLabel *eErr;
@@ -38,8 +42,9 @@ private:
     QStringList *mySymbols;
 
     void createSymList(QComboBox *box, const MapIconList& iconList);
+    void setTextHeight(QPlainTextEdit *view, int h);
 public:
-    explicit GpxPointDlg(Model *model, const GpxPoint& point, const MapIconList& icons, QWidget *parent = 0);
+    explicit GpxPointDlg(Model *model, const GpxPoint& point, const MapIconList& icons, bool enableCoordEdit, QWidget *parent = 0);
     void setDists(double dist0, double dist1);
     void setSrtmEle(int ele);
     GpxPoint point() const;
@@ -48,6 +53,9 @@ signals:
 
 public slots:
 private slots:
+    void addLink();
+    void editLink();
+    void delLink();
     void changePos(double val);
     void symChanged();
     void check();

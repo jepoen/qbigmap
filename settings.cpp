@@ -8,14 +8,16 @@
 const QString LAYER_NAME = "Mapnik";
 const QString LAYER_URL = "http://tile.openstreetmap.org/$z/$x/$y.png";
 QString defaultIcons[][3] = {
-    {"flag", ":/icons/flag-s.png", ":/icons/flag.png"},
-    {"star", ":/icons/star-s.png", ":/icons/star.png"},
-    {"square", ":/icons/square.png", ":/icons/square.png"},
-    {"place", ":/icons/place-s.png", ":/icons/place.png"},
-    {"church", ":/icons/church-s.png", ":/icons/church.png"},
-    {"hostel", ":/icons/hostel-s.png", ":/icons/hostel.png"},
-    {"shell", ":/icons/shell-s.png", ":/icons/shell.png"},
-    {"pilgrim", ":/icons/pilgrim-hostel-s.png", ":/icons/pilgrim-hostel.png"},
+    {"flag", ":/mapicons/flag-s.png", ":/mapicons/flag.png"},
+    {"star", ":/mapicons/star-s.png", ":/mapicons/star.png"},
+    {"square", ":/mapicons/square.png", ":/mapicons/square.png"},
+    {"place", ":/mapicons/place-s.png", ":/mapicons/place.png"},
+    {"church", ":/mapicons/church-s.png", ":/mapicons/church.png"},
+    {"hostel", ":/mapicons/hostel-s.png", ":/mapicons/hostel.png"},
+    {"shell", ":/mapicons/shell-s.png", ":/mapicons/shell.png"},
+    {"pilgrim", ":/mapicons/pilgrim-hostel-s.png", ":/mapicons/pilgrim-hostel.png"},
+    {"peak", ":/mapicons/peak.png", ":/mapicons/peak.png"},
+    {"viewpoint", ":/mapicons/viewpoint_s.png", ":/mapicons/viewpoint_s.png"},
     {0, 0, 0}
 };
 
@@ -155,4 +157,13 @@ void Settings::save(QMainWindow *win) {
     settings.setValue("outRouteWidth", myOutRouteWidth);
     settings.setValue("mainPos", win->pos());
     settings.setValue("mainSize", win->size());
+}
+
+void Settings::addUnknownIcons(const QStringList &keys) {
+    foreach(const QString& key, keys) {
+        int idx = myMapIcons.iconIdx(key);
+        if (idx < 0) {
+            myMapIcons.append(MapIcon(key, defaultIcons[0][1], defaultIcons[0][2], defaultIcons[0][2]));
+        }
+    }
 }

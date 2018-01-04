@@ -1,4 +1,4 @@
-#include <QtGui>
+#include <QtWidgets>
 #include "trackseldialog.h"
 
 TrackSelModel::TrackSelModel(QObject *parent) :

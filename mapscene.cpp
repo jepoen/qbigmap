@@ -1,4 +1,5 @@
-#include <QtGui>
+#include <QtWidgets>
+#include <QtWidgets/QProgressDialog>
 #include <QtDebug>
 #include "httpget.h"
 #include "mapscene.h"
@@ -88,6 +89,7 @@ void TrackPointItem::setSym(const QString& sym) {
 WaypointItem::WaypointItem(const QString &text, QGraphicsItem *parent) :
         QGraphicsItem(parent), myText(text)
 {
+    setZValue(10);
 }
 
 QRectF WaypointItem::boundingRect() const {

@@ -1,4 +1,4 @@
-#include <QtGui>
+#include <QtWidgets>
 #include <QtDebug>
 #include "trackposdlg.h"
 

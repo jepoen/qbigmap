@@ -1,4 +1,4 @@
-#include <QtGui>
+#include <QtWidgets>
 #include "geom.h"
 #include "tracksimplifydlg.h"
 #include "mapscene.h"

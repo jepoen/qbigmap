@@ -1,6 +1,6 @@
-#include "helpwindow.h"
-#include <QtGui>
+#include <QtWidgets>
 #include <QtDebug>
+#include "helpwindow.h"
 
 HelpWindow::HelpWindow(QWidget *parent) :
     QDialog(parent)

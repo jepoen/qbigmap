@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QtGui/QMainWindow>
+#include <QMainWindow>
 #include <QList>
 #include <QPrinterInfo>
 #include <QTableView>
@@ -93,6 +93,7 @@ private:
     QAction *moveRoutePointAction;
     QAction *editRoutePointAction;
     QAction *insertRoutePointAction;
+    QAction *listWayPointsAction;
     QAction *saveRouteAction;
     QAction *delRouteAction;
     QAction *routeAddSrtmEleAction;
@@ -187,6 +188,7 @@ private slots:
     void simplifyTrack();
     void editTrackPoint();
     void deleteTrackPos();
+    void manageWayPoints();
     void saveTrackProfile();
     void saveRoute();
     void delRoute();

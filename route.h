@@ -7,6 +7,7 @@
 #include <QString>
 #include "gpx.h"
 
+class QDomDocument;
 class QIODevice;
 
 class Route : public QObject
@@ -17,6 +18,10 @@ private:
     QString myName;
     GpxPointList myPoints;
     bool myDirty;
+    void writeXmlWpt(QDomDocument& doc, GpxPointList *wpts) const;
+    void writeXmlRte(QDomDocument& doc) const;
+    void writeXmlTrk(QDomDocument& doc) const;
+
 public:
     Route(const QString& fileName="", const QString& name="", const GpxPointList& points = GpxPointList());
     const GpxPointList *points() const { return &myPoints; }
@@ -35,7 +40,7 @@ public:
     void insertRoutePoint(int idx, const GpxPoint &point);
     void delRoute();
     bool isDirty() const { return myDirty; }
-    void writeXml(QIODevice *dev, GpxPointList *wpts);
+    void writeXml(QIODevice *dev, GpxPointList *wpts, bool asTrack);
     void removeDoubles() { Gpx::removeDoubles(myPoints); }
 signals:
     void routeChanged();

@@ -1,4 +1,5 @@
-#include <QtGui>
+#include <QtWidgets>
+#include <QPrinter>
 #include "settings.h"
 #include "mapprintdlg.h"
 
@@ -16,13 +17,13 @@ MapPrintDlg::MapPrintDlg(QPrinter *printer, Settings *settings, QSize imgSize, Q
     ePrintBorder = new QSpinBox();
     ePrintBorder->setRange(0, 20);
     ePrintBorder->setValue(mySettings->printBorder());
-    control->addRow("&Print Border (mm):", ePrintBorder);
+    control->addRow(tr("&Print Border (mm):"), ePrintBorder);
     oPages = new QLabel();
-    control->addRow("Pages:", oPages);
+    control->addRow(tr("Pages:"), oPages);
     oTiles = new QLabel();
-    control->addRow("Tiles per Page:", oTiles);
+    control->addRow(tr("Tiles per Page:"), oTiles);
     oMargins = new QLabel();
-    control->addRow("Map margins (mm):", oMargins);
+    control->addRow(tr("Map margins (mm):"), oMargins);
     mainLayout->addLayout(control);
     QDialogButtonBox *box = new QDialogButtonBox();
     QPushButton *bSave = box->addButton(tr("&Save settings"), QDialogButtonBox::ApplyRole);

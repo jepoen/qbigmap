@@ -16,8 +16,10 @@ Overlay::Overlay(const QString &key, int z):
 Model::Model(const Settings &settings) :
     myLayer(settings.baseLayers()[0]) , myCenter(settings.center()),
     myUseSrtm(settings.useSrtm()),
-    mySrtmDir(settings.srtmDir()), myZoom(settings.zoom()), myWidth(settings.xExt()),
+    mySrtmDir(settings.srtmDir()),
     myCacheDir(settings.cacheDir()),
+    myZoom(settings.zoom()),
+    myWidth(settings.xExt()),
     myHeight(settings.yExt()),
     myTileCacheNr(0)
 {

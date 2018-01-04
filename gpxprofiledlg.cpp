@@ -1,7 +1,7 @@
+#include <QtWidgets>
+#include <QtDebug>
 #include "gpxprofiledlg.h"
 #include "settings.h"
-#include <QtGui>
-#include <QtDebug>
 
 GpxProfileDlg::GpxProfileDlg(const GpxPointList &gpxPoints, Settings *settings, QWidget *parent) :
     QDialog(parent),

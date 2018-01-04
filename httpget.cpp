@@ -1,5 +1,6 @@
 #include <iostream>
-#include <QtGui>
+#include <QtWidgets>
+#include <QtWidgets/QProgressDialog>
 #include <QtDebug>
 #include <QtNetwork>
 #include "httpget.h"

@@ -1,4 +1,4 @@
-#include <QtGui/QApplication>
+#include <QApplication>
 #include <QTranslator>
 #include <QLocale>
 #include <QtDebug>
@@ -7,6 +7,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    a.setStyle("plastique");
     QTranslator appTranslator;
     qDebug()<<QLocale::system().name();
     appTranslator.load("qbigmap_"+QLocale::system().name(), ":/translations");

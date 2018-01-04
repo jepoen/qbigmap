@@ -2,6 +2,7 @@
 #define SAVEROUTEDLG_H
 
 #include <QDialog>
+
 class QCheckBox;
 class QLineEdit;
 class QLabel;
@@ -16,6 +17,7 @@ private:
     QLabel *eFileName;
     QToolButton *bFileName;
     QCheckBox *eWaypoints;
+    QCheckBox *eAsTrack;
     QCheckBox *eUpload;
 public:
     enum {ROUTE, TRACK};
@@ -25,6 +27,7 @@ public:
     bool isWaywaypoints() const;
     void setWaypoints(bool val);
     bool isUpload() const;
+    bool isAsTrack() const;
 signals:
 
 private slots:

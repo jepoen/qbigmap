@@ -1,4 +1,4 @@
-#include <QtGui>
+#include <QtWidgets>
 #include "outputseldlg.h"
 
 OutputSelDlg::OutputSelDlg(QWidget *parent) :

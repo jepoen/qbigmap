@@ -1,5 +1,5 @@
 #include <cassert>
-#include <QtGui>
+#include <QtWidgets>
 #include <QtDebug>
 #include <QtNetwork>
 #include "srtm.h"

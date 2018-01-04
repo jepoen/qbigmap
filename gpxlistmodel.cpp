@@ -78,16 +78,12 @@ QVariant GpxListModel::data(const QModelIndex &index, int role) const {
     return QVariant();
 }
 
-int GpxListModel::rowCount(const QModelIndex &parent) const {
-//    return myModel->track().trackPoints().size();
+int GpxListModel::rowCount(const QModelIndex& /*parent*/) const {
     return myPoiList.size();
 }
 
 void GpxListModel::updatePointList() {
     createPoiList();
-    //QModelIndex idx0 = createIndex(0, 0);
-    //QModelIndex idx1 = createIndex(myPoiList.size(), 0);
-    //emit dataChanged(idx0, idx1);
 }
 
 Qt::ItemFlags GpxListModel::flags(const QModelIndex &index) const {

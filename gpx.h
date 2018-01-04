@@ -6,6 +6,7 @@
 #include <QString>
 #include <QPointF>
 
+class QDomDocument;
 class QDomElement;
 
 class BoundingBox {
@@ -30,6 +31,19 @@ public:
     QPointF center() const { return QPointF(0.5*(myP0.x()+myP1.x()), 0.5*(myP0.y()+myP1.y())); }
 };
 
+class GpxLink {
+private:
+    QString myUrl;
+    QString myMimeType;
+    QString myText;
+public:
+    explicit GpxLink(const QString& url = "", const QString& mimeType = "", const QString& text = ""):
+        myUrl(url), myMimeType(mimeType), myText(text) {}
+    QString url() const { return myUrl; }
+    QString mimeType() const { return myMimeType; }
+    QString text() const { return myText; }
+};
+
 class GpxPoint {
 private:
     int myType;
@@ -39,15 +53,19 @@ private:
     double mySrtm;
     QString mySym;
     QString myName;
+    QString myCmt;
     QString myDesc;
-    QString myLink;
+    QList<GpxLink> myLinks;
+    QString myGpxType;
     bool myShowMap;
     bool myShowProfile;
 public:
     enum {TRK, RTE, WPT};
     explicit GpxPoint(int type, const QPointF& pos, const QDateTime& timestamp = QDateTime(), double ele = 0,
-                      const QString& sym="", const QString& name="", const QString& desc="", const QString& link=""):
-        myType(type), myCoord(GpxPoint::iscale(pos)), myTimeStamp(timestamp), myEle(ele), mySrtm(0), mySym(sym), myName(name), myDesc(desc), myLink(link),
+                      const QString& sym="", const QString& name="", const QString& cmt="", const QString& desc="",
+                      const QList<GpxLink>& links=QList<GpxLink>(), const QString& gpxType=""):
+        myType(type), myCoord(GpxPoint::iscale(pos)), myTimeStamp(timestamp), myEle(ele), mySrtm(0),
+        mySym(sym), myName(name), myCmt(cmt), myDesc(desc), myLinks(links), myGpxType(gpxType),
         myShowMap(false), myShowProfile(false)
     {
         if (type == TRK && !mySym.isEmpty()) {
@@ -67,14 +85,20 @@ public:
     void setSrtm(double srtm) { mySrtm = srtm; }
     const QString& sym() const { return mySym; }
     const QString& name() const { return myName; }
+    const QString& cmt() const { return myCmt; }
     const QString& desc() const { return myDesc; }
-    const QString& link() const { return myLink; }
+    const QList<GpxLink>& links() const { return myLinks; }
+    void addLink(const GpxLink& link) { myLinks.append(link); }
+    void delLink(int pos) { if (pos >= 0 && pos < myLinks.size()) myLinks.removeAt(pos); }
+    void setLink(int pos, const GpxLink& link) { if (pos >= 0 && pos < myLinks.size()) myLinks[pos] = link; }
+    const QString& gpxType() const { return myGpxType; }
     bool showMap() const { return myShowMap; }
     void setShowMap(bool val) { myShowMap = val; }
     bool showProfile() const { return myShowProfile; }
     void setShowProfile(bool val) { myShowProfile = val; }
     static QPoint iscale(const QPointF& p);
     static QPointF dscale(const QPoint& p);
+    QDomElement toDomElement(QDomDocument& doc, const QString &elName, bool isSimple) const;
 };
 
 typedef QList<GpxPoint> GpxPointList;
@@ -121,6 +145,7 @@ public:
     static int removeDoubles(GpxPointList& list);
     static BoundingBox boundingBox(const GpxPointList& points);
     static bool hasSym(const GpxPointList& points);
+    QStringList symList() const;
 };
 
 #endif // GPX_H

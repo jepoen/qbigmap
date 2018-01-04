@@ -1,8 +1,9 @@
-#include <QtGui>
+#include <QtWidgets>
 #include "gpxpointdlg.h"
+#include "gpxlinkdlg.h"
 #include "model.h"
 
-GpxPointDlg::GpxPointDlg(Model *model, const GpxPoint &point, const MapIconList &icons, QWidget *parent) :
+GpxPointDlg::GpxPointDlg(Model *model, const GpxPoint &point, const MapIconList &icons, bool enableCoordEdit, QWidget *parent) :
     QDialog(parent),
     myModel(model),
     myPoint(point)
@@ -59,40 +60,81 @@ GpxPointDlg::GpxPointDlg(Model *model, const GpxPoint &point, const MapIconList 
     lName->setBuddy(eName);
     control->addWidget(lName, 4, 0);
     control->addWidget(eName, 4, 1, 1, 3);
+    QLabel *lCmt = new QLabel(tr("&Comment:"));
+    eCmt = new QPlainTextEdit();
+    eCmt->setPlainText(myPoint.cmt());
+    setTextHeight(eCmt, 6);
+    lCmt->setBuddy(eCmt);
+    control->addWidget(lCmt, 5, 0);
+    control->addWidget(eCmt, 5, 1, 1, 3);
     QLabel *lDesc = new QLabel(tr("&Description:"));
-    eDesc = new QLineEdit();
-    eDesc->setText(myPoint.desc());
+    eDesc = new QPlainTextEdit();
+    eDesc->setPlainText(myPoint.desc());
+    setTextHeight(eDesc, 6);
     lDesc->setBuddy(eDesc);
-    control->addWidget(lDesc, 5, 0);
-    control->addWidget(eDesc, 5, 1, 1, 3);
+    control->addWidget(lDesc, 6, 0);
+    control->addWidget(eDesc, 6, 1, 1, 3);
     QLabel *lLink = new QLabel(tr("&Link:"));
-    eLink = new QLineEdit();
-    eLink->setText(myPoint.link());
+    eLink = new QListWidget();
+    foreach (const GpxLink& link, myPoint.links()) {
+        eLink->addItem(QString("[%1] %2 (%3)").arg(link.url()).arg(link.text()).arg(link.mimeType()));
+    }
     lLink->setBuddy(eLink);
-    control->addWidget(lLink, 6, 0);
-    control->addWidget(eLink, 6, 1, 1, 3);
+    QVBoxLayout *linkControlLayout = new QVBoxLayout();
+    QToolButton *bAddLink = new QToolButton();
+    bAddLink->setIcon(QIcon(":/icons/add.png"));
+    linkControlLayout->addWidget(bAddLink);
+    connect(bAddLink, SIGNAL(clicked(bool)), this, SLOT(addLink()));
+    QToolButton *bEditLink = new QToolButton();
+    bEditLink->setIcon(QIcon(":/icons/pencil.png"));
+    linkControlLayout->addWidget(bEditLink);
+    connect(bEditLink, SIGNAL(clicked(bool)), this, SLOT(editLink()));
+    QToolButton *bDelLink = new QToolButton();
+    bDelLink->setIcon(QIcon(":/icons/delete.png"));
+    linkControlLayout->addWidget(bDelLink);
+    connect(bDelLink, SIGNAL(clicked(bool)), this, SLOT(delLink()));
+    control->addWidget(lLink, 7, 0);
+    control->addWidget(eLink, 7, 1, 1, 3);
+    control->addLayout(linkControlLayout, 7, 4);
+    QLabel *lGpxType = new QLabel(tr("&Type:"));
+    eGpxType = new QLineEdit();
+    lGpxType->setBuddy(eGpxType);
+    eGpxType->setText(myPoint.gpxType());
+    control->addWidget(lGpxType, 8, 0);
+    control->addWidget(eGpxType, 8, 1, 1, 3);
     if (myPoint.type() != GpxPoint::WPT) {
         QLabel *lDist0 = new QLabel("Distance from start:");
         eDist0 = new QLabel();
-        control->addWidget(lDist0, 7, 0);
-        control->addWidget(eDist0, 7, 1);
+        control->addWidget(lDist0, 9, 0);
+        control->addWidget(eDist0, 9, 1);
         QLabel *lDist1 = new QLabel("Distance to end:");
         eDist1 = new QLabel();
-        control->addWidget(lDist1, 7, 2);
-        control->addWidget(eDist1, 7, 3);
+        control->addWidget(lDist1, 9, 2);
+        control->addWidget(eDist1, 9, 3);
     }
     eErr = new QLabel();
-    control->addWidget(eErr, 8, 0, 1, 4, Qt::AlignCenter);
+    control->addWidget(eErr, 10, 0, 1, 4, Qt::AlignCenter);
     mainLayout->addLayout(control);
     QDialogButtonBox *box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
     mainLayout->addWidget(box);
     setLayout(mainLayout);
+    if (!enableCoordEdit) {
+        eLon->setEnabled(false);
+        eLat->setEnabled(false);
+        eEle->setEnabled(false);
+    }
     connect(eLon, SIGNAL(valueChanged(double)), this, SLOT(changePos(double)));
     connect(eLat, SIGNAL(valueChanged(double)), this, SLOT(changePos(double)));
     connect(eSym, SIGNAL(currentIndexChanged(int)), this, SLOT(symChanged()));
     connect(box, SIGNAL(accepted()), this, SLOT(check()));
     connect(box, SIGNAL(rejected()), this, SLOT(reject()));
     eSym->setFocus();
+}
+
+void GpxPointDlg::setTextHeight(QPlainTextEdit *view, int h) {
+    QFontMetrics m(view->font()) ;
+    int rowHeight = m.lineSpacing() ;
+    view->setFixedHeight(h*rowHeight) ;
 }
 
 void GpxPointDlg::createSymList(QComboBox *box, const MapIconList& iconList) {
@@ -124,6 +166,40 @@ void GpxPointDlg::changePos(double /*val*/) {
     emit posChanged(pos);
 }
 
+void GpxPointDlg::addLink() {
+    GpxLinkDlg dlg("", "", "", this);
+    if (dlg.exec() == QDialog::Accepted) {
+        GpxLink link(dlg.url(), dlg.mime(), dlg.text());
+        myPoint.addLink(link);
+        eLink->addItem(tr("[%1] %2 (%3)").arg(link.url()).arg(link.text()).arg(link.mimeType()));
+    }
+}
+
+void GpxPointDlg::editLink() {
+    int pos = eLink->currentIndex().row();
+    if (pos < 0) return;
+    const GpxLink link = myPoint.links().at(pos);
+    GpxLinkDlg dlg(link.url(), link.text(), link.mimeType(), this);
+    if (dlg.exec() == QDialog::Accepted) {
+        GpxLink link(dlg.url(), dlg.mime(), dlg.text());
+        myPoint.setLink(pos, link);
+        eLink->takeItem(pos);
+        eLink->insertItem(pos, tr("[%1] %2 (%3)").arg(link.url()).arg(link.text()).arg(link.mimeType()));
+    }
+}
+
+void GpxPointDlg::delLink() {
+    int pos = eLink->currentIndex().row();
+    if (pos < 0) return;
+    QString text = eLink->currentItem()->text();
+    if (QMessageBox::warning(this, tr("Delete GPX Link"), tr("Delete link %1").arg(text),
+                             QMessageBox::Yes|QMessageBox::No, QMessageBox::No) == QMessageBox::Yes) {
+        myPoint.delLink(pos);
+        eLink->takeItem(pos);
+    }
+}
+
+
 void GpxPointDlg::check() {
     if (!eEle->hasAcceptableInput()) {
         eErr->setText("Elevation should be an int value!");
@@ -131,13 +207,15 @@ void GpxPointDlg::check() {
     }
     int symIdx = eSym->currentIndex();
     QString name = eName->text().trimmed();
-    QString desc = eDesc->text().trimmed();
-    QString link = eLink->text().trimmed();
+    QString cmt = eCmt->toPlainText().trimmed();
+    QString desc = eDesc->toPlainText().trimmed();
+    int linkCnt = eLink->count();
+    //QString link = eLink->text().trimmed();
     if (symIdx > 0 && !name.isEmpty()) {
         emit accept();
         return;
     }
-    if (symIdx == 0 && name.isEmpty() && desc.isEmpty() && link.isEmpty()) {
+    if (symIdx == 0 && name.isEmpty() && desc.isEmpty() && linkCnt == 0 && cmt.isEmpty()) {
         emit accept();
         return;
     }
@@ -152,7 +230,9 @@ GpxPoint GpxPointDlg::point() const {
         eShowProfile->setChecked(false);
     }
     QString sym = eSym->itemText(symIdx);
-    GpxPoint p(myPoint.type(), pos, myPoint.timestamp(), eEle->text().toDouble(), sym, eName->text(), eDesc->text(), eLink->text());
+    GpxPoint p(myPoint.type(), pos, myPoint.timestamp(), eEle->text().toDouble(), sym,
+               eName->text().trimmed(), eCmt->toPlainText().trimmed(), eDesc->toPlainText().trimmed(),
+               myPoint.links(), eGpxType->text().trimmed());
     p.setSrtm(myPoint.srtm());
     p.setShowMap(eShowMap->isChecked());
     p.setShowProfile(eShowProfile->isChecked());

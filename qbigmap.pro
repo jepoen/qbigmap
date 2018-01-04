@@ -2,7 +2,9 @@
 # Project created by QtCreator 2010-05-09T15:31:47
 # -------------------------------------------------
 QT += network \
-    xml
+    printsupport \
+    xml \
+    widgets
 TARGET = qbigmap
 TEMPLATE = app
 SOURCES += main.cpp \
@@ -44,7 +46,13 @@ SOURCES += main.cpp \
     helpwindow.cpp \
     boolspinbox.cpp \
     placedialog.cpp \
-    mapprintdlg.cpp
+    mapprintdlg.cpp \
+    mapiconeditdlg.cpp \
+    photodlg.cpp \
+    tile.cpp \
+    wptmodel.cpp \
+    managewaypointdlg.cpp \
+    gpxlinkdlg.cpp
 HEADERS += mainwindow.h \
     httpget.h \
     model.h \
@@ -83,10 +91,18 @@ HEADERS += mainwindow.h \
     helpwindow.h \
     boolspinbox.h \
     placedialog.h \
-    mapprintdlg.h
-RESOURCES += qbigmap.qrc
+    mapprintdlg.h \
+    mapiconeditdlg.h \
+    photodlg.h \
+    savetrackdlg.h \
+    tile.h \
+    wptmodel.h \
+    managewaypointdlg.h \
+    gpxlinkdlg.h
+RESOURCES += \
+    qbigmap.qrc
 TRANSLATIONS = qbigmap_de.ts
-LIBS += /usr/lib/libexiv2.a
+LIBS += -l exiv2
 
 OTHER_FILES += \
     resources/QBigMap.conf \
@@ -135,7 +151,12 @@ OTHER_FILES += \
     help/de/track.html \
     help/de/map.html \
     help/de/index.html \
-    help/en/index.html
+    help/en/index.html \
+    icons/peak.png \
+    icons/viewpoint_s.png
+
+DISTFILES += \
+    mapicons/church.xpm
 
 
 

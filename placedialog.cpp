@@ -1,5 +1,5 @@
 #include <QtDebug>
-#include <QtGui>
+#include <QtWidgets>
 #include <QtNetwork>
 #include <QtXml>
 #include "placedialog.h"
@@ -75,7 +75,7 @@ PlaceDialog::PlaceDialog(QWidget *parent) :
     tPlaces->setSelectionMode(QAbstractItemView::SingleSelection);
     tPlaces->setSelectionBehavior(QAbstractItemView::SelectRows);
     QHeaderView *columns = tPlaces->horizontalHeader();
-    columns->setResizeMode(0, QHeaderView::Stretch);
+    columns->setSectionResizeMode(0, QHeaderView::Stretch);
     mainLayout->addWidget(tPlaces);
     QDialogButtonBox *box = new QDialogButtonBox();
     box->addButton(tr("Select"), QDialogButtonBox::AcceptRole);
@@ -106,12 +106,13 @@ void PlaceDialog::download() {
         return;
     }
     QUrl url(overpassUrl);
-    url.addQueryItem("data", QString("node[place][name=\"%1\"];out qt;").arg(ePlace->text().trimmed()));
-    qDebug()<<url;
+    QUrlQuery postData;
+    postData.addQueryItem("data", QString("node[place][name=\"%1\"];out qt;").arg(ePlace->text().trimmed()));
+    qDebug()<<url<<" "<<postData.toString();
     QProgressDialog *progressDlg = new QProgressDialog(this);
     progressDlg->setLabelText(tr("Download %1").arg(url.toString()));
     QNetworkAccessManager netManager(this);
-    QNetworkReply *reply = netManager.get(QNetworkRequest(QUrl(url)));
+    QNetworkReply *reply = netManager.post(QNetworkRequest(QUrl(url)), postData.toString(QUrl::FullyEncoded).toUtf8());
     QEventLoop pause;
     connect(reply, SIGNAL(finished()), &pause, SLOT(quit()));
     //connect(reply, SIGNAL(readyRead()), this, SLOT(httpReadyRead()));

@@ -1,4 +1,4 @@
-#include <QtGui>
+#include <QtWidgets>
 #include <QtDebug>
 #include "centerdialog.h"
 
@@ -12,7 +12,7 @@ QRectF CenterItem::boundingRect() const {
     return QRectF(-20, -20, 40, 40);
 }
 
-void CenterItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
+void CenterItem::paint(QPainter *painter, const QStyleOptionGraphicsItem */*option*/, QWidget */*widget*/) {
     QPen pen(Qt::cyan);
     pen.setCosmetic(true);
     painter->setPen(pen);

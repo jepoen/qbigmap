@@ -1,4 +1,4 @@
-#include <QtGui>
+#include <QtWidgets>
 #include "saveroutedlg.h"
 
 SaveRouteDlg::SaveRouteDlg(int typ, const QString& fileName, const QString &name, const QString &text, QWidget *parent) :
@@ -34,8 +34,10 @@ SaveRouteDlg::SaveRouteDlg(int typ, const QString& fileName, const QString &name
     controlLayout->addWidget(bFileName, 1, 2);
     eWaypoints = new QCheckBox(tr("Add &Waypoints"));
     controlLayout->addWidget(eWaypoints, 2, 0, 1, 2);
+    eAsTrack = new QCheckBox(tr("Save as &Track"));
+    controlLayout->addWidget(eAsTrack, 3, 0, 1, 2);
     eUpload = new QCheckBox(tr("&Upload to GPS device"));
-    controlLayout->addWidget(eUpload, 3, 0, 1, 2);
+    controlLayout->addWidget(eUpload, 4, 0, 1, 2);
 
     mainLayout->addLayout(controlLayout);
     QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
@@ -91,4 +93,8 @@ bool SaveRouteDlg::isWaywaypoints() const {
 
 bool SaveRouteDlg::isUpload() const {
     return eUpload->isChecked();
+}
+
+bool SaveRouteDlg::isAsTrack() const {
+    return eAsTrack->isChecked();
 }

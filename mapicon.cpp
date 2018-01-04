@@ -12,10 +12,16 @@ void MapIcon::setMapIcoFile(const QString &fileName) {
     myMapIco = QPixmap(myMapIcoFile);
 }
 
-const MapIcon& MapIconList::icon(const QString &key) const {
-    foreach (const MapIcon& ico, myIcons) {
-        if (ico.name() == key) return ico;
+int MapIconList::iconIdx(const QString &key) const {
+    for (int i = 0; i < myIcons.size(); i++) {
+        if (myIcons[i].name() == key) return i;
     }
+    return -1;
+}
+
+const MapIcon& MapIconList::icon(const QString &key) const {
+    int idx = iconIdx(key);
+    if (idx >= 0) return myIcons[idx];
     return myIcons[0];
 }
 

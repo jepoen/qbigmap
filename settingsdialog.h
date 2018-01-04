@@ -108,20 +108,29 @@ public:
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
-    bool setData(const QModelIndex &index, const QVariant &value, int role);
+    bool setData(const QModelIndex &index, const QVariant &, int role);
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
+    MapIcon iconAt(int idx) const { return myIcons.at(idx); }
+    void setIcon(int idx, const MapIcon& ico) { myIcons.setIco(idx, ico); }
+    bool insertRow(int row, const QModelIndex &parent = QModelIndex());
+    bool removeRow(int row, const QModelIndex &parent = QModelIndex());
+    MapIconList mapIconList() const { return myIcons; }
+    int iconListSize() const { return myIcons.size(); }
 };
 
 class IconTab: public QWidget {
     Q_OBJECT
 private:
     Settings *mySettings;
+    QPushButton *myNewIco;
     QTableView *tab;
     IconTableModel myModel;
 public:
     IconTab(Settings *settings, QWidget *parent = 0);
+    MapIconList mapIconList() const { return myModel.mapIconList(); }
 private slots:
+    void add();
     void edit(const QModelIndex& index);
     void resizeTab();
 };

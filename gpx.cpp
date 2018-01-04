@@ -40,6 +40,74 @@ QString GpxPoint::typeName() const {
     return QObject::tr("unknown GPX point");
 }
 
+QDomElement GpxPoint::toDomElement(QDomDocument &doc, const QString& elName, bool isSimple) const {
+    QLocale locale("C");
+    QDomElement domEl = doc.createElement(elName);
+    domEl.setAttribute("lon", locale.toString(coord().x(), 'g', 10));
+    domEl.setAttribute("lat", locale.toString(coord().y(), 'g', 10));
+    if (ele() > -32768 && !isSimple) {
+        QDomElement el = doc.createElement("ele");
+        QDomText txt = doc.createTextNode(QString("%1").arg(ele()));
+        el.appendChild(txt);
+        domEl.appendChild(el);
+    }
+    if (!timestamp().isNull() && !isSimple) {
+        QDomElement timeStamp = doc.createElement("time");
+        timeStamp.appendChild(doc.createTextNode(timestamp().toString(QString("yyyy-MM-ddThh:mm:ssZ"))));
+        domEl.appendChild(timeStamp);
+    }
+    if (name() != "") {
+        QDomElement el = doc.createElement("name");
+        QDomText txt = doc.createTextNode(name());
+        el.appendChild(txt);
+        domEl.appendChild(el);
+    }
+    if (cmt() != "") {
+        QDomElement el = doc.createElement("cmt");
+        QDomText txt = doc.createTextNode(cmt());
+        el.appendChild(txt);
+        domEl.appendChild(el);
+    }
+    if (desc() != "") {
+        QDomElement el = doc.createElement("desc");
+        QDomText txt = doc.createTextNode(desc());
+        el.appendChild(txt);
+        domEl.appendChild(el);
+    }
+    if (myLinks.size() > 0) {
+        foreach (const GpxLink& link, myLinks) {
+            if (link.url() != "") {
+                QDomElement el = doc.createElement("link");
+                el.setAttribute("href", link.url());
+                domEl.appendChild(el);
+                if (link.text() != "") {
+                    QDomElement child = doc.createElement("text");
+                    child.appendChild(doc.createTextNode(link.text()));
+                    el.appendChild(child);
+                }
+                if (link.mimeType() != "") {
+                    QDomElement child = doc.createElement("type");
+                    child.appendChild(doc.createTextNode(link.mimeType()));
+                    el.appendChild(child);
+                }
+            }
+        }
+    }
+    if (sym() != "") {
+        QDomElement el = doc.createElement("sym");
+        QDomText txt = doc.createTextNode(sym());
+        el.appendChild(txt);
+        domEl.appendChild(el);
+    }
+    if (gpxType() != "") {
+        QDomElement el = doc.createElement("gpxType");
+        QDomText txt = doc.createTextNode(gpxType());
+        el.appendChild(txt);
+        domEl.appendChild(el);
+    }
+    return domEl;
+}
+
 Gpx::Gpx(const QString &fileName) :
     myRouteName("--")
 {
@@ -109,8 +177,11 @@ GpxPoint Gpx::xmlParsePt(const QDomElement& el) {
     QDateTime timestamp;
     QString sym = "";
     QString name = "";
+    QString cmt = "";
     QString desc = "";
-    QString link = "";
+    QList<GpxLink> links;
+    QString linkType = "";
+    QString linkText = "";
     for (QDomElement c = el.firstChildElement(); !c.isNull(); c = c.nextSiblingElement()) {
         if (c.nodeName() == "ele") {
             ele = c.text().toDouble();
@@ -121,10 +192,22 @@ GpxPoint Gpx::xmlParsePt(const QDomElement& el) {
             sym = c.text();
         } else if (c.nodeName() == "name") {
             name = c.text();
+        } else if (c.nodeName() == "cmt") {
+            cmt = c.text();
         } else if (c.nodeName() == "desc") {
             desc = c.text();
         } else if (c.nodeName() == "link") {
-            link = c.text();
+            QString link = c.attribute("href", "");
+            for (QDomElement cc = c.firstChildElement(); !cc.isNull(); cc = cc.nextSiblingElement()) {
+                if (cc.nodeName() == "text") {
+                    linkText = cc.text();
+                } else if (cc.nodeName() == "type") {
+                    linkType = cc.text();
+                }
+            }
+            // Work around for wrong gpx files
+            if (link.isEmpty()) link = c.text();
+            links.append(GpxLink(link, linkType, linkText));
         }
     }
     int type = -1;
@@ -132,7 +215,7 @@ GpxPoint Gpx::xmlParsePt(const QDomElement& el) {
     else if (el.nodeName() == "rtept") type = GpxPoint::RTE;
     else if (el.nodeName() == "wpt") type = GpxPoint::WPT;
     assert(type >= 0);
-    return GpxPoint(type, QPointF(lon, lat), timestamp, ele, sym, name, desc, link);
+    return GpxPoint(type, QPointF(lon, lat), timestamp, ele, sym, name, cmt, desc, links);
 }
 
 GpxPointList Gpx::trackPoints() const {
@@ -143,6 +226,28 @@ GpxPointList Gpx::trackPoints() const {
         }
     }
     return ptl;
+}
+
+QStringList Gpx::symList() const {
+    QStringList res;
+    foreach (const GpxPointList& l, myTrackSegments) {
+        foreach (const GpxPoint& p, l) {
+            if (!res.contains(p.sym())) {
+                res.append(p.sym());
+            }
+        }
+    }
+    foreach (const GpxPoint& p, myRoutePoints) {
+        if (!res.contains(p.sym())) {
+            res.append(p.sym());
+        }
+    }
+    foreach (const GpxPoint& p, myWayPoints) {
+        if (!res.contains(p.sym())) {
+            res.append(p.sym());
+        }
+    }
+    return res;
 }
 
 TrackSegInfo Gpx::trackSegInfo(int idx) const {

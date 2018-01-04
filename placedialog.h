@@ -34,8 +34,8 @@ private:
 public:
     explicit PlaceModel(QObject *parent = 0) : QAbstractTableModel(parent) {}
     ~PlaceModel();
-    int rowCount(const QModelIndex &parent) const { return myPlaces.size(); }
-    int columnCount(const QModelIndex &parent) const { return 3; }
+    int rowCount(const QModelIndex &/*parent*/) const { return myPlaces.size(); }
+    int columnCount(const QModelIndex &/*parent*/) const { return 3; }
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     void setModel(const QList<Place> &places);

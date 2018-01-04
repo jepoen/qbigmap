@@ -16,7 +16,7 @@ void Track::setPoints(const GpxPointList &trackpoints) {
     setPos(0);
 }
 
-void Track::writeOrigXml(QIODevice *dev) {
+void Track::writeOrigXml(QIODevice */*dev*/) {
 
 }
 
@@ -28,6 +28,7 @@ void Track::writeModifiedXml(QIODevice *dev, const GpxPointList& waypoints, bool
     root.setAttribute("version", "1.1");
     root.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
     root.setAttribute("xsi:schemaLocation", "http://www.topografix.com/GPX/1/1 gpx.xsd");
+    root.setAttribute("creator", "qbigmap");
     doc.appendChild(root);
     QDomElement bounds = doc.createElement("bounds");
     BoundingBox bbox = boundingBox();
@@ -37,33 +38,7 @@ void Track::writeModifiedXml(QIODevice *dev, const GpxPointList& waypoints, bool
     bounds.setAttribute("maxlat", locale.toString(bbox.p1().y(), 'g', 10));
     root.appendChild(bounds);
     foreach (const GpxPoint& p, waypoints) {
-        QDomElement wpt = doc.createElement("wpt");
-        wpt.setAttribute("lon", locale.toString(p.coord().x(), 'g', 10));
-        wpt.setAttribute("lat", locale.toString(p.coord().y(), 'g', 10));
-        if (p.sym() != "") {
-            QDomElement el = doc.createElement("sym");
-            QDomText txt = doc.createTextNode(p.sym());
-            el.appendChild(txt);
-            wpt.appendChild(el);
-        }
-        if (p.name() != "") {
-            QDomElement el = doc.createElement("name");
-            QDomText txt = doc.createTextNode(p.name());
-            el.appendChild(txt);
-            wpt.appendChild(el);
-        }
-        if (p.desc() != "") {
-            QDomElement el = doc.createElement("desc");
-            QDomText txt = doc.createTextNode(p.desc());
-            el.appendChild(txt);
-            wpt.appendChild(el);
-        }
-        if (p.link() != "") {
-            QDomElement el = doc.createElement("link");
-            QDomText txt = doc.createTextNode(p.link());
-            el.appendChild(txt);
-            wpt.appendChild(el);
-        }
+        QDomElement wpt = p.toDomElement(doc, "wpt", isSimple);
         root.appendChild(wpt);
     }
     QDomElement trk = doc.createElement("trk");
@@ -74,44 +49,8 @@ void Track::writeModifiedXml(QIODevice *dev, const GpxPointList& waypoints, bool
     QDomElement trkseg = doc.createElement("trkseg");
     trk.appendChild(trkseg);
     foreach (const GpxPoint& p, myTrackPoints) {
-        QDomElement trkpt = doc.createElement("trkpt");
-        trkpt.setAttribute("lon", locale.toString(p.coord().x(), 'g', 10));
-        trkpt.setAttribute("lat", locale.toString(p.coord().y(), 'g', 10));
+        QDomElement trkpt = p.toDomElement(doc, "trkpt", isSimple);
         trkseg.appendChild(trkpt);
-        if (!isSimple) {
-            if (p.ele() > -32768) {
-                QDomElement ele = doc.createElement("ele");
-                ele.appendChild(doc.createTextNode(QString("%1").arg(p.ele())));
-                trkpt.appendChild(ele);
-            }
-            QDomElement timeStamp = doc.createElement("time");
-            timeStamp.appendChild(doc.createTextNode(p.timestamp().toString(QString("yyyy-MM-ddThh:mm:ssZ"))));
-            trkpt.appendChild(timeStamp);
-        }
-        if (p.sym() != "") {
-            QDomElement el = doc.createElement("sym");
-            QDomText txt = doc.createTextNode(p.sym());
-            el.appendChild(txt);
-            trkpt.appendChild(el);
-        }
-        if (p.name() != "") {
-            QDomElement el = doc.createElement("name");
-            QDomText txt = doc.createTextNode(p.name());
-            el.appendChild(txt);
-            trkpt.appendChild(el);
-        }
-        if (p.desc() != "") {
-            QDomElement el = doc.createElement("desc");
-            QDomText txt = doc.createTextNode(p.desc());
-            el.appendChild(txt);
-            trkpt.appendChild(el);
-        }
-        if (p.link() != "") {
-            QDomElement el = doc.createElement("link");
-            QDomText txt = doc.createTextNode(p.link());
-            el.appendChild(txt);
-            trkpt.appendChild(el);
-        }
     }
     QTextStream stream(dev);
     doc.save(stream, 4);

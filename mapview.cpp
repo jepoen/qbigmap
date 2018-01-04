@@ -1,4 +1,4 @@
-#include <QtGui>
+#include <QtWidgets>
 #include <QtDebug>
 #include "deltrkpartdlg.h"
 #include "geom.h"
@@ -66,32 +66,45 @@ void MapView::mousePressEvent(QMouseEvent *event) {
 void MapView::mouseMoveEvent(QMouseEvent *event) {
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
-    QPointF pos = mapToScene(event->pos());
-    QPointF lonLat = model->lonLat(pos);
+    myPos = mapToScene(event->pos());
+    QPointF lonLat = model->lonLat(myPos);
     //qDebug()<<"mouse "<<event->pos()<<" scrollbars: "<<horizontalScrollBar()->value()<<","<<verticalScrollBar()->value()
     //       <<" size: "<<width()<<", "<<height();
     //qDebug()<<"lonLat: "<<lonLat;
     if ((event->buttons() & Qt::RightButton) != 0) {
-        qDebug()<<"motion "<<pos.x()-mouseX0<<" "<<pos.y()-mouseY0;
+        qDebug()<<"motion "<<myPos.x()-mouseX0<<" "<<myPos.y()-mouseY0;
         QScrollBar *sb = verticalScrollBar();
         qDebug()<<"vsb "<<sb->value();
-        sb->setValue(sb->value()-pos.y()+mouseY0);
+        sb->setValue(sb->value()-myPos.y()+mouseY0);
         sb = horizontalScrollBar();
         qDebug()<<"hsb "<<sb->value();
-        sb->setValue(sb->value()-pos.x()+mouseX0);
+        sb->setValue(sb->value()-myPos.x()+mouseX0);
     }
     else if (!event->buttons()) {
-        function->motion(pos);
+        function->motion(myPos);
     }
     emit mouseGeoPos(lonLat);
     QGraphicsView::mouseMoveEvent(event);
 }
 
 void MapView::keyPressEvent(QKeyEvent *event) {
-    if (!function->key(event)) QGraphicsView::keyPressEvent(event);
+    if (function->key(event)) return;
+    if (event->matches(QKeySequence::ZoomIn)) {
+        zoomIn(myPos);
+        return;
+    }
+    if (event->matches(QKeySequence::ZoomOut)) {
+        zoomOut(myPos);
+        return;
+    }
+    QGraphicsView::keyPressEvent(event);
 }
 
 void MapView::wheelEvent(QWheelEvent *event) {
+    if (event->modifiers() != Qt::ControlModifier) {
+        QGraphicsView::wheelEvent(event);
+        return;
+    }
     QPointF pos = mapToScene(event->pos());
     int ix = (int)pos.x()/256;
     int iy = (int)pos.y()/256;
@@ -259,7 +272,7 @@ void MapView::editTrackPoint(int idx) {
     const GpxPointList& points = model->track().trackPoints();
     double dist0 = Model::geodist1(points, 0, idx);
     double dist1 = Model::geodist1(points, idx, points.size()-1);
-    GpxPointDlg dlg(model, model->track().trackPoint(idx), mySettings->mapIconList());
+    GpxPointDlg dlg(model, model->track().trackPoint(idx), mySettings->mapIconList(), true);
     dlg.setSrtmEle(model->srtmEle(points[idx].coord()));
     dlg.setDists(dist0, dist1);
     createTempPoint(points[idx].coord());
@@ -387,7 +400,7 @@ void MapView::editRoutePoint(const QPointF& pos) {
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
     const GpxPointList *points = model->route().points();
-    GpxPointDlg dlg(model, points->at(idx), mySettings->mapIconList());
+    GpxPointDlg dlg(model, points->at(idx), mySettings->mapIconList(), true);
     double dist0 = Model::geodist1(*points, 0, idx);
     double dist1 = Model::geodist1(*points, idx, points->size()-1);
     //Test
@@ -470,7 +483,7 @@ void MapView::editWaypoint(const QPointF& pos) {
     if (idx < 0) return;
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
-    GpxPointDlg dlg(model, model->waypoints().at(idx), mySettings->mapIconList());
+    GpxPointDlg dlg(model, model->waypoints().at(idx), mySettings->mapIconList(), true);
     //Test
     //double dist1 = Model::geodist0(*points, 0, idx);
     dlg.setSrtmEle(model->srtmEle(model->waypoints().at(idx).coord()));
