@@ -1124,20 +1124,29 @@ void MainWindow::mapToTrack() {
 }
 
 void MainWindow::saveTrack(const QString& text) {
-    SaveRouteDlg dlg(SaveRouteDlg::TRACK, model->track().fileName(), model->track().name(), text, this);
-    dlg.setWaypoints(model->waypoints().size() > 0);
+    saveTrack(model->trackPtr(), model->waypoints(), false, text);
+}
+
+void MainWindow::saveTrack(Track *track, const GpxPointList& waypoints, bool isSimple, const QString& text) {
+    SaveRouteDlg dlg(SaveRouteDlg::TRACK, track->fileName(), track->name(), text, this);
+    dlg.setWaypoints(waypoints.size() > 0);
     if (dlg.exec() != QDialog::Accepted) {
         return;
     }
     QString fileName = dlg.fileName();
     QString name = dlg.name();
     bool isUpload = dlg.isUpload();
-    model->trackPtr()->setName(name);
+    track->setName(name);
     QFile file(fileName);
     file.open(QFile::WriteOnly|QFile::Text);
-    model->saveModifiedTrack(&file, dlg.isWaywaypoints(), false);
+    if (dlg.isWaywaypoints()) {
+        track->writeModifiedXml(&file, waypoints, isSimple);
+    } else {
+        track->writeModifiedXml(&file, GpxPointList(), isSimple);
+    }
+
     file.close();
-    model->trackPtr()->setFileName(fileName);
+    track->setFileName(fileName);
     if (isUpload) {
         QStringList params;
         params<<"-t"
@@ -1237,6 +1246,7 @@ void MainWindow::simplifyTrack() {
         qDebug()<<"simplify 2";
         saveTrack(tr("Save simplified track"));
     } else if (dlg.action() == TrackSimplifyDlg::EXPORT) {
+
         QFileInfo fi(model->track().simpleFileName());
         TrackExportDlg expdlg(settings.exportDir(), fi.fileName(), this);
         if (model->waypoints().size() > 0) expdlg.setWpts(true);

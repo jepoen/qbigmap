@@ -11,6 +11,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 class QSpinBox;
+class QToolButton;
 class Track;
 class TrackItem;
 
@@ -30,7 +31,10 @@ private:
     QList<bool> myStopNodes;
     QPointF myCenter;
     int myAction;
+    QAction *setTargetFileAction;
+    QString myTargetFile;
 
+    void setInitTargetFile();
     void initLine();
     QString getSimpleFileName(const QString& s);
     void redrawTrack();

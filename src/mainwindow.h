@@ -175,6 +175,7 @@ private slots:
     void loadGpx();
     void readTrackFromGps();
     void saveTrack(const QString &text = tr("Save current track"));
+    void saveTrack(Track *track, const GpxPointList &waypoints, bool isSimple, const QString& text);
     void deleteTrack();
     void mapToTrack();
     GpxPointList selectTrackSegments(const Gpx& gpx);

@@ -115,3 +115,4 @@ void TrackSimplifyDlg::cancel() {
     myTrackItem = 0;
     reject();
 }
+

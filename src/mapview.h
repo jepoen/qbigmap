@@ -6,11 +6,11 @@
 #include <QPointF>
 #include <QPrinter>
 #include "settings.h"
+#include "viewfunction.h"
 
 class TrackPointItem;
 class WaypointItem;
 class RoutePointItem;
-class ViewFunction;
 class QAction;
 
 class MapView : public QGraphicsView
@@ -18,7 +18,7 @@ class MapView : public QGraphicsView
     Q_OBJECT
 private:
     Settings *mySettings;
-    std::auto_ptr<ViewFunction> function;
+    std::unique_ptr<ViewFunction> function;
     int mouseX0;
     int mouseY0;
     QPointF myPos;
