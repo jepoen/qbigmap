@@ -1242,27 +1242,15 @@ void MainWindow::simplifyTrack() {
     if (dlg.action() == TrackSimplifyDlg::REPLACE) {
         saveTrack(tr("Save original track"));
         qDebug()<<"simplify 1";
+        // replace active track
         model->trackSetNew(model->track().simpleFileName(), model->track().name()+" (S)", dlg.simpleTrackPoints());
         qDebug()<<"simplify 2";
         saveTrack(tr("Save simplified track"));
     } else if (dlg.action() == TrackSimplifyDlg::EXPORT) {
-
-        QFileInfo fi(model->track().simpleFileName());
-        TrackExportDlg expdlg(settings.exportDir(), fi.fileName(), this);
-        if (model->waypoints().size() > 0) expdlg.setWpts(true);
-        if (expdlg.exec() == QDialog::Accepted) {
-            Track simpleTrack(dlg.simpleTrackPoints());
-            QFile file(expdlg.fileName());
-            if (!file.open(QFile::WriteOnly|QFile::Text)) return;
-            if (expdlg.hasWpts()) simpleTrack.writeModifiedXml(&file, model->waypoints(), expdlg.isSimple());
-            else                  simpleTrack.writeModifiedXml(&file, GpxPointList(), expdlg.isSimple());
-            file.close();
-            if (expdlg.isOsm()) {
-                QPointF center = simpleTrack.boundingBox().center();
-                OsmMap map(center, model->zoom());
-                map.writeTrackFile(expdlg.osmFileName(), expdlg.fileName(), expdlg.title(), settings.mapIconList());
-            }
-        }
+        Track simpleTrack(dlg.simpleTrackPoints());
+        simpleTrack.setFileName(model->track().simpleFileName());
+        simpleTrack.setName(model->track().name()+" (S)");
+        saveTrack(&simpleTrack, model->waypoints(), true, tr("Save simplified track"));
     }
 }
 

@@ -132,8 +132,6 @@ OTHER_FILES += \
     icons/arrow_down.png \
     icons/add.png \
     icons/star.png \
-    resources/osm-track.html \
-    resources/qbm-track-osm.js \
     icons/hostel-s.png \
     icons/hostel.png \
     icons/star-s.png \
