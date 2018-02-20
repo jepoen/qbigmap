@@ -278,6 +278,7 @@ MapScene::MapScene(Model *model, QObject *parent) :
         myTrackPosItem(0),
         myRouteItem(0),
         myPhotoItem(0),
+        myTmpItem(0),
         myShowGrid(true),
         myShowTileBounds(false),
         myShowTrackBb(false)
@@ -394,6 +395,7 @@ void MapScene::getNextTile() {
     redrawRoute();
     redrawWaypoints();
     redrawPhoto();
+    redrawTmpItem();
     update();
 }
 
@@ -672,4 +674,24 @@ void MapScene::redrawPhoto() {
     QPointF pt = myModel->lonLat2Scene(myPhotoCoord[0]);
     myPhotoItem = new PhotoItem(pt);
     addItem(myPhotoItem);
+}
+
+void MapScene::redrawTmpItem() {
+    if (myTmpItem != 0) addItem(myTmpItem);
+}
+
+void MapScene::addTmpItem(QPointF& gpos) {
+    myTmpItem = addEllipse(-8, -8, 16, 16, QPen(Qt::black), QBrush(Qt::blue));
+    myTmpItem->setPos(gpos);
+}
+
+void MapScene::delTmpItem() {
+    if (myTmpItem == 0) return;
+    removeItem(myTmpItem);
+    delete myTmpItem;
+    myTmpItem = 0;
+}
+
+void MapScene::moveTmpItem(const QPointF& gpos) {
+    if (myTmpItem != 0) myTmpItem->setPos(gpos);
 }

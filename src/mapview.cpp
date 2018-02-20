@@ -546,24 +546,17 @@ void MapView::setNewWaypointFunction() {
 void MapView::createTempPoint(const QPointF& pos) {
     Model *model = static_cast<MapScene*>(scene())->model();
     QPointF gpos = model->lonLat2Scene(pos);
-    tempItem = new QGraphicsEllipseItem(-3, -3, 6, 6);
-    scene()->addItem(tempItem);
-    tempItem->setPos(gpos);
+    static_cast<MapScene*>(scene())->addTmpItem(gpos);
 }
 
 void MapView::moveTempPoint(const QPointF& pos) {
-    if (tempItem == NULL)
-        return;
     Model *model = static_cast<MapScene*>(scene())->model();
     QPointF gpos = model->lonLat2Scene(pos);
-    tempItem->setPos(gpos);
+    static_cast<MapScene*>(scene())->moveTmpItem(gpos);
 }
 
 void MapView::deleteTempPoint() {
-    if (tempItem == NULL)
-        return;
-    delete tempItem;
-    tempItem = NULL;
+    static_cast<MapScene*>(scene())->delTmpItem();
 }
 
 void MapView::delTrackPart() {

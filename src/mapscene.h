@@ -132,6 +132,7 @@ private:
     QList<WaypointItem*> myWaypointItems;
     QList<QPointF> myPhotoCoord; // only one entry!
     PhotoItem *myPhotoItem;
+    QGraphicsItem *myTmpItem;
     bool myShowGrid;
     bool myShowTileBounds;
     bool myShowTrackBb;
@@ -166,6 +167,9 @@ public:
     QPixmap getPixmap(const QString& key) const;
     void showPhotoItem(const QPointF& pos);
     void hidePhotoItem();
+    void addTmpItem(QPointF& gpos);
+    void delTmpItem();
+    void moveTmpItem(const QPointF& gpos);
 
 private slots:
     void tileLoaded(bool error);
@@ -180,6 +184,7 @@ public slots:
     void changeRoutePos(int);
     void redrawWaypoints();
     void redrawPhoto();
+    void redrawTmpItem();
 };
 
 #endif // MAPSCENE_H
