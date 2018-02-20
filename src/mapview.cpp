@@ -11,8 +11,7 @@
 #include "viewfunction.h"
 
 MapView::MapView(QGraphicsScene *scene, Settings *settings) :
-    QGraphicsView(scene), mySettings(settings),
-    tempItem(NULL)
+    QGraphicsView(scene), mySettings(settings)
 {
     function.reset(new ShowFunction(this));
     setMouseTracking(true);

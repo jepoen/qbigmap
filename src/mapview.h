@@ -22,7 +22,6 @@ private:
     int mouseX0;
     int mouseY0;
     QPointF myPos;
-    QGraphicsItem *tempItem;
     QAction *selectTrackPointAction;
     QAction *insertTrackPointAction;
     QAction *editTrackPointAction;
