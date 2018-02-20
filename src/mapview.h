@@ -53,6 +53,7 @@ public:
     int idxOfRoutePoint(RoutePointItem *it);
     void delRoutePoint(const QPointF& pos);
     void moveRoutePoint(int idx, const QPointF& pos);
+    void editRoutePoint(int pointIdx);
     void editRoutePoint(const QPointF& pos);
     void insertRoutePoint(const QPointF& pos);
     void moveWaypoint(int idx, const QPointF& pos);
@@ -74,6 +75,7 @@ signals:
     void mouseGeoPos(const QPointF& lonLat);
 public slots:
     void changeTrackPos(int);
+    void changeRoutePos(int pos);
     void setShowFunction();
     void setMoveTrackPosFunction();
     void setMoveGpxPointFunction();

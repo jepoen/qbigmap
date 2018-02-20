@@ -15,10 +15,12 @@ private:
     Model *myModel;
     QList<int> myPoiList;
     const MapIconList *myMapIcons;
+    int myGpxType; // Track or Route
     void createPoiList();
 public:
     enum {GpxIndexRole = Qt::UserRole+1};
-    explicit GpxListModel(Model *model, const MapIconList *mapIcons, QObject *parent = 0);
+    enum {GPX_TRK, GPX_RTE};
+    explicit GpxListModel(Model *model, const MapIconList *mapIcons, int gpxType, QObject *parent = 0);
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     QVariant data(const QModelIndex &index, int role) const;
     int rowCount(const QModelIndex &) const;

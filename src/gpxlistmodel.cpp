@@ -6,8 +6,8 @@
 #include "gpxlistmodel.h"
 #include "model.h"
 
-GpxListModel::GpxListModel(Model *model, const MapIconList *mapIcons, QObject *parent) :
-    QAbstractTableModel(parent), myModel(model), myMapIcons(mapIcons)
+GpxListModel::GpxListModel(Model *model, const MapIconList *mapIcons, int gpxType, QObject *parent) :
+    QAbstractTableModel(parent), myModel(model), myMapIcons(mapIcons), myGpxType(gpxType)
 {
     createPoiList();
 }
@@ -17,7 +17,13 @@ void GpxListModel::createPoiList() {
     beginRemoveRows(parent, 0, myPoiList.size()-1);
     myPoiList.clear();
     endRemoveRows();
-    const GpxPointList& points = myModel->track().trackPoints();
+    GpxPointList points;
+    if (myGpxType == GPX_TRK) {
+        points = myModel->track().trackPoints();
+    } else { // GPX_RTE
+        points = *myModel->route().points();
+    }
+    qDebug()<<"createPoiList "<<points.size();
     for (int i = 0; i < points.size(); i++) {
         if (!points[i].sym().isEmpty()) {
             myPoiList.append(i);
@@ -26,6 +32,7 @@ void GpxListModel::createPoiList() {
     }
     beginInsertRows(parent, 0, myPoiList.size()-1);
     endInsertRows();
+    qDebug()<<"createPoiList"<<myPoiList;
 }
 
 QVariant GpxListModel::headerData(int section, Qt::Orientation orientation, int role) const {
@@ -45,7 +52,12 @@ QVariant GpxListModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid()) return QVariant();
     int row = index.row();
     int idx = myPoiList[row];
-    const GpxPointList& points = myModel->track().trackPoints();
+    GpxPointList points;
+    if (myGpxType == GPX_TRK) {
+        points = myModel->track().trackPoints();
+    } else {
+        points = *myModel->route().points();
+    }
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
         case 0:

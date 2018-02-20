@@ -397,6 +397,10 @@ void MapView::moveRoutePoint(int idx, const QPointF& pos) {
 void MapView::editRoutePoint(const QPointF& pos) {
     int idx = idxOfRoutePoint(pos);
     if (idx < 0) return;
+    editRoutePoint(idx);
+}
+
+void MapView::editRoutePoint(int idx) {
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
     const GpxPointList *points = model->route().points();
@@ -576,4 +580,12 @@ void MapView::delTrackPart() {
 void MapView::changeTrackPos(int) {
     MapScene *mapScene = static_cast<MapScene*>(scene());
     ensureVisible(mapScene->trackPosItem());
+}
+
+void MapView::changeRoutePos(int pos) {
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    qDebug()<<"changeRoutePos"<<pos<<" routePoints "<<mapScene->routePointItems().size();
+    Model *model = static_cast<MapScene*>(scene())->model();
+    QPointF pt = model->lonLat2Scene(model->routePtr()->routePoint(pos).coord());
+    ensureVisible(pt.x()-10, pt.y()-10, 20, 20);
 }

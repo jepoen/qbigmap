@@ -60,7 +60,8 @@ private:
     bool myShowMap;
     bool myShowProfile;
 public:
-    enum {TRK, RTE, WPT};
+    enum {NONE, TRK, RTE, WPT};
+    explicit GpxPoint(): myType(NONE) {}
     explicit GpxPoint(int type, const QPointF& pos, const QDateTime& timestamp = QDateTime(), double ele = 0,
                       const QString& sym="", const QString& name="", const QString& cmt="", const QString& desc="",
                       const QList<GpxLink>& links=QList<GpxLink>(), const QString& gpxType=""):
@@ -73,6 +74,7 @@ public:
         }
     }
     int type() const { return myType; }
+    bool isNull() const { return myType == NONE; }
     QString typeName() const;
     virtual ~GpxPoint() {}
     QPointF coord() const { return dscale(myCoord); }

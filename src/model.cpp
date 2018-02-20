@@ -369,6 +369,12 @@ void Model::saveModifiedTrack(QIODevice *dev, bool addWaypoints, bool isSimple) 
     else              trackPtr()->writeModifiedXml(dev, GpxPointList(), isSimple);
 }
 
+void Model::setRoutePos(int pos) {
+    if (myRoute.isEmpty()) return;
+    if (!isInMap(myRoute.routePoint(pos).coord())) setCenter(myRoute.routePoint(pos).coord());
+    emit routePosChanged(pos);
+}
+
 void Model::changeRoutePoint(int pos, const QPointF &lonLat) {
     if (myRoute.isEmpty()) return;
     double srtm = srtmEle(lonLat);

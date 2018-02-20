@@ -90,6 +90,7 @@ public:
     void saveModifiedTrack(QIODevice *dev, bool addWaypoints, bool isSimple=false);
     const Route& route() const { return myRoute; }
     Route *routePtr() { return &myRoute; }
+    void setRoutePos(int pos);
     void routeSetNew(const QString& fileName);
     void routeSetNew(const QString& fileName, const QString& name, const GpxPointList& points);
     void changeRoutePoint(int pos, const QPointF& lonLat);
@@ -120,6 +121,7 @@ public:
     void trackPosChanged(int);
     void routeChanged();
     void routePointMoved(int);
+    void routePosChanged(int);
     void waypointsChanged();
 private slots:
     void updateRoute() { emit routeChanged(); }

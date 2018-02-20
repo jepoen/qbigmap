@@ -6,6 +6,10 @@ Route::Route(const QString &fileName, const QString &name, const GpxPointList &p
     myFileName(fileName), myName(name), myPoints(points), myDirty(false)
 {}
 
+GpxPoint Route::routePoint(int idx) const {
+    if (idx >= 0 && idx < myPoints.size()) return myPoints[idx]; else return GpxPoint();
+}
+
 void Route::newRoutePoint(const GpxPoint &point) {
     myPoints.append(point);
     myDirty = true;

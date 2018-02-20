@@ -39,6 +39,7 @@ private:
     Model *model;
     Settings settings;
     GpxListModel *myTrackPoiModel;
+    GpxListModel *myRoutePoiModel;
     QString myPhotoDir;
     int myPhotoOffset;
     MapScene *scene;
@@ -48,11 +49,13 @@ private:
     QDockWidget *profileWidget;
     QDockWidget *photoWidget;
     QDockWidget *trackPoiWidget;
+    QDockWidget *routePoiWidget;
     QListWidget *photoList;
     QLabel *photoThumb;
     QPushButton *bPhotoOffset;
     QLabel *lPhotoOffset;
     QTableView *trackPoiListView;
+    QTableView *routePoiListView;
     QLabel *lModelStatus;
     QLabel *lPos;
     QLabel *lTrackPos;
@@ -106,6 +109,7 @@ private:
     //QAction *hidePhotoAction;
     QAction *showTrackPoiAction;
     QAction *showTrackProfileAction;
+    QAction *showRoutePoiAction;
     QAction *posAction;
     QAction *zoomInAction;
     QAction *zoomOutAction;
@@ -149,6 +153,7 @@ private:
     void createStatusBar();
     void createProfileWidget();
     void createTrackPoiTable();
+    void createRoutePoiTable();
     bool loadGpxFile(const QString& fileName);
     void output(QPrinter *device);
     void paintTiles(QPainter *painter, bool showOverlays);
@@ -204,12 +209,14 @@ private slots:
     void selectPhotoPos(QListWidgetItem* item);
     void showPhotoData(QListWidgetItem *item);
     void showTrackPois(bool val);
+    void showRoutePois(bool val);
     void showTrackProfile();
     void showPhotoDir(const QString& dir);
     void setPhotoOffset();
     void fixPhotoTimestamp();
     void geoTagPhotos();
     void selectTrackPoi(const QModelIndex& index);
+    void selectRoutePoi(const QModelIndex& index);
     void toggleGrid();
     void toggleTileBounds();
     void addNorth();

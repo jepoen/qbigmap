@@ -38,7 +38,8 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug()<<"1";
     readSettings();
     qDebug()<<"2";
-    myTrackPoiModel = new GpxListModel(model, &settings.mapIconList());
+    myTrackPoiModel = new GpxListModel(model, &settings.mapIconList(), GpxListModel::GPX_TRK);
+    myRoutePoiModel = new GpxListModel(model, &settings.mapIconList(), GpxListModel::GPX_RTE);
     scene = new MapScene(model);
     scene->setSceneRect(0, 0, 256*model->width(), 256*model->height());
     view = new MapView(scene, &settings);
@@ -109,6 +110,9 @@ MainWindow::MainWindow(QWidget *parent)
     trackPoiWidget = new QDockWidget(tr("Track POIs"));
     createTrackPoiTable();
     addDockWidget(Qt::RightDockWidgetArea, trackPoiWidget, Qt::Vertical);
+    routePoiWidget = new QDockWidget(tr("Route POIs"));
+    createRoutePoiTable();
+    addDockWidget(Qt::RightDockWidgetArea, routePoiWidget, Qt::Vertical);
     createPhotoWidget();
     //horizontalSplitter->addWidget(photoWidget);
     addDockWidget(Qt::RightDockWidgetArea, photoWidget, Qt::Vertical);
@@ -120,6 +124,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(model, SIGNAL(mapChanged()), this, SLOT(updateModelStatus()));
     connect(model, SIGNAL(trackPosChanged(int)), this, SLOT(changeTrackPos(int)));
     connect(model, SIGNAL(trackPosChanged(int)), view, SLOT(changeTrackPos(int)));
+    connect(model, SIGNAL(routePosChanged(int)), view, SLOT(changeRoutePos(int)));
     connect(view, SIGNAL(mouseGeoPos(QPointF)), this, SLOT(showGeoPos(QPointF)));
     connect(photoList, SIGNAL(currentItemChanged(QListWidgetItem*,QListWidgetItem*)), this, SLOT(showPhotoData(QListWidgetItem*)));
     connect(photoList, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(showPhotoData(QListWidgetItem*)));
@@ -128,7 +133,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(bPhotoOffset, SIGNAL(clicked()), this, SLOT(setPhotoOffset()));
     connect(trackPoiListView, SIGNAL(activated(QModelIndex)), this, SLOT(selectTrackPoi(QModelIndex)));
     connect(trackPoiWidget, SIGNAL(visibilityChanged(bool)), showTrackPoiAction, SLOT(setChecked(bool)));
+    connect(routePoiListView, SIGNAL(activated(QModelIndex)), this, SLOT(selectRoutePoi(QModelIndex)));
+    connect(routePoiWidget, SIGNAL(visibilityChanged(bool)), showRoutePoiAction, SLOT(setChecked(bool)));
     connect(model, SIGNAL(trackChanged()), myTrackPoiModel, SLOT(updatePointList()));
+    connect(model, SIGNAL(routeChanged()), myRoutePoiModel, SLOT(updatePointList()));
     show();
     bool hasGpx = false;
     QStringList args = QCoreApplication::arguments();
@@ -289,6 +297,9 @@ void MainWindow::createActions() {
     showTrackPoiAction = new QAction(tr("Track POIs"), this);
     showTrackPoiAction->setCheckable(true);
     connect(showTrackPoiAction, SIGNAL(triggered(bool)), this, SLOT(showTrackPois(bool)));
+    showRoutePoiAction = new QAction(tr("Route POIs"), this);
+    showRoutePoiAction->setCheckable(true);
+    connect(showRoutePoiAction, SIGNAL(triggered(bool)), this, SLOT(showRoutePois(bool)));
     showTrackProfileAction = new QAction(tr("Track Profile"), this);
     connect(showTrackProfileAction, SIGNAL(triggered()), this, SLOT(showTrackProfile()));
     typeActionGroup = new QActionGroup(this);
@@ -471,6 +482,7 @@ void MainWindow::createMenuBar() {
     }
     mView->addAction(showTrackPoiAction);
     mView->addAction(showTrackProfileAction);
+    mView->addAction(showRoutePoiAction);
     mOverlays = mView->addMenu(tr("&Overlays"));
     foreach (QAction *a, ovlActionGroup->actions()) {
         mOverlays->addAction(a);
@@ -567,6 +579,28 @@ void MainWindow::createTrackPoiTable() {
     trackPoiWidget->setWidget(trackPoiListView);
     trackPoiWidget->hide();
     connect(myTrackPoiModel, SIGNAL(layoutChanged()), this, SLOT(resizePoiTab()));
+}
+
+void MainWindow::createRoutePoiTable() {
+    QVBoxLayout *control = new QVBoxLayout();
+    routePoiWidget->setLayout(control);
+    routePoiListView = new QTableView();
+    routePoiListView->setModel(myRoutePoiModel);
+    routePoiListView->setItemDelegate(new GpxListDelegate());
+    routePoiListView->verticalHeader()->hide();
+    QHeaderView *headerView = new QHeaderView(Qt::Horizontal, trackPoiListView);
+    routePoiListView->setHorizontalHeader(headerView);
+    headerView->setDefaultAlignment(Qt::AlignLeft);
+    headerView->setStretchLastSection(true);
+    //headerView->setResizeMode(0, QHeaderView::Stretch);
+    //headerView->setResizeMode(1, QHeaderView::Fixed);
+    headerView->resizeSection(1, 45);
+    //headerView->setResizeMode(2, QHeaderView::Fixed);
+    //headerView->resizeSection(2, 45);
+    routePoiWidget->setWidget(routePoiListView);
+    routePoiWidget->hide();
+    connect(myRoutePoiModel, SIGNAL(layoutChanged()), this, SLOT(resizePoiTab()));
+
 }
 
 void MainWindow::resizePoiTab() {
@@ -1111,6 +1145,7 @@ bool MainWindow::loadGpxFile(const QString& fileName) {
         }
     } else if (gpx.routePoints().size() > 0) {
         model->routeSetNew(fileName, gpx.routeName(), gpx.routePoints());
+        myRoutePoiModel->updatePointList();
     }
     if (gpx.wayPoints().size() > 0) {
         model->waypointsSetNew(gpx.wayPoints());
@@ -1509,6 +1544,11 @@ void MainWindow::showTrackPois(bool val) {
     else     trackPoiWidget->hide();
 }
 
+void MainWindow::showRoutePois(bool val) {
+    if (val) routePoiWidget->show();
+    else     routePoiWidget->hide();
+}
+
 void MainWindow::manageWayPoints() {
     ManageWayPointDlg *dlg = new ManageWayPointDlg(model, &settings.mapIconList(), view);
     if (dlg->exec() == QDialog::Accepted) {
@@ -1523,6 +1563,12 @@ void MainWindow::showTrackProfile() {
 void MainWindow::selectTrackPoi(const QModelIndex &index) {
     int trackPos = myTrackPoiModel->data(index, GpxListModel::GpxIndexRole).toInt();
     model->setTrackPos(trackPos);
+}
+
+void MainWindow::selectRoutePoi(const QModelIndex &index) {
+    int routePos = myRoutePoiModel->data(index, GpxListModel::GpxIndexRole).toInt();
+    model->setRoutePos(routePos);
+    view->editRoutePoint(routePos);
 }
 
 void MainWindow::help() {
