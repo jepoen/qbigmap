@@ -337,6 +337,7 @@ void MapScene::redraw() {
     myTrackPosItem = NULL;
     myRouteItem = NULL;
     myPhotoItem = 0;
+    myTmpItem = 0;
     int w = myModel->width();
     int h = myModel->height();
     progressDlg = new QProgressDialog(tr("Download tiles"), tr("&Cancel"), 0, w*h);
@@ -681,6 +682,7 @@ void MapScene::redrawTmpItem() {
 }
 
 void MapScene::addTmpItem(QPointF& gpos) {
+    if (myTmpItem != 0) delete myTmpItem;
     myTmpItem = addEllipse(-8, -8, 16, 16, QPen(Qt::black), QBrush(Qt::blue));
     myTmpItem->setPos(gpos);
 }

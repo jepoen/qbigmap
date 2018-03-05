@@ -91,6 +91,7 @@ public:
     const Route& route() const { return myRoute; }
     Route *routePtr() { return &myRoute; }
     void setRoutePos(int pos);
+    void setWaypointPos(int pos);
     void routeSetNew(const QString& fileName);
     void routeSetNew(const QString& fileName, const QString& name, const GpxPointList& points);
     void changeRoutePoint(int pos, const QPointF& lonLat);

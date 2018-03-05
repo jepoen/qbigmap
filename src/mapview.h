@@ -62,6 +62,7 @@ public:
     int idxOfWaypoint(const QPointF& pos);
     int idxOfWaypoint(WaypointItem *it);
     void newWaypoint(const QPointF& pos, const QString& name);
+    void editWaypoint(int pointIdx);
     void editWaypoint(const QPointF& pos);
     void delWaypoint(const QPointF& pos);
 protected:
@@ -75,6 +76,7 @@ signals:
 public slots:
     void changeTrackPos(int);
     void changeRoutePos(int pos);
+    void changeWptPos(int pos);
     void setShowFunction();
     void setMoveTrackPosFunction();
     void setMoveGpxPointFunction();

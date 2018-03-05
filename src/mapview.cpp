@@ -484,16 +484,20 @@ void MapView::moveWaypoint(int idx, const QPointF& pos) {
 void MapView::editWaypoint(const QPointF& pos) {
     int idx = idxOfWaypoint(pos);
     if (idx < 0) return;
+    editWaypoint(idx);
+}
+
+void MapView::editWaypoint(int pointIdx) {
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
-    GpxPointDlg dlg(model, model->waypoints().at(idx), mySettings->mapIconList(), true);
+    GpxPointDlg dlg(model, model->waypoints().at(pointIdx), mySettings->mapIconList(), true);
     //Test
     //double dist1 = Model::geodist0(*points, 0, idx);
-    dlg.setSrtmEle(model->srtmEle(model->waypoints().at(idx).coord()));
-    createTempPoint(model->waypoints().at(idx).coord());
+    dlg.setSrtmEle(model->srtmEle(model->waypoints().at(pointIdx).coord()));
+    createTempPoint(model->waypoints().at(pointIdx).coord());
     connect(&dlg, SIGNAL(posChanged(const QPointF&)), this, SLOT(moveTempPoint(QPointF)));
     if (dlg.exec()) {
-        model->setWaypoint(idx, dlg.point());
+        model->setWaypoint(pointIdx, dlg.point());
     }
     deleteTempPoint();
 }
@@ -579,5 +583,14 @@ void MapView::changeRoutePos(int pos) {
     qDebug()<<"changeRoutePos"<<pos<<" routePoints "<<mapScene->routePointItems().size();
     Model *model = static_cast<MapScene*>(scene())->model();
     QPointF pt = model->lonLat2Scene(model->routePtr()->routePoint(pos).coord());
+    ensureVisible(pt.x()-10, pt.y()-10, 20, 20);
+}
+
+void MapView::changeWptPos(int pos) {
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    qDebug()<<"changeWptPos"<<pos<<" routePoints "<<mapScene->waypointItems().size();
+    Model *model = static_cast<MapScene*>(scene())->model();
+    QPointF pt = model->lonLat2Scene(model->wptPtr()->at(pos).coord());
+    qDebug()<<"show pos"<<model->wptPtr()->at(pos).coord()<<" "<<pt;
     ensureVisible(pt.x()-10, pt.y()-10, 20, 20);
 }

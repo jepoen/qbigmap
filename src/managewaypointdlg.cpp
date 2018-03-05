@@ -2,11 +2,12 @@
 #include "gpxpointdlg.h"
 #include "managewaypointdlg.h"
 #include "mapicon.h"
+#include "mapview.h"
 #include "model.h"
 #include "wptmodel.h"
 
-ManageWayPointDlg::ManageWayPointDlg(Model *model, const MapIconList *mapIcons, QWidget *parent) :
-    QDialog(parent), myModel(model), myMapIcons(mapIcons)
+ManageWayPointDlg::ManageWayPointDlg(Model *model, MapView *mapView, const MapIconList *mapIcons, QWidget *parent) :
+    QDialog(parent), myModel(model), myView(mapView), myMapIcons(mapIcons)
 {
     tableModel = new WptModel(myModel->waypoints(), mapIcons, this);
     createActions();
@@ -40,12 +41,22 @@ ManageWayPointDlg::ManageWayPointDlg(Model *model, const MapIconList *mapIcons, 
 
     contentLayout->addLayout(controlLayout);
 
-
     QDialogButtonBox *box = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
     mainLayout->addWidget(box);
     setLayout(mainLayout);
+    connect(wptTable, SIGNAL(activated(QModelIndex)), this, SLOT(changePos(QModelIndex)));
+    connect(this, SIGNAL(posChanged(int)), myView, SLOT(changeWptPos(int)));
     connect(box, SIGNAL(accepted()), this, SLOT(accept()));
     connect(box, SIGNAL(rejected()), this, SLOT(reject()));
+    if (myModel->waypoints().size() > 0) {
+        //myView->createTempPoint(myModel->waypoints().at(0).coord());
+        changePos(0);
+        wptTable->selectRow(0);
+    }
+}
+
+ManageWayPointDlg::~ManageWayPointDlg() {
+    //myView->deleteTempPoint();
 }
 
 void ManageWayPointDlg::createActions() {
@@ -75,14 +86,26 @@ void ManageWayPointDlg::moveDown() {
     }
 }
 
+void ManageWayPointDlg::changePos(const QModelIndex &index) {
+    int pos = index.row();
+    changePos(pos);
+}
+void ManageWayPointDlg::changePos(int pos) {
+    myModel->setWaypointPos(pos);
+    //myView->changeWptPos(pos);
+    //myView->moveTempPoint(myModel->waypoints().at(pos).coord());
+}
+
 void ManageWayPointDlg::edit() {
     QModelIndexList indices = wptTable->selectionModel()->selectedIndexes();
     if (indices.size() > 0) {
         QModelIndex index = indices[0];
         GpxPoint point = tableModel->waypoints().at(index.row());
+        myView->createTempPoint(point.coord());
         GpxPointDlg dlg(myModel, point, *myMapIcons, false);
         if (dlg.exec() == QDialog::Accepted) {
             tableModel->update(index.row(), dlg.point());
         }
+        myView->deleteTempPoint();
     }
 }

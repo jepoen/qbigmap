@@ -1550,7 +1550,7 @@ void MainWindow::showRoutePois(bool val) {
 }
 
 void MainWindow::manageWayPoints() {
-    ManageWayPointDlg *dlg = new ManageWayPointDlg(model, &settings.mapIconList(), view);
+    ManageWayPointDlg *dlg = new ManageWayPointDlg(model, view, &settings.mapIconList(), view);
     if (dlg->exec() == QDialog::Accepted) {
         model->waypointsSetNew(dlg->waypoints());
     }

@@ -375,6 +375,11 @@ void Model::setRoutePos(int pos) {
     emit routePosChanged(pos);
 }
 
+void Model::setWaypointPos(int pos) {
+    if (pos < 0 || pos >= myWaypoints.size()) return;
+    if (!isInMap(myWaypoints[pos].coord())) setCenter(myWaypoints[pos].coord());
+}
+
 void Model::changeRoutePoint(int pos, const QPointF &lonLat) {
     if (myRoute.isEmpty()) return;
     double srtm = srtmEle(lonLat);
