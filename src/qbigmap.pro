@@ -104,6 +104,8 @@ RESOURCES += \
 TRANSLATIONS = qbigmap_de.ts
 LIBS += -l exiv2
 
+QMAKE_CXXFLAGS += -std=c++11
+
 OTHER_FILES += \
     resources/QBigMap.conf \
     icons/zoom_out.png \
