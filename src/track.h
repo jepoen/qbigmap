@@ -41,7 +41,7 @@ public:
     BoundingBox boundingBox() const;
     const GpxPointList& trackPoints() const { return myTrackPoints;}
     int pos() const { return myPos; }
-    void setPos(int pos);
+    int setPos(int pos);
     double sumDist() const { return mySumDist; }
     double dist(int pos) const;
     int nearest(const QPointF& pos) const;

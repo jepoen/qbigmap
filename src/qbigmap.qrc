@@ -34,5 +34,9 @@
         <file>translations/qbigmap_de.qm</file>
         <file>icons/map.png</file>
         <file>icons/pencil.png</file>
+        <file>icons/resultset_first.png</file>
+        <file>icons/resultset_last.png</file>
+        <file>icons/resultset_next.png</file>
+        <file>icons/resultset_previous.png</file>
     </qresource>
 </RCC>

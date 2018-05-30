@@ -307,13 +307,14 @@ void Model::trackSetNew(const QString &fileName, const QString& name, const GpxP
 
 void Model::setTrackPos(int pos) {
     if (myTrack.isEmpty()) return;
-    myTrack.setPos(pos);
+    pos = myTrack.setPos(pos);
     if (!isInMap(myTrack.trackPoint(pos).coord())) setCenter(myTrack.trackPoint(pos).coord());
     emit trackPosChanged(myTrack.pos());
 }
 
 void Model::changeTrackPos(int delta) {
     if (myTrack.isEmpty()) return;
+    qDebug()<<"changeTrackPos"<<delta<<" new pos "<<myTrack.pos()+delta;
     setTrackPos(myTrack.pos()+delta);
 }
 

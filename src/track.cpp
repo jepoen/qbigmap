@@ -60,7 +60,7 @@ BoundingBox Track::boundingBox() const {
     return Gpx::boundingBox(myTrackPoints);
 }
 
-void Track::setPos(int pos) {
+int Track::setPos(int pos) {
     if (pos >= myTrackPoints.size()) pos = myTrackPoints.size()-1;
     if (pos < 0) pos = 0;
     myPos = pos;
@@ -69,6 +69,7 @@ void Track::setPos(int pos) {
     mySumDur = 0.0;
     mySumEleIncl = 0;
     mySumEleDecl = 0;
+    return pos;
 }
 
 double Track::dist(int pos) const {
