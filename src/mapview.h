@@ -83,7 +83,6 @@ public slots:
     void delTrackPart();
     void setNewRoutePointFunction();
     void setDelRoutePointFunction();
-    void setMoveRoutePointFunction();
     void setEditRoutePointFunction();
     void setInsertRoutePointFunction();
     void setNewWaypointFunction();

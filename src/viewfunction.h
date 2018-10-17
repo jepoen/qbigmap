@@ -2,6 +2,8 @@
 #define VIEWFUNCTION_H
 
 #include <QPoint>
+#include "gpx.h"
+
 class QGraphicsTextItem;
 class MapView;
 
@@ -13,9 +15,12 @@ public:
     ViewFunction(MapView *view);
     virtual ~ViewFunction() {}
     virtual void b1(const QPointF& pos, QGraphicsItem *it) = 0;
-    virtual void b2(const QPointF& /*pos*/) {}
+    virtual void b2(const QPointF& pos, const QPoint& globalPos, QGraphicsItem *it);
     virtual void motion(const QPointF& /*pos*/) {}
     virtual bool key(QKeyEvent */*event*/) { return false; }
+    virtual GpxPoint b2_trackpoint(QGraphicsItem *it);
+    virtual GpxPoint b2_routepoint(QGraphicsItem *it);
+    virtual GpxPoint b2_waypoint(QGraphicsItem *it);
 };
 
 class ShowFunction : public ViewFunction {
@@ -49,7 +54,7 @@ private:
 public:
     MoveGpxPointFunction(MapView *view);
     void b1(const QPointF &pos, QGraphicsItem *it);
-    void b2(const QPointF &pos);
+    void b2(const QPointF &pos, const QPoint& globalPos, QGraphicsItem *it);
     void motion(const QPointF &pos);
 };
 
@@ -64,18 +69,6 @@ class DelRoutePointFunction : public ViewFunction {
 public:
     DelRoutePointFunction(MapView *view);
     void b1(const QPointF &pos, QGraphicsItem *);
-};
-
-class MoveRoutePointFunction : public ViewFunction {
-private:
-    QPointF myOldPos;
-    int myState;
-    int myIdx;
-public:
-    MoveRoutePointFunction(MapView *view);
-    void b1(const QPointF &pos, QGraphicsItem *);
-    void b2(const QPointF &);
-    void motion(const QPointF &pos);
 };
 
 class EditRoutePointFunction : public ViewFunction {

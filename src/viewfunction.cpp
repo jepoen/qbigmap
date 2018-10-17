@@ -1,4 +1,5 @@
 #include <QtGui>
+#include <QToolTip>
 #include <QtDebug>
 #include "mapscene.h"
 #include "mapview.h"
@@ -8,6 +9,53 @@
 ViewFunction::ViewFunction(MapView *view) :
     myView(view)
 {}
+
+GpxPoint ViewFunction::b2_trackpoint(QGraphicsItem *it) {
+    MapScene *scene = static_cast<MapScene*>(myView->scene());
+    int idx = scene->trackPointItems().indexOf(static_cast<TrackPointItem*>(it));
+    if (idx >= 0) {
+        return scene->model()->track().trackPoint(idx);
+    }
+    return GpxPoint();
+}
+
+GpxPoint ViewFunction::b2_routepoint(QGraphicsItem *it) {
+    MapScene *scene = static_cast<MapScene*>(myView->scene());
+    int idx = scene->routePointItems().indexOf(static_cast<RoutePointItem*>(it));
+    if (idx >= 0) {
+        return scene->model()->route().points()->at(idx);
+    }
+    return GpxPoint();
+}
+
+GpxPoint ViewFunction::b2_waypoint(QGraphicsItem *it) {
+    MapScene *scene = static_cast<MapScene*>(myView->scene());
+    int idx = scene->waypointItems().indexOf(static_cast<WaypointItem*>(it));
+    if (idx >= 0) {
+        return scene->model()->waypoints().at(idx);
+    }
+    return GpxPoint();
+}
+
+void ViewFunction::b2(const QPointF & pos, const QPoint &globalPos, QGraphicsItem *it) {
+    if (it == 0) return;
+    qDebug()<<"b2 point "<<pos<<" it "<<it<<it->type();
+    int gpxType = it->type();
+    GpxPoint gpx;
+    switch (gpxType) {
+    case TrackPointItem::Type:
+        gpx = b2_trackpoint(it);
+        break;
+    case RoutePointItem::Type:
+        gpx = b2_routepoint(it);
+        break;
+    case WaypointItem::Type:
+        gpx = b2_waypoint(it);
+    }
+    if (!gpx.name().isEmpty()) {
+        QToolTip::showText(globalPos, gpx.name()+"\n"+gpx.sym()+"\n"+gpx.cmt());
+    }
+}
 
 ShowFunction::ShowFunction(MapView *view) :
         ViewFunction(view)
@@ -105,7 +153,11 @@ void MoveGpxPointFunction::b1_waypoint(const QPointF &pos) {
 
 }
 
-void MoveGpxPointFunction::b2(const QPointF &pos) {
+void MoveGpxPointFunction::b2(const QPointF &pos, const QPoint &globalPos, QGraphicsItem *it) {
+    if (myState == 0) {
+        ViewFunction::b2(pos, globalPos, it);
+        return;
+    }
     switch (myType) {
     case TrackPointItem::Type:
         b2_trackpoint(pos);
@@ -192,42 +244,6 @@ DelRoutePointFunction::DelRoutePointFunction(MapView *view) :
 
 void DelRoutePointFunction::b1(const QPointF &pos, QGraphicsItem */*it*/) {
     myView->delRoutePoint(pos);
-}
-
-MoveRoutePointFunction::MoveRoutePointFunction(MapView *view) :
-        ViewFunction(view),
-        myState(0), myIdx(-1)
-{}
-
-void MoveRoutePointFunction::b1(const QPointF &pos, QGraphicsItem */*it*/) {
-    if (myState == 0) {
-        myIdx = myView->idxOfRoutePoint(pos);
-        if (myIdx >= 0) {
-            MapScene *scene = static_cast<MapScene*>(myView->scene());
-            myOldPos = scene->model()->route().points()->at(myIdx).coord();
-            myState = 1;
-        }
-    }
-    else {
-        myState = 0;
-        myIdx = -1;
-    }
-}
-
-void MoveRoutePointFunction::b2(const QPointF &/*pos*/) {
-    if (myIdx >= 0 && myState == 1) {
-        MapScene *scene = static_cast<MapScene*>(myView->scene());
-        double srtm = scene->model()->srtmEle(myOldPos);
-        scene->model()->routePtr()->moveRoutePoint(myIdx, myOldPos, srtm);
-        myState = 0;
-        myIdx = -1;
-    }
-}
-
-void MoveRoutePointFunction::motion(const QPointF &pos) {
-    if (myState == 1) {
-        myView->moveRoutePoint(myIdx, pos);
-    }
 }
 
 EditRoutePointFunction::EditRoutePointFunction(MapView *view) :

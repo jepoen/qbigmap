@@ -93,7 +93,6 @@ private:
     QAction *moveGpxPointAction;
     QAction *newRoutePointAction;
     QAction *delRoutePointAction;
-    QAction *moveRoutePointAction;
     QAction *editRoutePointAction;
     QAction *insertRoutePointAction;
     QAction *listWayPointsAction;

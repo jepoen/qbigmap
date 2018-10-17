@@ -261,10 +261,6 @@ void MainWindow::createActions() {
     delRoutePointAction->setCheckable(true);
     functionActionGroup->addAction(delRoutePointAction);
     connect(delRoutePointAction, SIGNAL(triggered()), view, SLOT(setDelRoutePointFunction()));
-    moveRoutePointAction = new QAction(tr("Move route point"), this);
-    moveRoutePointAction->setCheckable(true);
-    functionActionGroup->addAction(moveRoutePointAction);
-    connect(moveRoutePointAction, SIGNAL(triggered()), view, SLOT(setMoveRoutePointFunction()));
     editRoutePointAction = new QAction(tr("Edit route point"), functionActionGroup);
     editRoutePointAction->setCheckable(true);
     connect(editRoutePointAction, SIGNAL(triggered()), view, SLOT(setEditRoutePointFunction()));

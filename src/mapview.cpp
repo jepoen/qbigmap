@@ -50,11 +50,13 @@ void MapView::mousePressEvent(QMouseEvent *event) {
         }
     }
     QPointF pos = mapToScene(event->pos());
+    QPoint globalPos = mapToGlobal(event->pos());
     if (event->button() == Qt::LeftButton) {
         function->b1(pos, currIt);
     }
     else if (event->button() == Qt::MidButton) {
-        function->b2(pos);
+        qDebug()<<"pos"<<event->pos()<<"global"<<globalPos;
+        function->b2(pos, globalPos, currIt);
     }
     else if (event->button() == Qt::RightButton) {
         mouseX0 = pos.x();
@@ -528,10 +530,6 @@ void MapView::setNewRoutePointFunction() {
 
 void MapView::setDelRoutePointFunction() {
     function.reset(new DelRoutePointFunction(this));
-}
-
-void MapView::setMoveRoutePointFunction() {
-    function.reset(new MoveRoutePointFunction(this));
 }
 
 void MapView::setEditRoutePointFunction() {
