@@ -6,16 +6,15 @@
 #include "viewfunction.h"
 
 ViewFunction::ViewFunction(MapView *view) :
-    myView(view), myIt(0)
+    myView(view)
 {}
 
 ShowFunction::ShowFunction(MapView *view) :
         ViewFunction(view)
 {}
 
-void ShowFunction::b1(const QPointF& pos, QGraphicsItem *it) {
+void ShowFunction::b1(const QPointF& pos, QGraphicsItem */*it*/) {
     myView->showPos(pos);
-    myIt = it;
 }
 
 SetTrackPosFunction::SetTrackPosFunction(MapView *view) :
@@ -248,36 +247,36 @@ void InsertRoutePointFunction::b1(const QPointF &pos, QGraphicsItem */*it*/) {
 }
 
 NewWaypointFunction::NewWaypointFunction(MapView *view) :
-    ViewFunction(view), myIt(0)
+    ViewFunction(view)
 {}
 
-NewWaypointFunction::~NewWaypointFunction() {
-    delete myIt;
-}
-
 void NewWaypointFunction::b1(const QPointF &pos, QGraphicsItem */*it*/) {
-    if (myIt != 0) {
-        myView->newWaypoint(myPos, myIt->toPlainText());
+    MapScene *scene = static_cast<MapScene*>(myView->scene());
+    QGraphicsTextItem *it = static_cast<QGraphicsTextItem*>(scene->functionItem());
+    if (it != 0) {
+        myView->newWaypoint(myPos, it->toPlainText());
         reset();
     }
     myPos = pos;
-    myIt = new QGraphicsTextItem();
-    myIt->setFlags(QGraphicsItem::ItemIsSelectable|QGraphicsItem::ItemIsMovable);
-    myIt->setZValue(1000);
+    it = new QGraphicsTextItem();
+    it->setFlags(QGraphicsItem::ItemIsSelectable|QGraphicsItem::ItemIsMovable);
+    it->setZValue(1000);
     QFont font;
     font.setPixelSize(12);
-    myIt->setFont(font);
-    myIt->setTextInteractionFlags(Qt::TextEditorInteraction);
-    myView->scene()->addItem(myIt);
-    myIt->setPos(pos);
-    myIt->setFocus();
+    it->setFont(font);
+    it->setTextInteractionFlags(Qt::TextEditorInteraction);
+    scene->setFunctionItem(it);
+    it->setPos(pos);
+    it->setFocus();
     qDebug()<<"text item added "<<pos;
 }
 
 bool NewWaypointFunction::key(QKeyEvent *event) {
-    if (myIt == 0) return false;
+    MapScene *scene = static_cast<MapScene*>(myView->scene());
+    QGraphicsTextItem *it = static_cast<QGraphicsTextItem*>(scene->functionItem());
+    if (it == 0) return false;
     if (event->key() == Qt::Key_Return) {
-        myView->newWaypoint(myPos, myIt->toPlainText());
+        myView->newWaypoint(myPos, it->toPlainText());
         reset();
         return true;
     } else if (event->key() == Qt::Key_Escape) {
@@ -289,6 +288,6 @@ bool NewWaypointFunction::key(QKeyEvent *event) {
 }
 
 void NewWaypointFunction::reset() {
-    delete myIt;
-    myIt = 0;
+    MapScene *scene = static_cast<MapScene*>(myView->scene());
+    scene->delFunctionItem();
 }

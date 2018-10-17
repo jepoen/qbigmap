@@ -133,6 +133,7 @@ private:
     QList<QPointF> myPhotoCoord; // only one entry!
     PhotoItem *myPhotoItem;
     QGraphicsItem *myTmpItem;
+    QGraphicsItem *myFunctionItem;
     bool myShowGrid;
     bool myShowTileBounds;
     bool myShowTrackBb;
@@ -155,6 +156,9 @@ public:
     QList<TrackPointItem *> trackPointItems() const { return myTrackPointItems; }
     QList<RoutePointItem *> routePointItems() const { return myRoutePointItems; }
     QList<WaypointItem *> waypointItems() const { return myWaypointItems; }
+    QGraphicsItem *functionItem() const { return myFunctionItem; }
+    void setFunctionItem(QGraphicsItem *it) { myFunctionItem = it; addItem(it);}
+    void delFunctionItem() { delete myFunctionItem; myFunctionItem = 0; }
     void setShowGrid(bool show);
     bool isShowGrid() const { return myShowGrid; }
     void setShowTileBounds(bool show);

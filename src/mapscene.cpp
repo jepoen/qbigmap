@@ -338,6 +338,7 @@ void MapScene::redraw() {
     myRouteItem = NULL;
     myPhotoItem = 0;
     myTmpItem = 0;
+    myFunctionItem = 0;
     int w = myModel->width();
     int h = myModel->height();
     progressDlg = new QProgressDialog(tr("Download tiles"), tr("&Cancel"), 0, w*h);

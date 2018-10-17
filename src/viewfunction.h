@@ -9,7 +9,6 @@ class ViewFunction
 {
 protected:
     MapView *myView;
-    QGraphicsItem *myIt;
 public:
     ViewFunction(MapView *view);
     virtual ~ViewFunction() {}
@@ -93,13 +92,11 @@ public:
 
 class NewWaypointFunction: public ViewFunction {
 private:
-    QGraphicsTextItem *myIt;
     QPointF myPos;
 
     void reset();
 public:
     explicit NewWaypointFunction(MapView *view);
-    ~NewWaypointFunction();
     void b1(const QPointF &pos, QGraphicsItem *);
     bool key(QKeyEvent *);
 };
