@@ -23,7 +23,7 @@ private:
     void writeXmlTrk(QDomDocument& doc) const;
 
 public:
-    Route(const QString& fileName="", const QString& name="", const GpxPointList& points = GpxPointList());
+    explicit Route(const QString& fileName="", const QString& name="", const GpxPointList& points = GpxPointList());
     const GpxPointList *points() const { return &myPoints; }
     GpxPoint routePoint(int idx) const;
     const QString fileName() const { return myFileName; }

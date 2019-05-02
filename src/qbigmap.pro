@@ -52,7 +52,8 @@ SOURCES += main.cpp \
     tile.cpp \
     wptmodel.cpp \
     managewaypointdlg.cpp \
-    gpxlinkdlg.cpp
+    gpxlinkdlg.cpp \
+    gpxsplitdialog.cpp
 HEADERS += mainwindow.h \
     httpget.h \
     model.h \
@@ -98,7 +99,8 @@ HEADERS += mainwindow.h \
     tile.h \
     wptmodel.h \
     managewaypointdlg.h \
-    gpxlinkdlg.h
+    gpxlinkdlg.h \
+    gpxsplitdialog.h
 RESOURCES += \
     qbigmap.qrc
 TRANSLATIONS = qbigmap_de.ts

@@ -5,11 +5,13 @@
 #include <QGraphicsView>
 #include <QPointF>
 #include <QPrinter>
+
 #include "settings.h"
 #include "viewfunction.h"
 
 class TrackPointItem;
 class WaypointItem;
+class Route;
 class RoutePointItem;
 class QAction;
 
@@ -28,11 +30,14 @@ private:
     QAction *delTrackPointAction;
     QAction *editRoutePointAction;
     QAction *delRoutePointAction;
+    QAction *splitRouteAction;
     QAction *insertRoutePointAction;
     QAction *editWaypointAction;
     QAction *delWaypointAction;
 
     void createActions();
+    void saveRoute(Route *route, GpxPointList *wpts);
+
 public:
     MapView(QGraphicsScene *scene, Settings *settings);
     void zoomIn(const QPointF& pos);
@@ -55,6 +60,8 @@ public:
     void editRoutePoint(int pointIdx);
     void editRoutePoint(const QPointF& pos);
     void insertRoutePoint(const QPointF& pos);
+    void splitRoute(int pointIdx);
+    void splitRoute(const QPointF& pos);
     void moveWaypoint(int idx, const QPointF& pos);
     void output(QPrinter *device, double tilesize);
     void createTempPoint(const QPointF& pos);

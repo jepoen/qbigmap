@@ -7,6 +7,7 @@
 #include "mapview.h"
 #include "route.h"
 #include "gpxpointdlg.h"
+#include "gpxsplitdialog.h"
 #include "track.h"
 #include "viewfunction.h"
 
@@ -26,6 +27,7 @@ void MapView::createActions() {
     editRoutePointAction = new QAction(tr("Edit Route Point"), this);
     insertRoutePointAction = new QAction(tr("Insert Route Point"), this);
     delRoutePointAction = new QAction(tr("Delete Route Point"), this);
+    splitRouteAction = new QAction(tr("Split Route"), this);
     editWaypointAction = new QAction(tr("Edit Waypoint"), this);
     delWaypointAction = new QAction(tr("Delete Waypoint"), this);
 }
@@ -127,12 +129,14 @@ void MapView::contextMenuEvent(QContextMenuEvent *event) {
         if (it->type() == RoutePointItem::Type) {
             qDebug()<<"routePointItem";
             QList<QAction*> actions;
-            actions<<editRoutePointAction<<delRoutePointAction;
+            actions<<editRoutePointAction<<delRoutePointAction<<splitRouteAction;
             QAction *action = QMenu::exec(actions, mapToGlobal(vpos), 0, this);
             if (action == editRoutePointAction) {
                 editRoutePoint(mapToScene(vpos));
             } else if (action == delRoutePointAction) {
                 delRoutePoint(mapToScene(vpos));
+            } else if (action == splitRouteAction) {
+                splitRoute(mapToScene(vpos));
             }
             break;
         } else if (it->type() == RouteItem::Type) {
@@ -418,6 +422,50 @@ void MapView::editRoutePoint(int idx) {
         model->setRoutePoint(idx, dlg.point());
     }
     deleteTempPoint();
+}
+
+void MapView::saveRoute(Route *route, GpxPointList* wpts) {
+    const QString& fileName = route->fileName();
+    QFile file(fileName);
+    if (!file.open(QFile::WriteOnly|QFile::Text)) {
+        QMessageBox::warning(this, tr("Save Route %1").arg(route->name()),
+                             tr("Cannot save file %1: %2").arg(fileName).arg(file.errorString()));
+        return;
+    }
+    route->writeXml(&file, wpts, false);
+}
+
+void MapView::splitRoute(int idx) {
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    Model *model = mapScene->model();
+    const GpxPointList *points = model->route().points();
+    GpxSplitDialog dlg(model->route().fileName(), points->at(idx));
+    createTempPoint(points->at(idx).coord());
+    if (dlg.exec()) {
+        GpxPointList firstPart = points->mid(0, idx+1);
+        GpxPointList secondPart = points->mid(idx, -1);
+        if (dlg.isPreservedFirst()) {
+            model->routeSetNew(dlg.splitFileName(0), model->route().name(), firstPart);
+        } else {
+            model->routeSetNew(dlg.splitFileName(1), model->route().name(), secondPart);
+        }
+        GpxPointList *wpts = model->wptPtr();
+        if (dlg.isSavedFirst()) {
+            Route r1(dlg.splitFileName(0), model->route().name(), firstPart);
+            saveRoute(&r1, wpts);
+        }
+        if (dlg.isSavedSecond()) {
+            Route r2(dlg.splitFileName(1), model->route().name(), secondPart);
+            saveRoute(&r2, wpts);
+        }
+    }
+    deleteTempPoint();
+}
+
+void MapView::splitRoute(const QPointF& pos) {
+    int idx = idxOfRoutePoint(pos);
+    if (idx < 0) return;
+    splitRoute(idx);
 }
 
 void MapView::insertRoutePoint(const QPointF &pos) {
