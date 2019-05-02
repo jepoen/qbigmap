@@ -264,6 +264,8 @@ void MainWindow::createActions() {
     editRoutePointAction = new QAction(tr("Edit route point"), functionActionGroup);
     editRoutePointAction->setCheckable(true);
     connect(editRoutePointAction, SIGNAL(triggered()), view, SLOT(setEditRoutePointFunction()));
+    appendRouteAction = new QAction(tr("Append route to route"));
+    connect(appendRouteAction, SIGNAL(triggered(bool)), view, SLOT(appendRoute()));
     insertRoutePointAction = new QAction(tr("Insert route point"), functionActionGroup);
     insertRoutePointAction->setCheckable(true);
     connect(insertRoutePointAction, SIGNAL(triggered()), view, SLOT(setInsertRoutePointFunction()));
@@ -463,6 +465,7 @@ void MainWindow::createMenuBar() {
     mGpx->addAction(delRoutePointAction);
     mGpx->addAction(editRoutePointAction);
     mGpx->addAction(insertRoutePointAction);
+    mGpx->addAction(appendRouteAction);
     mGpx->addAction(listWayPointsAction);
     mGpx->addAction(saveRouteAction);
     mGpx->addAction(routeAddSrtmEleAction);

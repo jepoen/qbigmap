@@ -95,6 +95,7 @@ private:
     QAction *delRoutePointAction;
     QAction *editRoutePointAction;
     QAction *insertRoutePointAction;
+    QAction *appendRouteAction;
     QAction *listWayPointsAction;
     QAction *saveRouteAction;
     QAction *delRouteAction;

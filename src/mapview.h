@@ -92,6 +92,7 @@ public slots:
     void setDelRoutePointFunction();
     void setEditRoutePointFunction();
     void setInsertRoutePointFunction();
+    void appendRoute();
     void setNewWaypointFunction();
     void moveTempPoint(const QPointF& pos);
     void zoomInCenter();

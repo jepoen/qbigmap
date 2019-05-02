@@ -8,6 +8,7 @@
 #include "route.h"
 #include "gpxpointdlg.h"
 #include "gpxsplitdialog.h"
+#include "routeappenddlg.h"
 #include "track.h"
 #include "viewfunction.h"
 
@@ -639,4 +640,18 @@ void MapView::changeWptPos(int pos) {
     QPointF pt = model->lonLat2Scene(model->wptPtr()->at(pos).coord());
     qDebug()<<"show pos"<<model->wptPtr()->at(pos).coord()<<" "<<pt;
     ensureVisible(pt.x()-10, pt.y()-10, 20, 20);
+}
+
+void MapView::appendRoute() {
+    Model *model = static_cast<MapScene*>(scene())->model();
+    QString dir = mySettings->trackDir();
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Load GPX file"), dir,
+                                               tr("GPX file (*.gpx)"));
+    if (fileName.isEmpty()) return;
+    Gpx gpx(fileName);
+    const GpxPointList& newPoints = gpx.routePoints();
+    RouteAppendDlg dlg(model->route().points(), &newPoints);
+    if (dlg.exec()) {
+
+    }
 }
