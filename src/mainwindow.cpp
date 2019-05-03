@@ -264,7 +264,7 @@ void MainWindow::createActions() {
     editRoutePointAction = new QAction(tr("Edit route point"), functionActionGroup);
     editRoutePointAction->setCheckable(true);
     connect(editRoutePointAction, SIGNAL(triggered()), view, SLOT(setEditRoutePointFunction()));
-    appendRouteAction = new QAction(tr("Append route to route"));
+    appendRouteAction = new QAction(tr("Append route to route ..."));
     connect(appendRouteAction, SIGNAL(triggered(bool)), view, SLOT(appendRoute()));
     insertRoutePointAction = new QAction(tr("Insert route point"), functionActionGroup);
     insertRoutePointAction->setCheckable(true);
@@ -275,6 +275,8 @@ void MainWindow::createActions() {
     connect(saveRouteAction, SIGNAL(triggered()), this, SLOT(saveRoute()));
     delRouteAction = new QAction(tr("Delete complete route"), this);
     connect(delRouteAction, SIGNAL(triggered()), this, SLOT(delRoute()));
+    delWptAction = new QAction(tr("Delete all waypoints"), this);
+    connect(delWptAction, SIGNAL(triggered()), this, SLOT(delWpt()));
     saveRouteProfileAction = new QAction(tr("Save route profile..."), this);
     connect(saveRouteProfileAction, SIGNAL(triggered()), this, SLOT(saveRouteProfile()));
     routeAddSrtmEleAction = new QAction(tr("Add SRTM elevation"), this);
@@ -471,6 +473,7 @@ void MainWindow::createMenuBar() {
     mGpx->addAction(routeAddSrtmEleAction);
     mGpx->addAction(saveRouteProfileAction);
     mGpx->addAction(delRouteAction);
+    mGpx->addAction(delWptAction);
     QMenu *mView = menuBar()->addMenu(tr("&View"));
     mView->addAction(redrawAction);
     mView->addAction(showGridAction);
@@ -1326,6 +1329,16 @@ void MainWindow::delRoute() {
         updateTitle();
     }
 }
+
+void MainWindow::delWpt() {
+    int wptSize = model->waypoints().size();
+    if (QMessageBox::question(this, tr("Delete Waypoints"),
+                              tr("Delete all waypoints (%1 points)?").arg(wptSize),
+                              QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
+        model->waypointsSetNew(GpxPointList());
+    }
+}
+
 
 void MainWindow::saveRoute() {
     SaveRouteDlg dlg(SaveRouteDlg::ROUTE, model->route().fileName(), model->route().name(),

@@ -99,6 +99,7 @@ private:
     QAction *listWayPointsAction;
     QAction *saveRouteAction;
     QAction *delRouteAction;
+    QAction *delWptAction;
     QAction *routeAddSrtmEleAction;
     QAction *saveRouteProfileAction;
     QAction *mapToRouteAction;
@@ -198,6 +199,7 @@ private slots:
     void saveTrackProfile();
     void saveRoute();
     void delRoute();
+    void delWpt();
     void saveRouteProfile();
     void routeAddSrtmEle();
     void mapToRoute();

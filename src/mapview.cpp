@@ -652,6 +652,19 @@ void MapView::appendRoute() {
     const GpxPointList& newPoints = gpx.routePoints();
     RouteAppendDlg dlg(model->route().points(), &newPoints);
     if (dlg.exec()) {
-
+        GpxPointList result(*model->route().points());
+        if (dlg.gap() < 0.01) { // distance less than 10 m -> remove duplicate
+            result.pop_back();
+        }
+        if (dlg.isReversed()) {
+            GpxPointList::const_iterator it = newPoints.cend();
+            while (it != newPoints.cbegin()) {
+                --it;
+                result.append(*it);
+            }
+        } else {
+            result.append(newPoints);
+        }
+        model->routeSetNew(model->route().fileName(), model->route().name(), result);
     }
 }
