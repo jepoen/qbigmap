@@ -38,5 +38,6 @@
         <file>icons/resultset_last.png</file>
         <file>icons/resultset_next.png</file>
         <file>icons/resultset_previous.png</file>
+        <file>icons/world.png</file>
     </qresource>
 </RCC>
