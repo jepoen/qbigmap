@@ -131,7 +131,7 @@ void MapView::contextMenuEvent(QContextMenuEvent *event) {
             qDebug()<<"routePointItem";
             QList<QAction*> actions;
             actions<<editRoutePointAction<<delRoutePointAction<<splitRouteAction;
-            QAction *action = QMenu::exec(actions, mapToGlobal(vpos), 0, this);
+            QAction *action = QMenu::exec(actions, mapToGlobal(vpos), nullptr, this);
             if (action == editRoutePointAction) {
                 editRoutePoint(mapToScene(vpos));
             } else if (action == delRoutePointAction) {
@@ -173,15 +173,11 @@ void MapView::contextMenuEvent(QContextMenuEvent *event) {
         } else if (it->type() == WaypointItem::Type) {
             QList<QAction*> actions;
             actions<<editWaypointAction<<delWaypointAction;
-            QAction *action = QMenu::exec(actions, mapToGlobal(vpos), 0, this);
+            QAction *action = QMenu::exec(actions, mapToGlobal(vpos), nullptr, this);
             if (action == editWaypointAction) {
                 editWaypoint(mapToScene(vpos));
             } else if (action == delWaypointAction) {
-                if (QMessageBox::question(this, tr("Delete Waypoint"), tr("Delete Waypoint?"),
-                                          QMessageBox::Yes|QMessageBox::No, QMessageBox::No)
-                        == QMessageBox::Yes) {
-                    delWaypoint(mapToScene(vpos));
-                }
+                delWaypoint(mapToScene(vpos));
             }
             break;
         }
@@ -558,7 +554,12 @@ void MapView::delWaypoint(const QPointF& pos) {
     if (idx < 0) return;
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
-    model->delWaypoint(idx);
+    GpxPoint p = model->waypoints().at(idx);
+    if (QMessageBox::question(this, tr("Delete Waypoint"), tr("Delete Waypoint %1?").arg(p.name()),
+                              QMessageBox::Yes|QMessageBox::No, QMessageBox::No)
+            == QMessageBox::Yes) {
+        model->delWaypoint(idx);
+    }
 }
 
 void MapView::setShowFunction() {
