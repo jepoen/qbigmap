@@ -555,11 +555,13 @@ void MapView::delWaypoint(const QPointF& pos) {
     MapScene *mapScene = static_cast<MapScene*>(scene());
     Model *model = mapScene->model();
     GpxPoint p = model->waypoints().at(idx);
+    createTempPoint(model->waypoints().at(idx).coord());
     if (QMessageBox::question(this, tr("Delete Waypoint"), tr("Delete Waypoint %1?").arg(p.name()),
                               QMessageBox::Yes|QMessageBox::No, QMessageBox::No)
             == QMessageBox::Yes) {
         model->delWaypoint(idx);
     }
+    deleteTempPoint();
 }
 
 void MapView::setShowFunction() {
