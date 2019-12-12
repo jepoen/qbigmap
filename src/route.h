@@ -40,6 +40,7 @@ public:
     void moveRoutePoint(int idx, const QPointF& pos, double srtm);
     void insertRoutePoint(int idx, const GpxPoint &point);
     void delRoute();
+    void reverseRoute();
     bool isDirty() const { return myDirty; }
     void writeXml(QIODevice *dev, GpxPointList *wpts, bool asTrack);
     void removeDoubles() { Gpx::removeDoubles(myPoints); }

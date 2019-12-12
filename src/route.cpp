@@ -53,6 +53,13 @@ void Route::delRoute() {
     emit routeChanged();
 }
 
+void Route::reverseRoute() {
+    for (int i = 0, k = myPoints.size()-1; i < k; i++, k--) {
+        myPoints.swapItemsAt(i, k);
+    }
+    emit routeChanged();
+}
+
 void Route::writeXmlWpt(QDomDocument& doc, GpxPointList *wpts) const {
     QDomElement root = doc.documentElement();
     foreach (const GpxPoint&p, *wpts) {

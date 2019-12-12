@@ -269,6 +269,8 @@ void MainWindow::createActions() {
     insertRoutePointAction = new QAction(tr("Insert route point"), functionActionGroup);
     insertRoutePointAction->setCheckable(true);
     connect(insertRoutePointAction, SIGNAL(triggered()), view, SLOT(setInsertRoutePointFunction()));
+    reverseRouteAction = new QAction(tr("Reverse route direction"));
+    connect(reverseRouteAction, SIGNAL(triggered()), this, SLOT(reverseRoute()));
     listWayPointsAction = new QAction(tr("Manage way points ..."), this);
     connect(listWayPointsAction, SIGNAL(triggered()), this, SLOT(manageWayPoints()));
     saveRouteAction = new QAction(tr("Save Route ..."), this);
@@ -472,6 +474,7 @@ void MainWindow::createMenuBar() {
     mGpx->addAction(saveRouteAction);
     mGpx->addAction(routeAddSrtmEleAction);
     mGpx->addAction(saveRouteProfileAction);
+    mGpx->addAction(reverseRouteAction);
     mGpx->addAction(delRouteAction);
     mGpx->addAction(delWptAction);
     QMenu *mView = menuBar()->addMenu(tr("&View"));
@@ -1327,6 +1330,15 @@ void MainWindow::delRoute() {
                               QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
         model->routePtr()->delRoute();
         updateTitle();
+    }
+}
+
+void MainWindow::reverseRoute() {
+    int routeSize = model->routePtr()->points()->size();
+    if (QMessageBox::question(this, tr("Reverse route"),
+                              tr("Reverse direction of this route (%1 points)?").arg(routeSize),
+                              QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
+        model->routePtr()->reverseRoute();
     }
 }
 
