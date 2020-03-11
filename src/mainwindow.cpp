@@ -264,12 +264,12 @@ void MainWindow::createActions() {
     editRoutePointAction = new QAction(tr("Edit route point"), functionActionGroup);
     editRoutePointAction->setCheckable(true);
     connect(editRoutePointAction, SIGNAL(triggered()), view, SLOT(setEditRoutePointFunction()));
-    appendRouteAction = new QAction(tr("Append route to route ..."));
+    appendRouteAction = new QAction(tr("Append route to route ..."), this);
     connect(appendRouteAction, SIGNAL(triggered(bool)), view, SLOT(appendRoute()));
     insertRoutePointAction = new QAction(tr("Insert route point"), functionActionGroup);
     insertRoutePointAction->setCheckable(true);
     connect(insertRoutePointAction, SIGNAL(triggered()), view, SLOT(setInsertRoutePointFunction()));
-    reverseRouteAction = new QAction(tr("Reverse route direction"));
+    reverseRouteAction = new QAction(tr("Reverse route direction"), this);
     connect(reverseRouteAction, SIGNAL(triggered()), this, SLOT(reverseRoute()));
     listWayPointsAction = new QAction(tr("Manage way points ..."), this);
     connect(listWayPointsAction, SIGNAL(triggered()), this, SLOT(manageWayPoints()));

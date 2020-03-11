@@ -55,7 +55,10 @@ void Route::delRoute() {
 
 void Route::reverseRoute() {
     for (int i = 0, k = myPoints.size()-1; i < k; i++, k--) {
-        myPoints.swapItemsAt(i, k);
+        //myPoints.swapItemsAt(i, k);
+        GpxPoint h = myPoints[i];
+        myPoints[i] = myPoints[k];
+        myPoints[k] = h;
     }
     emit routeChanged();
 }
