@@ -42,10 +42,33 @@ void GpxProfile::paint(QPaintDevice *dev, int variant, int width, int height, in
         painter.drawText(QRectF(p0.x()-2*myOffset-5, y-5, 2*myOffset, 10), Qt::AlignVCenter|Qt::AlignRight, QString("%1").arg(ele));
     }
     painter.setPen(QPen(QBrush(Qt::black), 1, Qt::SolidLine));
+    // Fill area
+    double dist = 0;
+    QPolygon poly;
+    poly<<p0;
+    GpxPoint pOld = myGpxPoints.at(0);
+    foreach (const GpxPoint& p, myGpxPoints) {
+        //qDebug()<<"ele "<<p.ele()<<" ele0 "<<ele0;
+        int ele = (variant == ELE) ? p.ele() : p.srtm();
+        double y = p0.y()-(ele-ele0)*scaleY;
+        dist += Model::geodist1(pOld.coord(), p.coord());
+        double x = p0.x()+dist*scaleX;
+            //qDebug()<<"("<<x<<","<<y<<")";
+        poly<<QPoint(x, y);
+        pOld = p;
+    }
+    double x = p0.x()+dist*scaleX;
+    poly<<QPoint(x, p0.y());
+    painter.setPen((QPen()));
+    painter.setBrush((QBrush(QColor(0xcf, 0xcf, 0xff))));
+    painter.drawPolygon(poly);
+    // ele line
+    painter.setPen(QPen(Qt::black));
+    painter.setBrush(QBrush());
     QPainterPath path;
     bool isFirst = true;
-    GpxPoint pOld(0, QPointF(0,0));
-    double dist = 0;
+    pOld = GpxPoint(0, QPointF(0,0));
+    dist = 0.0;
     int symCount = 0;
     foreach (const GpxPoint& p, myGpxPoints) {
         //qDebug()<<"ele "<<p.ele()<<" ele0 "<<ele0;
@@ -64,11 +87,13 @@ void GpxProfile::paint(QPaintDevice *dev, int variant, int width, int height, in
         if (!p.sym().isEmpty() && p.showProfile() && textwidth > 0) {
             symCount++;
             const QPixmap pix = mySettings->mapIconList().icon(p.sym()).mapIco();
-            int w = pix.width();
-            int h = pix.height();
-            painter.drawLine(x, y, x, y-h);
-            painter.drawPixmap(x-w/2, y-2*h, w, h, pix);
-            painter.drawText(x, y-2*h, QString("(%1)").arg(symCount));
+            int h = height;
+            painter.setPen(QPen(Qt::black, 1, Qt::DotLine));
+            painter.drawLine(x, y, x, p0.y()-h+2);
+            painter.setPen(Qt::black);
+            //painter.drawPixmap(x-w/2, y-2*h, w, h, pix);
+            //painter.drawText(x, y-2*h, QString("(%1)").arg(symCount));
+            painter.drawText(x-5, p0.y()-h, QString("(%1)").arg(symCount));
             painter.drawText(pText, QString("(%1) %2 (%3m)").arg(symCount).arg(p.name()).arg(p.ele()));
             pText.setY(pText.y()+linespace);
         }
