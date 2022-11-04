@@ -88,13 +88,14 @@ void GpxProfile::paint(QPaintDevice *dev, int variant, int width, int height, in
             symCount++;
             const QPixmap pix = mySettings->mapIconList().icon(p.sym()).mapIco();
             int h = height;
+            int ele = (variant == ELE) ? p.ele() : p.srtm();
             painter.setPen(QPen(Qt::black, 1, Qt::DotLine));
             painter.drawLine(x, y, x, p0.y()-h+2);
             painter.setPen(Qt::black);
             //painter.drawPixmap(x-w/2, y-2*h, w, h, pix);
             //painter.drawText(x, y-2*h, QString("(%1)").arg(symCount));
             painter.drawText(x-5, p0.y()-h, QString("(%1)").arg(symCount));
-            painter.drawText(pText, QString("(%1) %2 (%3m)").arg(symCount).arg(p.name()).arg(p.ele()));
+            painter.drawText(pText, QString("(%1) %2 (%3m)").arg(symCount).arg(p.name()).arg(ele));
             pText.setY(pText.y()+linespace);
         }
         pOld = p;
