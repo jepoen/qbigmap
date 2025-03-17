@@ -50,7 +50,7 @@ Photo::Photo(const QString &fileName) :
 }
 
 void Photo::readTimestamp() {
-    Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open(myFileName.toStdString().c_str());
+    Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open(myFileName.toStdString().c_str());
     assert(image.get() != 0);
     image->readMetadata();
     Exiv2::ExifData &exifData = image->exifData();
@@ -99,7 +99,7 @@ const QPixmap& Photo::pixmap() {
 }
 
 void Photo::fixTimestamp(int offset) {
-    Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open(myFileName.toStdString().c_str());
+    Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open(myFileName.toStdString().c_str());
     assert(image.get() != 0);
     image->readMetadata();
     Exiv2::ExifData &exifData = image->exifData();
@@ -113,7 +113,7 @@ void Photo::fixTimestamp(int offset) {
 }
 
 void Photo::setGeoPos(const QPointF &pos) {
-    Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open(myFileName.toStdString().c_str());
+    Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open(myFileName.toStdString().c_str());
     assert(image.get() != 0);
     image->readMetadata();
     Exiv2::ExifData &exifData = image->exifData();
