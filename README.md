@@ -1,5 +1,7 @@
 # Qbigmap
 
+The repository was migrated to https://codeberg.org/jepoen/qbigmap
+
 Manage maps built from OpenStreetMap tiles, tracks, and routes. Georeferences
 photos with tracks.
 
